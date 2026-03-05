@@ -1,0 +1,32 @@
+services:
+  server:
+    container_name: twinpin-server
+    build: .
+    networks:
+      - twinpin-network
+    ports:
+      - "3000:3000"
+    env_file:
+      - ../.env
+    volumes:
+      - .:/app
+      - postgres-data:/var/lib/postgresql/data
+    depends_on:
+      db:
+        condition: service_healthy
+  db:
+    container_name: twinpin-db
+    image: postgres:18-alpine
+    restart: always
+    ports:
+      - "5432:5432"
+    networks:
+      - twinpin-network
+
+volumes:
+  postgres-data:
+
+networks:
+  twinpin-network:
+    name: twinpin-network
+    driver: bridge

@@ -1,0 +1,13 @@
+services:
+  frontend:
+    container_name: twinpin-client
+    build: .
+    ports:
+      - "5173:5173"
+    networks:
+      - tailsync-network
+    restart: unless-stopped
+
+networks:
+  tailsync-network:
+    external: true
