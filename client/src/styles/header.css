@@ -1,0 +1,98 @@
+/* Header.css */
+header {
+    margin-left: auto;
+    width: fit-content;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 20px;           /* уменьшил паддинги */
+    
+    /* Новый цвет - темно-синий */
+    background: #1a2639;          /* просто темно-синий вместо градиента */
+    border-radius: 30px;           /* уменьшил скругление */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    margin-top: 15px;
+    margin-right: 15px;
+    font-family: system-ui, -apple-system, sans-serif;
+}
+
+/* Убрал hover эффект для header, оставил только для элементов */
+
+/* Логотип */
+header img {
+    width: 40px;                   /* уменьшил с 60px до 40px */
+    height: auto;
+    display: block;
+    margin-bottom: 10px;            /* уменьшил отступ */
+    filter: brightness(0) invert(1);
+}
+
+/* Навигация */
+nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    text-align: center;
+}
+
+nav ul li {
+    margin-bottom: 8px;             /* уменьшил отступ */
+}
+
+nav ul li a {
+    color: white;
+    text-decoration: none;
+    font-size: 14px;                /* уменьшил шрифт */
+    font-weight: 500;
+    padding: 5px 10px;              /* уменьшил паддинги */
+    border-radius: 20px;
+    transition: all 0.2s ease;
+    display: inline-block;
+}
+
+nav ul li a:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Контейнер кнопок */
+nav > div {
+    margin-top: 15px;               /* уменьшил отступ */
+    display: flex;
+    justify-content: center;
+    gap: 10px;                      /* уменьшил gap */
+}
+
+/* Кнопки */
+nav button {
+    padding: 6px 16px;              /* уменьшил паддинги */
+    border: none;
+    border-radius: 25px;
+    font-size: 12px;                /* уменьшил шрифт */
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Sign Up */
+nav button:first-of-type {
+    background: #4a6fa5;            /* синий под тон фона */
+    color: white;
+}
+
+nav button:first-of-type:hover {
+    background: #5d7eb5;
+}
+
+/* Sign In */
+nav button:last-of-type {
+    background: transparent;
+    color: white;
+    border: 1px solid white;
+}
+
+nav button:last-of-type:hover {
+    background: white;
+    color: #1a2639;
+}
