@@ -1,0 +1,277 @@
+/* landing-page.css */
+
+.landing-page {
+    width: 100%;
+    overflow-x: hidden;
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+    color: #ffffff;
+}
+
+.section {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 80px 20px;
+    border-bottom: 1px solid rgba(255, 107, 0, 0.2);
+    position: relative;
+}
+
+.section:last-child {
+    border-bottom: none;
+}
+
+/* Hero секция */
+.hero-section {
+    background: radial-gradient(circle at top right, rgba(255, 107, 0, 0.15), transparent 50%);
+}
+
+.hero-title {
+    font-size: clamp(2.5rem, 8vw, 4.5rem);
+    font-weight: 800;
+    background: linear-gradient(135deg, #ffffff 0%, #ff6b00 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 20px;
+    text-align: center;
+    max-width: 800px;
+}
+
+.hero-subtitle {
+    font-size: clamp(1.1rem, 4vw, 1.5rem);
+    color: #cccccc;
+    margin-bottom: 40px;
+    text-align: center;
+    max-width: 600px;
+}
+
+.cta-button {
+    padding: 15px 40px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    background: #ff6b00;
+    color: white;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(255, 107, 0, 0.3);
+}
+
+.cta-button:hover {
+    background: #ff8533;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 107, 0, 0.4);
+}
+
+/* Заголовки секций */
+.section-title {
+    font-size: clamp(2rem, 6vw, 3rem);
+    font-weight: 700;
+    color: #ff6b00;
+    margin-bottom: 50px;
+    text-align: center;
+    position: relative;
+}
+
+.section-title::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 3px;
+    background: #ff6b00;
+    border-radius: 2px;
+}
+
+/* About секция */
+.about-section {
+    background: linear-gradient(135deg, #0f0f0f 0%, #1f1f1f 100%);
+}
+
+.section-text {
+    max-width: 800px;
+    text-align: center;
+    font-size: 1.2rem;
+    line-height: 1.8;
+    color: #e0e0e0;
+    margin-bottom: 60px;
+}
+
+.stats-container {
+    display: flex;
+    justify-content: center;
+    gap: 60px;
+    flex-wrap: wrap;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.stat-number {
+    font-size: 3rem;
+    font-weight: 800;
+    color: #ff6b00;
+}
+
+.stat-label {
+    font-size: 1.2rem;
+    color: #aaa;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Services секция */
+.services-section {
+    background: radial-gradient(circle at bottom left, rgba(255, 107, 0, 0.1), transparent 50%);
+}
+
+.services-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 30px;
+    max-width: 1200px;
+    width: 100%;
+    padding: 0 20px;
+}
+
+.service-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 107, 0, 0.3);
+    border-radius: 16px;
+    padding: 40px 30px;
+    text-align: center;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.service-card:hover {
+    transform: translateY(-5px);
+    border-color: #ff6b00;
+    box-shadow: 0 10px 30px rgba(255, 107, 0, 0.2);
+}
+
+.service-icon {
+    font-size: 3rem;
+    margin-bottom: 20px;
+}
+
+.service-card h3 {
+    font-size: 1.5rem;
+    color: #ff6b00;
+    margin-bottom: 15px;
+}
+
+.service-card p {
+    color: #bbb;
+    line-height: 1.6;
+}
+
+/* Contact секция */
+.contact-section {
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+}
+
+.contact-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 50px;
+    max-width: 1000px;
+    width: 100%;
+    padding: 0 20px;
+}
+
+.contact-info {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.contact-info p {
+    font-size: 1.1rem;
+    color: #e0e0e0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.contact-input,
+.contact-textarea {
+    padding: 12px 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 107, 0, 0.3);
+    border-radius: 8px;
+    color: white;
+    font-size: 1rem;
+    transition: all 0.3s;
+}
+
+.contact-textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.contact-input:focus,
+.contact-textarea:focus {
+    outline: none;
+    border-color: #ff6b00;
+    box-shadow: 0 0 10px rgba(255, 107, 0, 0.3);
+}
+
+.contact-submit {
+    padding: 12px 30px;
+    background: #ff6b00;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.contact-submit:hover {
+    background: #ff8533;
+    transform: translateY(-2px);
+}
+
+/* Медиа-запросы для мобилок */
+@media (max-width: 768px) {
+    .section {
+        padding: 60px 15px;
+    }
+
+    .stats-container {
+        gap: 30px;
+    }
+
+    .stat-number {
+        font-size: 2rem;
+    }
+
+    .stat-label {
+        font-size: 1rem;
+    }
+
+    .contact-container {
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+
+    .service-card {
+        padding: 30px 20px;
+    }
+}
