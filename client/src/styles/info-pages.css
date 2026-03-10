@@ -1,5 +1,5 @@
 /* info-pages.css */
-/* Общий стиль для всех информационных страниц */
+/* Common style for all information pages */
 
 .info-page {
     max-width: 900px;
@@ -77,7 +77,7 @@
     border-top: 1px dashed rgba(255, 107, 0, 0.3);
 }
 
-/* Специфичные стили для FAQ */
+/* FAQ specific styles */
 .faq-section {
     cursor: pointer;
 }
@@ -110,7 +110,7 @@
     margin-top: 15px;
 }
 
-/* Адаптивность */
+/* Responsive */
 @media (max-width: 768px) {
     .info-page {
         margin: 80px 15px 30px;

@@ -1,18 +1,18 @@
 /* reg_log.css */
 
-/* Карточка */
+/* card */
 .auth-card {
-    background: #1a1a1a;  /* темный фон */
+    background: #1a1a1a;  
     color: white;
     padding: 40px;
     border-radius: 16px;
-    border: 1px solid #ff6b00;  /* оранжевая обводка */
+    border: 1px solid #ff6b00;  
     box-shadow: 0 8px 30px rgba(255, 107, 0, 0.15);
     width: 100%;
     max-width: 400px;
 }
 
-/* Заголовок */
+/* Title */
 .auth-card h2 {
     color: #ff6b00;
     font-size: 28px;
@@ -20,7 +20,7 @@
     text-align: center;
 }
 
-/* Поля ввода */
+/* input fields */
 .auth-card input {
     width: 100%;
     padding: 12px;
@@ -37,7 +37,7 @@
     border-color: #ff6b00;
 }
 
-/* Кнопка */
+/* button */
 .auth-card button {
     width: 100%;
     padding: 14px;
@@ -55,7 +55,7 @@
     background: #ff8533;
 }
 
-/* Ссылки */
+/* links */
 .auth-links {
     margin-top: 20px;
     text-align: center;
@@ -71,7 +71,7 @@
     text-decoration: underline;
 }
 
-/* Сообщения */
+/* messages */
 #info {
     color: #ff4444;
     margin: 10px 0;
@@ -79,7 +79,7 @@
     font-size: 14px;
 }
 
-/* Для успешных сообщений */
+/* for succesful messages */
 #info.success {
     color: #00c851;
 }

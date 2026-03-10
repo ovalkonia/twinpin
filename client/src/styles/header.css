@@ -14,19 +14,19 @@
     align-items: center;
     padding: 15px 20px;
     
-    /* Черный фон с оранжевым оттенком */
+    /* Black background with orange tint */
     background: rgba(10, 10, 10, 0.95);
     backdrop-filter: blur(10px);
     border-radius: 30px;
-    box-shadow: 0 8px 25px rgba(255, 107, 0, 0.25); /* Оранжевая тень */
+    box-shadow: 0 8px 25px rgba(255, 107, 0, 0.25); /* Orange shadow */
     
     font-family: system-ui, -apple-system, sans-serif;
-    border: 1px solid rgba(255, 107, 0, 0.3); /* Оранжевая обводка */
+    border: 1px solid rgba(255, 107, 0, 0.3); /* Orange border */
     
     transition: all 0.3s ease;
 }
 
-/* Эффект при скролле (станет меньше) */
+/* Scroll effect (becomes smaller) */
 .fixed-header.scrolled {
     padding: 10px 15px;
     background: rgba(5, 5, 5, 0.98);
@@ -61,7 +61,7 @@
 }
 
 .fixed-header nav ul li a {
-    color: #e0e0e0; /* Светло-серый вместо белого */
+    color: #e0e0e0; /* Light gray instead of white */
     text-decoration: none;
     font-size: 13px;
     font-weight: 500;
@@ -72,11 +72,11 @@
 }
 
 .fixed-header nav ul li a:hover {
-    background: rgba(255, 107, 0, 0.15); /* Оранжевый фон при наведении */
+    background: rgba(255, 107, 0, 0.15); /* Orange background on hover */
     color: #ff6b00;
 }
 
-/* Контейнер кнопок */
+/* Buttons container */
 .fixed-header .auth-buttons {
     margin-top: 12px;
     display: flex;
@@ -126,7 +126,7 @@
     transform: translateY(-2px);
 }
 
-/* Для мобилок */
+/* Mobile styles */
 @media (max-width: 768px) {
     .fixed-header {
         top: 10px;
