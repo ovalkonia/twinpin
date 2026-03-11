@@ -1,0 +1,85 @@
+/* reg_log.css */
+
+/* Карточка */
+.auth-card {
+    background: #1a1a1a;  /* темный фон */
+    color: white;
+    padding: 40px;
+    border-radius: 16px;
+    border: 1px solid #ff6b00;  /* оранжевая обводка */
+    box-shadow: 0 8px 30px rgba(255, 107, 0, 0.15);
+    width: 100%;
+    max-width: 400px;
+}
+
+/* Заголовок */
+.auth-card h2 {
+    color: #ff6b00;
+    font-size: 28px;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+/* Поля ввода */
+.auth-card input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 20px;
+    background: #2d2d2d;
+    border: 1px solid #404040;
+    border-radius: 8px;
+    color: white;
+    font-size: 16px;
+}
+
+.auth-card input:focus {
+    outline: none;
+    border-color: #ff6b00;
+}
+
+/* Кнопка */
+.auth-card button {
+    width: 100%;
+    padding: 14px;
+    background: #ff6b00;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.auth-card button:hover {
+    background: #ff8533;
+}
+
+/* Ссылки */
+.auth-links {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.auth-links a {
+    color: #ff6b00;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.auth-links a:hover {
+    text-decoration: underline;
+}
+
+/* Сообщения */
+#info {
+    color: #ff4444;
+    margin: 10px 0;
+    text-align: center;
+    font-size: 14px;
+}
+
+/* Для успешных сообщений */
+#info.success {
+    color: #00c851;
+}

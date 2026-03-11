@@ -1,35 +1,41 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { Toaster } from "react-hot-toast";
+
+import { PrivateRoute } from './components/PrivateRoute'
+import Registration from './pages/registration/Registration';
+import Login from './pages/login/Login';
+import ForgotPassword from './pages/forgotPassword/ForgotPassword';
+import ChangePassword from './pages/forgotPassword/ChangePassword';
+import PageBefortSignUp from './pages/beforeSignUp/BeforeSignUp';
+import { UserRulesPage } from "./pages/footerPages/userRules"
+import { PrivacyPolicyPage } from "./pages/footerPages/privacyPolicyPage"
+import { HelpPage } from "./pages/footerPages/helpPage"
+import Footer from './components/footer';
+import NotFoundPage from "./pages/notFound/404"
+import { AuthProvider } from './context/AuthContext';
+import { AfterSignUp } from './pages/afterSignUp/AfterSignUp'
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <AuthProvider>
+      <BrowserRouter>
+        <Toaster />
+        <Routes>
+          <Route path="/" element={<PageBefortSignUp />} />
+          <Route path="/sign-up" element={<Registration />} />
+          <Route path="/sign-in" element={<Login />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/change-password" element={<ChangePassword />} />
+          <Route path="/rules" element={<UserRulesPage />} />
+          <Route path="/privacy" element={<PrivacyPolicyPage />} />
+          <Route path="/faq" element={<HelpPage />} />
+          <Route path="/dashboard" element={<PrivateRoute><AfterSignUp /></PrivateRoute>} />
+          <Route path="*" element={<NotFoundPage />} />  
+        </Routes>
+        <Footer />
+      </BrowserRouter>
+    </AuthProvider>
+  );
 }
 
-export default App
+export default App;
