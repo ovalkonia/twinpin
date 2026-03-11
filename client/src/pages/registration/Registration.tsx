@@ -1,11 +1,12 @@
-import React, { useState } from "react";
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from "react"
+import { useNavigate } from 'react-router-dom'
+import toast from "react-hot-toast"
 
 import AuthLayout from "../../layouts/authlayout"
-import { registerUser } from '../../services/auth';
+import { registerUser } from '../../services/auth'
 
 const Registration = () => {
-    const navigate = useNavigate();
+    const navigate = useNavigate()
 
     const [email, setEmail] = useState('')
     const [name, setName] = useState('')
@@ -23,30 +24,29 @@ const Registration = () => {
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
-        const infoMassage = document.querySelector("#info")
 
         if (password !== confirmPassword) {
-            if(infoMassage) infoMassage.innerHTML = "wrong confirmation password"
+            toast.error("Passwords don't match")
             return
         }
 
-        try {
-            const data = {
-                name: name,
-                email: email,
-                password: password,
-            }
-            
-            const response = await registerUser(data)
-            if(infoMassage) infoMassage.innerHTML = `Success - ${response}`
-            navigate('/');
-            
-        } catch (error) {
-            if(infoMassage) infoMassage.innerHTML = `${error}`
-            console.error("Ошибка:", error)
+        const data = {
+            name: name,
+            email: email,
+            password: password,
         }
 
-        
+        toast.promise(
+            registerUser(data),
+            {
+                loading: 'Creating account...',
+                success: (response) => {
+                    navigate('/')
+                    return `Welcome, ${name}! Registration successful`
+                },
+                error: (err) => `Error: ${err.message || 'Registration failed'}`,
+            }
+        )
     }
 
     return (
@@ -88,7 +88,7 @@ const Registration = () => {
 
             <div className="auth-links">
                 <p id="info"></p>
-                <a href="/sign_in">Alrady have an account? Sign in</a>
+                <a href="/sign-in">Already have an account? Sign in</a>
             </div>
             <div id="googleReg"></div>
 

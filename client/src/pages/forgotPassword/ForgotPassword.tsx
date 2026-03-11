@@ -1,7 +1,9 @@
-import React, { useState } from "react";
+import React, { useState } from "react"
+import toast from "react-hot-toast"
+
 import AuthLayout from "../../layouts/authlayout"
 
-import { forgotPassword } from "../../services/auth";
+import { forgotPassword } from "../../services/auth"
 
 const ForgotPassword = () => {
     const [email, setEmail] = useState('')
@@ -13,18 +15,15 @@ const ForgotPassword = () => {
 
     const handleInput = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
-        const messageElement = document.querySelector("#checkPost")
-        if (messageElement) messageElement.innerHTML = "We received your request. Check your post"
-        
-        try {
-            const response = await forgotPassword({ email })
-            if (messageElement) messageElement.innerHTML = `your password - ${response.password}`
-            
-        } catch (error) {
-            if (messageElement) messageElement.innerHTML = `you get error - ${error}`
-        }
 
-
+        toast.promise(
+            forgotPassword({ email }),
+            {
+                loading: 'Sending recovery link...',
+                success: (data) => `Recovery link sent to ${data.email || email}`,
+                error: (err) => `Error: ${err.message || 'Something went wrong'}`,
+            }
+        )
     }
 
     return (
@@ -34,7 +33,7 @@ const ForgotPassword = () => {
             <form onSubmit={handleInput}>
                 <label>Email:</label>
                 <input 
-                    type="email" 
+                    type="email"
                     name="email" 
                     value={email} 
                     onChange={(e) => handleChange(e)}
@@ -43,7 +42,7 @@ const ForgotPassword = () => {
             </form>
             <div className="auth-links">
                 <p id="checkPost"></p>
-                <a href="/sign_in">Return to the entrence</a>
+                <a href="/sign-in">Return to the entrence</a>
             </div>
         </AuthLayout>
     )

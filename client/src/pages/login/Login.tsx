@@ -1,13 +1,14 @@
-import React, { useState } from "react";
+import React, { useState } from "react"
 import { useNavigate } from 'react-router-dom'
+import toast from "react-hot-toast"
 
 import AuthLayout from "../../layouts/authlayout"
-import { loginUser } from "../../services/auth";
+import { loginUser } from "../../services/auth"
 
 import '../../styles/reg_log.css'
 
 const Login = () => {
-    const navigate = useNavigate();
+    const navigate = useNavigate()
 
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
@@ -20,25 +21,24 @@ const Login = () => {
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
-        const infoMassage = document.querySelector("#info")
 
-        try {
-            const data = {
-                email: email,
-                password: password,
-            }
-            
-            const response = await loginUser(data)
-
-            if(infoMassage) infoMassage.innerHTML = `Success - ${response}`
-            localStorage.setItem('token', response.token)
-            navigate('/');
-            
-        } catch (error) {
-            if(infoMassage) infoMassage.innerHTML = `${error}`
-            console.error("Ошибка:", error)
+        const data = {
+            email: email,
+            password: password,
         }
-       
+
+        toast.promise(
+            loginUser(data),
+            {
+                loading: 'Logging in...',
+                success: (response) => {
+                    localStorage.setItem('token', response.token)
+                    navigate('/')
+                    return `Welcome back, ${response.user?.name || 'User'}!`
+                },
+                error: (err) => `Error: ${err.message || 'Invalid credentials'}`,
+            }
+        )
     }
 
     return (
@@ -64,9 +64,9 @@ const Login = () => {
 
             <div className="auth-links">
                 <p id="info"></p>
-                <a href="/forgot_password">Forgot password?</a>
+                <a href="/forgot-password">Forgot password?</a>
                 <br />
-                <a href="/sign_up">Don't have an account? Sign up</a>
+                <a href="/sign-up">Don't have an account? Sign up</a>
             </div>
             <div id="googleLog"></div>
 
