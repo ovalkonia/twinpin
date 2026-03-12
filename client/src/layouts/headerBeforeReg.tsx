@@ -1,8 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 
-import logoSvg from '../../assets/white.svg';
-import '../../styles/header.css';
+import logoSvg from '../assets/white.svg';
+import '../styles/header.css';
 
 const HeaderBeforeReg = () => {
     const navigate = useNavigate();
@@ -54,6 +54,6 @@ const HeaderBeforeReg = () => {
             </nav>
         </header>
     );
-}
+};
 
 export default HeaderBeforeReg;

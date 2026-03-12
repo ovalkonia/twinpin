@@ -1,7 +1,14 @@
 /* Header.css */
-header {
-    margin-left: auto;
-    width: fit-content;
+
+.fixed-header {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    
+    width: auto;
+    min-width: 200px;
+    
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -13,19 +20,25 @@ header {
     margin-top: 15px;
     margin-right: 15px;
     font-family: system-ui, -apple-system, sans-serif;
+    border: 1px solid rgba(255, 107, 0, 0.3); /* Orange border */
+    
+    transition: all 0.3s ease;
 }
 
-/* Логотип */
 header img {
     width: 40px;
     height: auto;
     display: block;
     margin-bottom: 10px;
     filter: brightness(0) invert(1);
+    transition: transform 0.2s;
 }
 
-/* Навигация */
-nav ul {
+.fixed-header img:hover {
+    transform: scale(1.05);
+}
+
+.fixed-header nav ul {
     list-style: none;
     padding: 0;
     margin: 0;
@@ -36,30 +49,30 @@ nav ul li {
     margin-bottom: 8px;
 }
 
-nav ul li a {
-    color: white;
+.fixed-header nav ul li a {
+    color: #e0e0e0; /* Light gray instead of white */
     text-decoration: none;
     font-size: 14px;
     font-weight: 500;
     padding: 5px 10px;
     border-radius: 20px;
-    transition: all 0.2s ease;
-    display: inline-block;
+    transition: all 0.2s;
+    white-space: nowrap;
 }
 
-nav ul li a:hover {
-    background-color: rgba(255, 255, 255, 0.15);
+.fixed-header nav ul li a:hover {
+    background: rgba(255, 107, 0, 0.15); /* Orange background on hover */
+    color: #ff6b00;
 }
 
-/* Контейнер кнопок */
 nav > div {
     margin-top: 15px;
     display: flex;
+    gap: 8px;
     justify-content: center;
     gap: 10px;
 }
 
-/* Кнопки */
 nav button {
     padding: 6px 16px;
     border: none;
@@ -67,26 +80,31 @@ nav button {
     font-size: 12px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.2s;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    flex: 1;
+    max-width: 90px;
 }
 
 /* Sign Up */
 nav button:first-of-type {
     background: #4a6fa5;
     color: white;
+    box-shadow: 0 2px 8px rgba(255, 107, 0, 0.4);
 }
 
-nav button:first-of-type:hover {
-    background: #5d7eb5;
+.fixed-header button:first-of-type:hover {
+    background: #ff8533;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 107, 0, 0.5);
 }
 
 /* Sign In */
-nav button:last-of-type {
+.fixed-header button:last-of-type {
     background: transparent;
-    color: white;
-    border: 1px solid white;
+    color: #ff6b00;
+    border: 1px solid #ff6b00;
 }
 
 nav button:last-of-type:hover {

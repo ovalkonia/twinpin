@@ -2,7 +2,7 @@ import axios from 'axios';
 import { getToken, removeToken } from './token';
 
 const api = axios.create({
-  baseURL: 'http://localhost:3000', // бек адрес
+  baseURL: 'http://localhost:3000', // backend adress
   headers: {
     'Content-Type': 'application/json',
   },

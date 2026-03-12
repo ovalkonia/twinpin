@@ -1,3 +1,4 @@
+import React from 'react';
 import '../styles/footer.css';
 import logoSvg from '../assets/white.svg';
 import logoGit from '../assets/white_git.svg';

@@ -1,0 +1,145 @@
+/* info-pages.css */
+/* Common style for all information pages */
+
+.info-page {
+    max-width: 900px;
+    margin: 100px auto 50px;
+    padding: 40px;
+    background: rgba(10, 10, 10, 0.95);
+    border: 1px solid rgba(255, 107, 0, 0.3);
+    border-radius: 30px;
+    box-shadow: 0 8px 30px rgba(255, 107, 0, 0.2);
+    color: #e0e0e0;
+    font-family: system-ui, -apple-system, sans-serif;
+}
+
+.info-page h1 {
+    color: #ff6b00;
+    font-size: 2.5rem;
+    margin-bottom: 40px;
+    text-align: center;
+    border-bottom: 2px solid #ff6b00;
+    padding-bottom: 15px;
+}
+
+.info-page section {
+    margin-bottom: 40px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 16px;
+    border-left: 3px solid #ff6b00;
+}
+
+.info-page h2 {
+    color: #ff6b00;
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+.info-page p {
+    line-height: 1.8;
+    margin-bottom: 15px;
+    color: #d0d0d0;
+}
+
+.info-page ul {
+    list-style: none;
+    padding: 0;
+}
+
+.info-page ul li {
+    padding: 8px 0 8px 25px;
+    position: relative;
+    color: #c0c0c0;
+    border-bottom: 1px solid rgba(255, 107, 0, 0.1);
+}
+
+.info-page ul li:last-child {
+    border-bottom: none;
+}
+
+.info-page ul li::before {
+    content: "•";
+    color: #ff6b00;
+    font-size: 1.5rem;
+    position: absolute;
+    left: 0;
+    top: -2px;
+}
+
+.info-page .last-updated {
+    text-align: right;
+    font-style: italic;
+    color: #888;
+    margin-top: 30px;
+    padding-top: 15px;
+    border-top: 1px dashed rgba(255, 107, 0, 0.3);
+}
+
+/* FAQ specific styles */
+.faq-section {
+    cursor: pointer;
+}
+
+.faq-question {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.faq-question::after {
+    content: "+";
+    color: #ff6b00;
+    font-size: 1.8rem;
+    font-weight: bold;
+}
+
+.faq-section.open .faq-question::after {
+    content: "-";
+}
+
+.faq-answer {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.faq-section.open .faq-answer {
+    max-height: 500px;
+    margin-top: 15px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .info-page {
+        margin: 80px 15px 30px;
+        padding: 25px;
+    }
+
+    .info-page h1 {
+        font-size: 2rem;
+    }
+
+    .info-page h2 {
+        font-size: 1.3rem;
+    }
+
+    .info-page section {
+        padding: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .info-page {
+        padding: 20px;
+    }
+
+    .info-page h1 {
+        font-size: 1.8rem;
+    }
+
+    .info-page ul li {
+        font-size: 0.95rem;
+    }
+}
