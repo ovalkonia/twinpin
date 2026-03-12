@@ -1,53 +1,51 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
+
 import HeaderBeforeReg from "../../layouts/headerBeforeReg";
+import { handleContactUs } from "../../services/help";
+import "../../styles/landing-page.css";
 
-import "../../styles/landing-page.css"
+const PageBefortSignUp = () => {
+    const navigate = useNavigate();
 
-import { handleContactUs } from "../../services/help"
-
-
-const PageBefortSignUp = () => 
-{
-    const navigate = useNavigate()
-    const [nav, setNav] = useState(false);
-
-
-    const [email, setEmail] = useState('')
-    const [text, setText] = useState('')
+    const [email, setEmail] = useState('');
+    const [text, setText] = useState('');
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const { name, value } = e.target
-        if (name === 'email') setEmail(value)
-        if (name === 'text') setText(value)
-    }
+        const { name, value } = e.target;
+        if (name === 'email') setEmail(value);
+        if (name === 'text') setText(value);
+    };
 
     const contactUs = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault()
-        const infoMassage = document.querySelector("#info")
-
+        e.preventDefault();
+        const infoMassage = document.querySelector("#info");
 
         try {
             const data = {
                 email: email,
                 text: text,
-            }
+            };
             
-            const response = await handleContactUs(data)
+            const response = await handleContactUs(data);
 
-            if(infoMassage) infoMassage.innerHTML = `Success - ${response}`
-
+            if (infoMassage) {
+                infoMassage.innerHTML = `your message sended - ${response}`;
+                toast.success("Success");
+            } 
         } catch (err) {
-            if(infoMassage) infoMassage.innerHTML = `${err}`
-            console.error("Ошибка:", err)
+            if(infoMassage) {
+                infoMassage.innerHTML = `${err}`;
+                toast.error("Error");
+                console.error("Error:", err);
+            } 
         }
-    }
+    };
 
-
-    const buttonRedirect = (link : string) =>{
-        navigate(`/${link}`)
-    }
-
+    const buttonRedirect = (link: string) => {
+        navigate(`/${link}`);
+    };
 
     return (
         <div className="landing-page" style={{ paddingTop: '100px' }}>
@@ -56,7 +54,7 @@ const PageBefortSignUp = () =>
             <section id="home" className="section hero-section">
                 <h1 className="hero-title">Find Your Perfect Event</h1>
                 <p className="hero-subtitle">Discover thousands of events happening near you</p>
-                <button className="cta-button" onClick={() => buttonRedirect("sign_up")}>
+                <button className="cta-button" onClick={() => buttonRedirect("sign-up")}>
                     Get Started
                 </button>
             </section>
@@ -118,8 +116,21 @@ const PageBefortSignUp = () =>
                         <p>📍 123 Event Street, New York, NY 10001</p>
                     </div>
                     <form className="contact-form" onSubmit={contactUs}>
-                        <input type="email" placeholder="Your email" className="contact-input" onChange={handleChange}/>
-                        <textarea name="text" placeholder="Your message" className="contact-textarea" onChange={handleChange}></textarea>
+                        <input 
+                            type="email" 
+                            name="email"
+                            placeholder="Your email" 
+                            className="contact-input" 
+                            value={email}
+                            onChange={handleChange}
+                        />
+                        <textarea 
+                            name="text" 
+                            placeholder="Your message" 
+                            className="contact-textarea" 
+                            value={text}
+                            onChange={handleChange}
+                        />
                         <button type="submit" className="contact-submit">Send Message</button>
                         <i id="info"></i>
                     </form>
@@ -127,6 +138,6 @@ const PageBefortSignUp = () =>
             </section>
         </div>
     );
-}
+};
 
-export default PageBefortSignUp
+export default PageBefortSignUp;

@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react"; // добавить импорт
+import { useState, useEffect } from "react";
 
 import logoSvg from '../assets/white.svg';
 import '../styles/header.css';
@@ -8,7 +8,6 @@ const HeaderBeforeReg = () => {
     const navigate = useNavigate();
     const [scrolled, setScrolled] = useState(false);
 
-    // Эффект для отслеживания скролла
     useEffect(() => {
         const handleScroll = () => {
             if (window.scrollY > 50) {
@@ -49,8 +48,8 @@ const HeaderBeforeReg = () => {
                     </li>
                 </ul>
                 <div className="auth-buttons">
-                    <button onClick={() => buttonRedirect("sign_up")}>Sign Up</button>
-                    <button onClick={() => buttonRedirect("sign_in")}>Sign In</button>
+                    <button onClick={() => buttonRedirect("sign-up")}>Sign Up</button>
+                    <button onClick={() => buttonRedirect("sign-in")}>Sign In</button>
                 </div>
             </nav>
         </header>
