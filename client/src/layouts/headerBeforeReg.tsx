@@ -48,8 +48,8 @@ const HeaderBeforeReg = () => {
                     </li>
                 </ul>
                 <div className="auth-buttons">
-                    <button onClick={() => buttonRedirect("sign-up")}>Sign Up</button>
-                    <button onClick={() => buttonRedirect("sign-in")}>Sign In</button>
+                    <button onClick={() => buttonRedirect("/auth/sign-up")}>Sign Up</button>
+                    <button onClick={() => buttonRedirect("/auth/sign-in")}>Sign In</button>
                 </div>
             </nav>
         </header>

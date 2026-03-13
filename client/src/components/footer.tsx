@@ -2,6 +2,7 @@ import React from 'react';
 import '../styles/footer.css';
 import logoSvg from '../assets/white.svg';
 import logoGit from '../assets/white_git.svg';
+import {Link} from "react-router-dom";
 
 const Footer = () => {
   return (
@@ -12,11 +13,11 @@ const Footer = () => {
           <div className="footer-name">EventPlatform</div>
         </div>
 
-        <div className="footer-section links-section">
-          <a href="/rules" className="footer-link">User Rules</a>
-          <a href="/privacy" className="footer-link">Privacy Policy</a>
-          <a href="/faq" className="footer-link">Help / FAQ</a>
-        </div>
+          <div className="footer-section links-section">
+              <Link to="/info/rules" className="footer-link">User Rules</Link>
+              <Link to="/info/privacy" className="footer-link">Privacy Policy</Link>
+              <Link to="/info/faq" className="footer-link">Help / FAQ</Link>
+          </div>
 
         <div className="footer-section social-section">
           <a href="https://github.com/ovalkonia/twinpin" className="social-link" target="_blank" rel="noopener noreferrer">

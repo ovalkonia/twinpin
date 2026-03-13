@@ -1,5 +1,3 @@
-/* Header.css */
-
 .fixed-header {
     position: fixed;
     top: 20px;
@@ -20,7 +18,7 @@
     margin-top: 15px;
     margin-right: 15px;
     font-family: system-ui, -apple-system, sans-serif;
-    border: 1px solid rgba(255, 107, 0, 0.3); /* Orange border */
+    border: 1px solid rgba(255, 107, 0, 0.3);
     
     transition: all 0.3s ease;
 }
@@ -50,7 +48,7 @@ nav ul li {
 }
 
 .fixed-header nav ul li a {
-    color: #e0e0e0; /* Light gray instead of white */
+    color: #e0e0e0;
     text-decoration: none;
     font-size: 14px;
     font-weight: 500;
@@ -61,7 +59,7 @@ nav ul li {
 }
 
 .fixed-header nav ul li a:hover {
-    background: rgba(255, 107, 0, 0.15); /* Orange background on hover */
+    background: rgba(255, 107, 0, 0.15);
     color: #ff6b00;
 }
 
@@ -87,7 +85,6 @@ nav button {
     max-width: 90px;
 }
 
-/* Sign Up */
 nav button:first-of-type {
     background: #4a6fa5;
     color: white;
@@ -100,7 +97,6 @@ nav button:first-of-type {
     box-shadow: 0 4px 12px rgba(255, 107, 0, 0.5);
 }
 
-/* Sign In */
 .fixed-header button:last-of-type {
     background: transparent;
     color: #ff6b00;
@@ -112,7 +108,6 @@ nav button:last-of-type:hover {
     color: #1a2639;
 }
 
-/* Fixed Header Styles */
 .fixed-header {
     position: fixed;
     top: 20px;
@@ -229,7 +224,6 @@ nav button:last-of-type:hover {
     transform: translateY(-2px);
 }
 
-/* Mini Profile Styles */
 .mini-profile {
     display: flex;
     align-items: center;
@@ -327,7 +321,6 @@ nav button:last-of-type:hover {
     color: #ff6b00;
 }
 
-/* Logout Button */
 .logout-button {
     background: transparent;
     border: none;
@@ -347,7 +340,6 @@ nav button:last-of-type:hover {
     transform: translateY(-2px);
 }
 
-/* Mobile styles */
 @media (max-width: 768px) {
     .fixed-header {
         top: 10px;

@@ -1,18 +1,17 @@
 // Импортируем React (нужен для JSX)
-import React from 'react';
+import { Outlet } from 'react-router-dom';
 
-
-const AuthLayout = ({ children } : { children: React.ReactNode }) => {
+const AuthLayout = () => {
     return (
         <div style={{
             height: '100vh',
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
-            backgroundColor: '#1a1a1a'  // темный фон
+            backgroundColor: '#1a1a1a'
         }}>
             <div className="auth-card">
-                {children}
+                <Outlet />
             </div>
         </div>
     );

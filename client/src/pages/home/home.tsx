@@ -6,4 +6,4 @@ const MyNameIs = () => {
     return <h2 style = {{ fontSize: '100px', color: "yellow"}}>My name is Jon</h2>
 }
 
-export {Home, MyNameIs}
+export {Home, MyNameIs}н

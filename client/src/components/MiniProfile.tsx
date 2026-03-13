@@ -29,15 +29,15 @@ export const MiniProfile = () => {
 
             <button className="menu-button" onClick={toggleMenu}>▼</button>
 
-            <LogoutButton />  
+            <LogoutButton />
 
             {isMenuOpen && (
                 <div className="dropdown-menu">
-                    <div onClick={() => goTo('/profile')}>Profile</div>
-                    <div onClick={() => goTo('/my-tickets')}>My Tickets</div>
-                    <div onClick={() => goTo('/settings')}>Settings</div>
+                    <div onClick={() => goTo('/dashboard')}>Profile</div>
+                    <div onClick={() => goTo('/dashboard/my-tickets')}>My Tickets</div>
+                    <div onClick={() => goTo('/dashboard/settings')}>Settings</div>
                 </div>
             )}
-        </div>
+        </div>  
     )
 }

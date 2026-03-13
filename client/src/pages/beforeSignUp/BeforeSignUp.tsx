@@ -20,26 +20,11 @@ const PageBefortSignUp = () => {
 
     const contactUs = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        const infoMassage = document.querySelector("#info");
-
         try {
-            const data = {
-                email: email,
-                text: text,
-            };
-            
-            const response = await handleContactUs(data);
-
-            if (infoMassage) {
-                infoMassage.innerHTML = `your message sended - ${response}`;
-                toast.success("Success");
-            } 
+            await handleContactUs({ email, text });
+            toast.success("Message sent!");
         } catch (err) {
-            if(infoMassage) {
-                infoMassage.innerHTML = `${err}`;
-                toast.error("Error");
-                console.error("Error:", err);
-            } 
+            toast.error("Failed to send message. Please try again.");
         }
     };
 
@@ -48,13 +33,13 @@ const PageBefortSignUp = () => {
     };
 
     return (
-        <div className="landing-page" style={{ paddingTop: '100px' }}>
+        <div className="landing-page">
             <HeaderBeforeReg />
-            
+
             <section id="home" className="section hero-section">
                 <h1 className="hero-title">Find Your Perfect Event</h1>
                 <p className="hero-subtitle">Discover thousands of events happening near you</p>
-                <button className="cta-button" onClick={() => buttonRedirect("sign-up")}>
+                <button className="cta-button" onClick={() => buttonRedirect("/auth/sign-up")}>
                     Get Started
                 </button>
             </section>
@@ -132,7 +117,6 @@ const PageBefortSignUp = () => {
                             onChange={handleChange}
                         />
                         <button type="submit" className="contact-submit">Send Message</button>
-                        <i id="info"></i>
                     </form>
                 </div>
             </section>
