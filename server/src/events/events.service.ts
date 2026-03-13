@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import { Repository } from 'typeorm'
+import { Repository, Between } from 'typeorm'
 
 
 import { CreateEventDto } from './dto/create-event.dto'
@@ -32,17 +32,48 @@ export class EventsService {
     return await this.eventsRepository.save(newEvent)
   }
 
-  async findAllEvent(category?: string, date?: Date) {
+  async findAllEvent(
+    category?: string, 
+    date?: Date, 
+    page?: number, 
+    limit?: number
+  ) {
     const whereConditions: any = {}
     
     if (category) whereConditions.category = category
-    if (date) whereConditions.date = date
+    if (date) {
+      const start = new Date(date)
+      start.setHours(0, 0, 0, 0)
+      const end = new Date(date)
+      end.setHours(23, 59, 59, 999)
+      
+      whereConditions.date = Between(start, end)
+    }
 
-    return await this.eventsRepository.find({
+    if (!page || !limit) {
+      return await this.eventsRepository.find({
+        where: whereConditions,
+        relations: ['company'],
+        order: { date: 'ASC' }
+      });
+    }
+
+    const skip = (page - 1) * limit;
+    const [data, total] = await this.eventsRepository.findAndCount({
       where: whereConditions,
       relations: ['company'],
-      order: { date: 'ASC' } 
-    })
+      order: { date: 'ASC' },
+      skip,
+      take: limit,
+    });
+
+    return {
+      data,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+      limit
+    };
   }
 
   async findOneEvent(id: number) {

@@ -24,11 +24,18 @@ export class EventsController {
 
   @Get()
   async findAllEvents(
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
     @Query('category') category?: string,
     @Query('date') date?: string,
   ) {
     const dateObj = date ? new Date(date) : undefined
-    return await this.eventsService.findAllEvent(category, dateObj)
+    return await this.eventsService.findAllEvent(
+      category, 
+      dateObj, 
+      page ? +page : undefined, 
+      limit ? +limit : undefined
+    )
   }
 
   @Get(':id')
