@@ -3,8 +3,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
+
 import { User } from './users/entities/user.entity';
+import { Company } from './companies/entities/company.entity';
+
 import { AuthModule } from './auth/auth.module';
+import { CompaniesModule } from './companies/companies.module';
 
 
 @Module({
@@ -16,11 +20,12 @@ import { AuthModule } from './auth/auth.module';
       username: 'postgres',
       password: '23451',
       database: 'postgres',
-      entities: [User],
+      entities: [User, Company],
       synchronize: true,
     }),
     UsersModule,
     AuthModule,
+    CompaniesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

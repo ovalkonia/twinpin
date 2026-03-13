@@ -1,4 +1,5 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm'
+import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm'
+import { Company } from '../../companies/entities/company.entity'
 
 @Entity("users")
 export class User {
@@ -23,4 +24,7 @@ export class User {
 
     @Column({ default: true })
     isVisibleInVisitorList: boolean
+
+    @OneToMany(() => Company, (company) => company.owner)
+    companies: Company[] 
 }
