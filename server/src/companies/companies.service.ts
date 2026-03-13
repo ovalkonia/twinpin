@@ -25,6 +25,10 @@ export class CompaniesService {
     return await this.companiesRepository.findOneBy({ id });
   }
 
+  async findOneCompany(id: number) {
+    return this.companiesRepository.findOneBy({id})
+  }
+
   async getCompanies() {
     return await this.companiesRepository.find({ relations: ['owner'] })
   }
@@ -37,6 +41,6 @@ export class CompaniesService {
   }
 
   async removeCompany(id: number) {
-    return await this.companiesRepository.delete({ id });
+    return await this.companiesRepository.delete({ id })
   }
 }

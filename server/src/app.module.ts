@@ -9,7 +9,8 @@ import { Company } from './companies/entities/company.entity';
 
 import { AuthModule } from './auth/auth.module';
 import { CompaniesModule } from './companies/companies.module';
-
+import { EventsModule } from './events/events.module';
+import { Event } from './events/entities/event.entity';
 
 @Module({
   imports: [
@@ -20,12 +21,13 @@ import { CompaniesModule } from './companies/companies.module';
       username: 'postgres',
       password: '23451',
       database: 'postgres',
-      entities: [User, Company],
+      entities: [User, Company, Event],
       synchronize: true,
     }),
     UsersModule,
     AuthModule,
     CompaniesModule,
+    EventsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

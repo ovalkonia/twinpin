@@ -1,5 +1,6 @@
-import { Column, Entity, PrimaryGeneratedColumn, ManyToOne } from "typeorm";
+import { Column, Entity, PrimaryGeneratedColumn, ManyToOne, OneToMany } from "typeorm";
 import { User } from "../../users/entities/user.entity";
+import { Event } from "../../events/entities/event.entity";
 
 
 @Entity("companies")
@@ -21,4 +22,7 @@ export class Company {
 
     @Column()
     ownerId: number;
+
+    @OneToMany(() => Event, (event) => event.company)
+    events: Event[];
 }
