@@ -1,6 +1,8 @@
 import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm'
 import { Company } from '../../companies/entities/company.entity'
 
+import { Ticket } from 'src/tickets/entities/ticket.entity'
+
 @Entity("users")
 export class User {
     @PrimaryGeneratedColumn()
@@ -27,4 +29,7 @@ export class User {
 
     @OneToMany(() => Company, (company) => company.owner)
     companies: Company[] 
+
+    @OneToMany(() => Ticket, (ticket) => ticket.user)
+    tickets: Ticket[];
 }

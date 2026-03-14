@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, Inject, forwardRef } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository, Between } from 'typeorm'
 
@@ -7,7 +7,7 @@ import { CreateEventDto } from './dto/create-event.dto'
 import { UpdateEventDto } from './dto/update-event.dto'
 import { Event } from './entities/event.entity'
 import { CompaniesService } from 'src/companies/companies.service'
-
+import { TicketsService } from '../tickets/tickets.service'
 
 
 @Injectable()
@@ -16,6 +16,8 @@ export class EventsService {
     @InjectRepository(Event)
     private eventsRepository: Repository<Event>,
     private companiesService: CompaniesService,
+    @Inject(forwardRef(() => TicketsService))
+    private ticketsService: TicketsService,
   ){}
 
   async createEvent(createEventDto: CreateEventDto, userId: number) {
@@ -77,10 +79,19 @@ export class EventsService {
   }
 
   async findOneEvent(id: number) {
-    return await this.eventsRepository.findOne({
+    const event = await this.eventsRepository.findOne({
       where: { id }, 
       relations: ['company'],
-    })
+    });
+    
+    if (!event) return null
+    
+    const ticketsCount = await this.ticketsService.countByEvent(id)
+    
+    return {
+      ...event,
+      availableTickets: event.maxTickets - ticketsCount
+    }
   }
 
   async updateEvent(id: number, updateEventDto: UpdateEventDto, userId: number) {

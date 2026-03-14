@@ -1,5 +1,7 @@
-import { Column, PrimaryGeneratedColumn, Entity, ManyToOne } from "typeorm";
+import { Column, PrimaryGeneratedColumn, Entity, ManyToOne, OneToMany } from "typeorm";
 import { Company } from '../../companies/entities/company.entity';
+
+import { Ticket } from "src/tickets/entities/ticket.entity";
 
 @Entity('events')
 export class Event {
@@ -48,4 +50,7 @@ export class Event {
 
     @Column()
     companyId: number
+
+    @OneToMany(() => Ticket, (ticket) => ticket.event)
+    tickets: Ticket[];
 }
