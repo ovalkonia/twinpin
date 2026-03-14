@@ -3,6 +3,7 @@ import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Ticket } from './entities/ticket.entity';
 import { EventsService } from '../events/events.service';
+import { NotificationsService } from 'src/notifications/notifications.service';
 
 @Injectable()
 export class TicketsService {
@@ -11,6 +12,7 @@ export class TicketsService {
     private ticketRepository: Repository<Ticket>,
     @Inject(forwardRef(() => EventsService))
     private eventsService: EventsService,
+    private notificationsService: NotificationsService,   
   ) {}
 
   async registerTicket(eventId: number, userId: number) {
@@ -44,6 +46,14 @@ export class TicketsService {
       ticketNumber,
       status: 'registered'
     })
+
+    await this.notificationsService.create(
+      userId,
+      'ticket',
+      `You registered for ${event.title}`,
+      { eventId, ticketNumber }
+    );
+
 
     return await this.ticketRepository.save(newTicket)
   }

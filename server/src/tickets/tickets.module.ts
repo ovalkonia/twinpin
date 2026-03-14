@@ -4,11 +4,13 @@ import { TicketsService } from './tickets.service';
 import { TicketsController } from './tickets.controller';
 import { Ticket } from './entities/ticket.entity';
 import { EventsModule } from '../events/events.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Ticket]),
-    forwardRef(() => EventsModule)
+    forwardRef(() => EventsModule),
+    NotificationsModule,
   ],
   controllers: [TicketsController],
   providers: [TicketsService],

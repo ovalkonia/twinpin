@@ -2,6 +2,8 @@ import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm'
 import { Company } from '../../companies/entities/company.entity'
 
 import { Ticket } from 'src/tickets/entities/ticket.entity'
+import { Notification } from 'src/notifications/entities/notification.entity'
+
 
 @Entity("users")
 export class User {
@@ -32,4 +34,7 @@ export class User {
 
     @OneToMany(() => Ticket, (ticket) => ticket.user)
     tickets: Ticket[];
+
+    @OneToMany(() => Notification, (notification) => notification.user)
+    notifications: Notification[];
 }
