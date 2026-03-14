@@ -95,4 +95,19 @@ export class TicketsService {
       .filter(t => t.user.isVisibleInVisitorList)
       .map(t => ({ name: t.user.fullName }))
   }
+
+  async updateStatus(eventId: number, userId: number, status: string) {
+    const ticket = await this.ticketRepository.findOne({
+      where: {
+        event: { id: eventId },
+        user: { id: userId },
+        status: 'registered'
+      }
+    })
+
+    if (!ticket) return { error: 'Ticket not found' }
+
+    ticket.status = status
+    return await this.ticketRepository.save(ticket)
+  }
 }
