@@ -1,77 +1,93 @@
-import React, { useState } from "react"
-import { useNavigate } from 'react-router-dom'
-import toast from "react-hot-toast"
+import React, { useState } from "react";
+import { Link, useNavigate } from 'react-router-dom';
+import toast from "react-hot-toast";
+import { loginUser } from "../../services/auth";
 
-import AuthLayout from "../../layouts/authlayout"
-import { loginUser } from "../../services/auth"
+const Login: React.FC = () => {
+    const navigate = useNavigate();
 
-import '../../styles/reg_log.css'
-
-const Login = () => {
-    const navigate = useNavigate()
-
-    const [email, setEmail] = useState('')
-    const [password, setPassword] = useState('')
+    const [formData, setFormData] = useState({
+        email: '',
+        password: ''
+    });
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    if (name === 'email') setEmail(value)
-    if (name === 'password') setPassword(value)
-    }
+        const { name, value } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault()
-
-        const data = {
-            email: email,
-            password: password,
-        }
+        e.preventDefault();
 
         toast.promise(
-            loginUser(data),
+            loginUser(formData),
             {
-                loading: 'Logging in...',
+                loading: 'Signing in...',
                 success: (response) => {
-                    localStorage.setItem('token', response.token)
-                    navigate('/')
-                    return `Welcome back, ${response.user?.name || 'User'}!`
+                    if (response.token) {
+                        localStorage.setItem('token', response.token);
+                    }
+
+                    navigate('/dashboard');
+
+                    return `Welcome back, ${response.user?.name || 'User'}!`;
                 },
-                error: (err) => `Error: ${err.message || 'Invalid credentials'}`,
+                error: (err) => {
+                    return err.response?.data?.message || 'Invalid credentials';
+                },
             }
-        )
-    }
+        );
+    };
 
     return (
-        <AuthLayout>
+        <div>
             <h2>Sign in</h2>
-            <form onSubmit={handleSubmit}>
-                <label>Email:</label>
-                <input 
-                    type="email" 
-                    name="email" 
-                    value={email} 
-                    onChange={(e) => handleChange(e)}
-                /><br></br>
-                <label >Password:</label>
-                <input 
-                    type="password" 
-                    name="password" 
-                    value={password} 
-                    onChange={(e) => handleChange(e)}
-                /><br></br>
-                <button type="submit">Sign in</button>
+
+            <form onSubmit={handleSubmit} className="auth-form">
+                <div className="input-group">
+                    <label htmlFor="email">Email</label>
+                    <input
+                        id="email"
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        placeholder="example@mail.com"
+                        onChange={handleChange}
+                        required
+                    />
+                </div>
+
+                <div className="input-group">
+                    <label htmlFor="password">Password</label>
+                    <input
+                        id="password"
+                        type="password"
+                        name="password"
+                        value={formData.password}
+                        placeholder="••••••••"
+                        onChange={handleChange}
+                        required
+                    />
+                </div>
+
+                <button type="submit" className="submit-btn">
+                    Sign in
+                </button>
             </form>
 
             <div className="auth-links">
-                <p id="info"></p>
-                <a href="/forgot-password">Forgot password?</a>
-                <br />
-                <a href="/sign-up">Don't have an account? Sign up</a>
+                <Link to="/auth/forgot-password">Forgot password?</Link>
+                <Link to="/auth/sign-up" className="auth-link">
+                    Don't have an account? Sign up
+                </Link>
             </div>
+
             <div id="googleLog"></div>
+        </div>
+    );
+};
 
-        </AuthLayout>
-    )
-}
-
-export default Login
+export default Login;

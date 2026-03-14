@@ -1,79 +1,95 @@
 import React, { useState } from "react";
-import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
-
-import AuthLayout from "../../layouts/authlayout"
-
+import toast from "react-hot-toast";
 import { changePassword } from "../../services/auth";
 
-const ChangePassword = () => {
-    const navigate = useNavigate()
+const ChangePassword: React.FC = () => {
+    const navigate = useNavigate();
 
-    const [password, setPassword] = useState('')
-    const [passwordConfirm, setPasswordConfirm] = useState('')
+    const [formData, setFormData] = useState({
+        password: '',
+        passwordConfirm: ''
+    });
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    if (name === 'password') setPassword(value)
-    if (name === 'passwordConfirm') setPasswordConfirm(value)
-    }
+        const { name, value } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
 
-    const handleInput = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault()
-        const messageElement = document.querySelector("#checkPost")
-        
-        try {
-            const data = {
-                "password": password,
-                "passwordConfirm": passwordConfirm,
-            }
-            const response = await changePassword(data)
-            
-            if (messageElement) {
-                messageElement.innerHTML = `your password - ${response.password}`
-                toast.success("Success")
-                buttonRedirect("")
-            } 
-            
-        } catch (error) {
-            if (messageElement) {
-                messageElement.innerHTML = `you get error - ${error}`
-                toast.error("Error")
-                buttonRedirect("")
-            }
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+
+        if (formData.password !== formData.passwordConfirm) {
+            toast.error("Passwords do not match");
+            return;
         }
-    }
 
-    const buttonRedirect = (link : string) =>{
-        navigate(`/${link}`)
-    }
+        toast.promise(
+            changePassword(formData),
+            {
+                loading: 'Updating password...',
+                success: () => {
+                    navigate('/auth/sign-in');
+                    return "Password changed successfully! Please log in.";
+                },
+                error: (err) => err.response?.data?.message || "Failed to change password",
+            }
+        );
+    };
 
     return (
-        <AuthLayout>
+        <div>
             <h2>Change Password</h2>
 
-            <form onSubmit={handleInput}>
-                <label>Password:</label>
-                <input 
-                    type="password"
-                    name="password" 
-                    value={password} 
-                    onChange={(e) => handleChange(e)}
-                /><br></br>
-                <label>Confirm password:</label>
-                <input 
-                    type="password"
-                    name="passwordConfirm" 
-                    value={passwordConfirm} 
-                    onChange={(e) => handleChange(e)}
-                /><br></br>
-                <button type="submit">Send new password</button>
-            </form>
-            <div className="auth-links">
-                <p id="checkPost"></p>
-            </div>
-        </AuthLayout>
-    )
-}
+            <p className="auth-description">
+                Please enter your new password below.
+            </p>
 
-export default ChangePassword
+            <form onSubmit={handleSubmit} className="auth-form">
+                <div className="input-group">
+                    <label htmlFor="password">New Password</label>
+                    <input
+                        id="password"
+                        type="password"
+                        name="password"
+                        value={formData.password}
+                        onChange={handleChange}
+                        required
+                        minLength={8}
+                    />
+                </div>
+
+                <div className="input-group">
+                    <label htmlFor="passwordConfirm">Confirm New Password</label>
+                    <input
+                        id="passwordConfirm"
+                        type="password"
+                        name="passwordConfirm"
+                        value={formData.passwordConfirm}
+                        onChange={handleChange}
+                        required
+                    />
+                </div>
+
+                <button type="submit" className="submit-btn">
+                    Update Password
+                </button>
+            </form>
+
+            <div className="auth-links">
+                <button
+                    className="return-link"
+                    onClick={() => navigate('/auth/sign-in')}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+                >
+                    Back to sign in
+                </button>
+            </div>
+        </div>
+    );
+};
+
+export default ChangePassword;

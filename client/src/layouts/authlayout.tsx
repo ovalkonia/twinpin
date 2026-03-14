@@ -1,5 +1,5 @@
-// Импортируем React (нужен для JSX)
 import { Outlet } from 'react-router-dom';
+import '../styles/reg_log.css';
 
 const AuthLayout = () => {
     return (

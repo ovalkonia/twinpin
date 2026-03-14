@@ -1,99 +1,121 @@
-import React, { useState } from "react"
-import { useNavigate } from 'react-router-dom'
-import toast from "react-hot-toast"
+import React, { useState } from "react";
+import { Link, useNavigate } from 'react-router-dom';
+import toast from "react-hot-toast";
+import { registerUser } from '../../services/auth';
 
-import AuthLayout from "../../layouts/authlayout"
-import { registerUser } from '../../services/auth'
+const Registration: React.FC = () => {
+    const navigate = useNavigate();
 
-const Registration = () => {
-    const navigate = useNavigate()
-
-    const [email, setEmail] = useState('')
-    const [name, setName] = useState('')
-    const [password, setPassword] = useState('')
-    const [confirmPassword, setconfirmPassword] = useState('')
+    const [formData, setFormData] = useState({
+        name: '',
+        email: '',
+        password: '',
+        confirmPassword: ''
+    });
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target
-        if (name === 'email') setEmail(value)
-        if (name === 'name') setName(value)
-        if (name === 'password') setPassword(value)
-        if (name === 'confirmPassword') setconfirmPassword(value)
-    
-    }
+        const { name, value } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault()
+        e.preventDefault();
 
-        if (password !== confirmPassword) {
-            toast.error("Passwords don't match")
-            return
+        if (formData.password !== formData.confirmPassword) {
+            toast.error("Passwords don't match");
+            return;
         }
 
-        const data = {
-            name: name,
-            email: email,
-            password: password,
-        }
+        const payload = {
+            name: formData.name,
+            email: formData.email,
+            password: formData.password
+        };
 
         toast.promise(
-            registerUser(data),
+            registerUser(payload),
             {
                 loading: 'Creating account...',
-                success: (response) => {
-                    navigate('/')
-                    return `Welcome, ${name}! Registration successful`
+                success: () => {
+                    navigate('/auth/sign-in');
+                    return `Welcome, ${formData.name}! Please log in.`;
                 },
-                error: (err) => `Error: ${err.message || 'Registration failed'}`,
+                error: (err) => err.response?.data?.message || 'Registration failed',
             }
-        )
-    }
+        );
+    };
 
     return (
-        <AuthLayout>
+        <div>
             <h2>Sign up</h2>
 
-            <form onSubmit={handleSubmit}>
-                <label>Nickname:</label>
-                <input 
-                    type="name" 
-                    name="name" 
-                    value={name} 
-                    onChange={(e) => handleChange(e)}
-                /><br></br>
-                <label>Email:</label>
-                <input 
-                    type="email" 
-                    name="email" 
-                    value={email} 
-                    onChange={(e) => handleChange(e)}
-                /><br></br>
+            <form onSubmit={handleSubmit} className="auth-form">
+                <div className="input-group">
+                    <label htmlFor="name">Full name</label>
+                    <input
+                        id="name"
+                        type="text"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleChange}
+                        placeholder="John Doe"
+                        required
+                    />
+                </div>
 
-                <label >Password:</label>
-                <input 
-                    type="password" 
-                    name="password" 
-                    value={password} 
-                    onChange={(e) => handleChange(e)}
-                /><br></br>
-                <label >Confirm password:</label>
-                <input 
-                    type="password" 
-                    name="confirmPassword" 
-                    value={confirmPassword} 
-                    onChange={(e) => handleChange(e)}
-                /><br></br>
-                <button type="submit">Confirm</button>
+                <div className="input-group">
+                    <label htmlFor="email">Email</label>
+                    <input
+                        id="email"
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        placeholder="example@mail.com"
+                        required
+                    />
+                </div>
+
+                <div className="input-group">
+                    <label htmlFor="password">Password</label>
+                    <input
+                        id="password"
+                        type="password"
+                        name="password"
+                        value={formData.password}
+                        onChange={handleChange}
+                        required
+                        minLength={8}
+                    />
+                </div>
+
+                <div className="input-group">
+                    <label htmlFor="confirmPassword">Confirm password</label>
+                    <input
+                        id="confirmPassword"
+                        type="password"
+                        name="confirmPassword"
+                        value={formData.confirmPassword}
+                        onChange={handleChange}
+                        required
+                    />
+                </div>
+
+                <button type="submit" className="auth-button">
+                    Create Account
+                </button>
             </form>
 
             <div className="auth-links">
-                <p id="info"></p>
-                <a href="/sign-in">Already have an account? Sign in</a>
+                <Link to="/auth/sign-in" className="auth-link">
+                    Already have an account?
+                </Link>
             </div>
-            <div id="googleReg"></div>
+        </div>
+    );
+};
 
-        </AuthLayout>
-    )
-}
-
-export default Registration
+export default Registration;
