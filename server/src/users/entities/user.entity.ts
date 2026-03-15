@@ -4,6 +4,7 @@ import { Company } from '../../companies/entities/company.entity'
 import { Ticket } from 'src/tickets/entities/ticket.entity'
 import { Notification } from 'src/notifications/entities/notification.entity'
 import { Comment } from 'src/comments/entities/comment.entity'
+import { Subscription } from 'src/subscriptions/entities/subscription.entity'
 
 @Entity("users")
 export class User {
@@ -40,4 +41,7 @@ export class User {
 
     @OneToMany(() => Comment, (comment) => comment.user)
     comments: Comment[];
+
+    @OneToMany(() => Subscription, (sub) => sub.user)
+    subscriptions: Subscription[];
 }

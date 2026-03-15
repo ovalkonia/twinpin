@@ -7,6 +7,8 @@ import { UpdateEventDto } from './dto/update-event.dto'
 import { Event } from './entities/event.entity'
 import { CompaniesService } from 'src/companies/companies.service'
 import { TicketsService } from '../tickets/tickets.service'
+import { SubscriptionsService } from '../subscriptions/subscriptions.service'
+import { NotificationsService } from '../notifications/notifications.service'
 
 @Injectable()
 export class EventsService {
@@ -16,6 +18,8 @@ export class EventsService {
     private companiesService: CompaniesService,
     @Inject(forwardRef(() => TicketsService))
     private ticketsService: TicketsService,
+    private subscriptionsService: SubscriptionsService,
+    private notificationsService: NotificationsService,
   ){}
 
   async createEvent(createEventDto: CreateEventDto, userId: number) {
@@ -29,7 +33,20 @@ export class EventsService {
       company: { id: createEventDto.companyId }
     })
 
-    return await this.eventsRepository.save(newEvent)
+    const savedEvent = await this.eventsRepository.save(newEvent)
+
+    const subscribers = await this.subscriptionsService.getSubscribers('company', createEventDto.companyId)
+    
+    for (const sub of subscribers) {
+      await this.notificationsService.create(
+        sub.userId,
+        'new_event',
+        `New event "${savedEvent.title}" from company ${company.name}`,
+        { eventId: savedEvent.id, companyId: company.id }
+      )
+    }
+
+    return savedEvent
   }
 
   async findAllEvent(
@@ -79,7 +96,7 @@ export class EventsService {
   async findOneEvent(id: number) {
     const event = await this.eventsRepository.findOne({
       where: { id }, 
-      relations: ['company', 'comments', 'comments.user'], // ← добавили комментарии
+      relations: ['company', 'comments', 'comments.user'],
     });
     
     if (!event) return null
