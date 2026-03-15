@@ -49,7 +49,7 @@ const Registration: React.FC = () => {
     };
 
     return (
-        <div>
+        <>
             <h2>Sign up</h2>
 
             <form onSubmit={handleSubmit} className="auth-form">
@@ -114,7 +114,7 @@ const Registration: React.FC = () => {
                     Already have an account?
                 </Link>
             </div>
-        </div>
+        </>
     );
 };
 

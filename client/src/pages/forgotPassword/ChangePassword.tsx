@@ -41,7 +41,7 @@ const ChangePassword: React.FC = () => {
     };
 
     return (
-        <div>
+        <>
             <h2>Change Password</h2>
 
             <p className="auth-description">
@@ -88,7 +88,7 @@ const ChangePassword: React.FC = () => {
                     Back to sign in
                 </button>
             </div>
-        </div>
+        </>
     );
 };
 

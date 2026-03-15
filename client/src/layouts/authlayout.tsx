@@ -4,11 +4,11 @@ import '../styles/reg_log.css';
 const AuthLayout = () => {
     return (
         <div style={{
-            height: '100vh',
+            flex: 1,
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
-            backgroundColor: '#1a1a1a'
+            backgroundColor: '#0a0a0a',
         }}>
             <div className="auth-card">
                 <Outlet />

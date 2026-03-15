@@ -106,6 +106,49 @@
     text-decoration: underline;
 }
 
+/* google login divider */
+.auth-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 20px 0 0;
+    color: #555;
+    font-size: 13px;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(255, 107, 0, 0.2);
+}
+
+/* google button */
+.google-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 11px 16px;
+    margin-top: 12px;
+    background: #1e1e1e;
+    border: 1px solid #333;
+    border-radius: 8px;
+    color: #e0e0e0;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.google-btn:hover {
+    border-color: rgba(255, 107, 0, 0.5);
+    background: #222;
+}
+
 /* error / status messages */
 #info,
 #checkPost {

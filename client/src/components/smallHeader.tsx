@@ -1,35 +1,21 @@
-import { useState, useEffect } from "react"; // добавить импорт
-
-import '../styles/header.css';
+import { useNavigate } from 'react-router-dom';
+import '../styles/info-pages.css';
 
 export const SmallHeader = () => {
-    const [scrolled, setScrolled] = useState(false);
+    const navigate = useNavigate();
 
-    // Эффект для отслеживания скролла
-    useEffect(() => {
-        const handleScroll = () => {
-            if (window.scrollY > 50) {
-                setScrolled(true);
-            } else {
-                setScrolled(false);
-            }
-        };
-
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
-
-
+    const handleBack = () => {
+        if (window.history.length > 1) {
+            navigate(-1);
+        } else {
+            navigate('/');
+        }
+    };
 
     return (
-        <header className={`fixed-header ${scrolled ? 'scrolled' : ''}`}>
-            <nav>
-                <ul>
-                    <li>
-                        <a href="/" style={{fontSize : "20px"}}>Home</a>
-                    </li>
-                </ul>
-            </nav>
-        </header>
+        <button className="back-btn" onClick={handleBack} aria-label="Go back">
+            <span className="back-btn-arrow">←</span>
+            Back
+        </button>
     );
 };

@@ -24,7 +24,7 @@ const ForgotPassword: React.FC = () => {
     };
 
     return (
-        <div>
+        <>
             <h2>Forgot Password</h2>
             <form onSubmit={handleSubmit} className="auth-form">
                 <div className="input-group">
@@ -50,7 +50,7 @@ const ForgotPassword: React.FC = () => {
                     Return to sign in
                 </Link>
             </div>
-        </div>
+        </>
     );
 };
 

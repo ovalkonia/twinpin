@@ -6,7 +6,7 @@ import HeaderBeforeReg from "../../layouts/headerBeforeReg";
 import { handleContactUs } from "../../services/help";
 import "../../styles/landing-page.css";
 
-const PageBefortSignUp = () => {
+const PageBeforeSignUp = () => {
     const navigate = useNavigate();
 
     const [email, setEmail] = useState('');
@@ -124,4 +124,4 @@ const PageBefortSignUp = () => {
     );
 };
 
-export default PageBefortSignUp;
+export default PageBeforeSignUp;
