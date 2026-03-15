@@ -3,7 +3,7 @@ import { Company } from '../../companies/entities/company.entity'
 
 import { Ticket } from 'src/tickets/entities/ticket.entity'
 import { Notification } from 'src/notifications/entities/notification.entity'
-
+import { Comment } from 'src/comments/entities/comment.entity'
 
 @Entity("users")
 export class User {
@@ -37,4 +37,7 @@ export class User {
 
     @OneToMany(() => Notification, (notification) => notification.user)
     notifications: Notification[];
+
+    @OneToMany(() => Comment, (comment) => comment.user)
+    comments: Comment[];
 }

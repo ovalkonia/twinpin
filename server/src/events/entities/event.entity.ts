@@ -2,6 +2,7 @@ import { Column, PrimaryGeneratedColumn, Entity, ManyToOne, OneToMany } from "ty
 import { Company } from '../../companies/entities/company.entity';
 
 import { Ticket } from "src/tickets/entities/ticket.entity";
+import { Comment } from 'src/comments/entities/comment.entity'
 
 @Entity('events')
 export class Event {
@@ -53,4 +54,7 @@ export class Event {
 
     @OneToMany(() => Ticket, (ticket) => ticket.event)
     tickets: Ticket[];
+
+    @OneToMany(() => Comment, (comment) => comment.event)
+    comments: Comment[];
 }

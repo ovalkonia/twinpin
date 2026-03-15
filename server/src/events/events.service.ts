@@ -2,13 +2,11 @@ import { Injectable, Inject, forwardRef } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository, Between } from 'typeorm'
 
-
 import { CreateEventDto } from './dto/create-event.dto'
 import { UpdateEventDto } from './dto/update-event.dto'
 import { Event } from './entities/event.entity'
 import { CompaniesService } from 'src/companies/companies.service'
 import { TicketsService } from '../tickets/tickets.service'
-
 
 @Injectable()
 export class EventsService {
@@ -81,7 +79,7 @@ export class EventsService {
   async findOneEvent(id: number) {
     const event = await this.eventsRepository.findOne({
       where: { id }, 
-      relations: ['company'],
+      relations: ['company', 'comments', 'comments.user'], // ← добавили комментарии
     });
     
     if (!event) return null
