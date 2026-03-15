@@ -4,6 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Ticket } from './entities/ticket.entity';
 import { EventsService } from '../events/events.service';
 import { NotificationsService } from 'src/notifications/notifications.service';
+import { PromocodesService } from '../promocodes/promocodes.service';
 
 @Injectable()
 export class TicketsService {
@@ -12,12 +13,32 @@ export class TicketsService {
     private ticketRepository: Repository<Ticket>,
     @Inject(forwardRef(() => EventsService))
     private eventsService: EventsService,
-    private notificationsService: NotificationsService,   
+    private notificationsService: NotificationsService,
+    private promocodesService: PromocodesService,   
   ) {}
 
-  async registerTicket(eventId: number, userId: number) {
+  async registerTicket(eventId: number, userId: number, promoCode?: string) {
     const event = await this.eventsService.findOneEvent(eventId)
     if (!event) return { error: 'Event not found' }
+
+    let finalPrice = event.price
+    let appliedPromoCode: string | null = null
+
+    if (promoCode) {
+      const validation = await this.promocodesService.validateAndApply(eventId, promoCode)
+      if (!validation.valid || !validation.discount || !validation.promocodeId) {
+        return { error: validation.error || 'Invalid promo code' }
+      }
+
+      if (validation.discountType === 'percentage') {
+        finalPrice = event.price * (1 - validation.discount / 100)
+      } else {
+        finalPrice = Math.max(0, event.price - validation.discount)
+      }
+
+      appliedPromoCode = promoCode
+      await this.promocodesService.incrementUsedCount(validation.promocodeId)
+    }
 
     const existingTicket = await this.ticketRepository.findOne({
       where: {
@@ -25,7 +46,7 @@ export class TicketsService {
         user: { id: userId },
         status: 'registered'
       }
-    });
+    })
     
     if (existingTicket) return { error: 'Already registered for this event' }
 
@@ -44,7 +65,8 @@ export class TicketsService {
       user: { id: userId },
       event: { id: eventId },
       ticketNumber,
-      status: 'registered'
+      status: 'registered',
+      promoCode: appliedPromoCode || undefined,
     })
 
     await this.notificationsService.create(
@@ -52,8 +74,7 @@ export class TicketsService {
       'ticket',
       `You registered for ${event.title}`,
       { eventId, ticketNumber }
-    );
-
+    )
 
     return await this.ticketRepository.save(newTicket)
   }
@@ -99,7 +120,7 @@ export class TicketsService {
     const tickets = await this.ticketRepository.find({
       where: { event: { id: eventId }, status: 'registered' },
       relations: ['user'],
-    });
+    })
     
     return tickets
       .filter(t => t.user.isVisibleInVisitorList)

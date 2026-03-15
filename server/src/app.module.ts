@@ -25,6 +25,8 @@ import { CommentsModule } from './comments/comments.module';
 import { Comment } from './comments/entities/comment.entity';
 import { SubscriptionsModule } from './subscriptions/subscriptions.module';
 import { Subscription } from './subscriptions/entities/subscription.entity';
+import { PromocodesModule } from './promocodes/promocodes.module';
+import { PromoCode } from './promocodes/entities/promocode.entity';
 
 @Module({
   imports: [
@@ -36,7 +38,7 @@ import { Subscription } from './subscriptions/entities/subscription.entity';
       username: 'postgres',
       password: '23451',
       database: 'postgres',
-      entities: [User, Company, Event, Ticket, Notification, Comment, Subscription],
+      entities: [User, Company, Event, Ticket, Notification, Comment, Subscription, PromoCode],
       synchronize: true,
     }),
     ConfigModule.forRoot({ isGlobal: true }),
@@ -51,6 +53,7 @@ import { Subscription } from './subscriptions/entities/subscription.entity';
     NotificationsModule,
     CommentsModule,
     SubscriptionsModule,
+    PromocodesModule,
   ],
   controllers: [AppController],
   providers: [AppService], 

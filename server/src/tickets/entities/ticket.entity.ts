@@ -17,8 +17,8 @@ export class Ticket {
     })
     status: string
 
-    @Column({ nullable: true })
-    promoCode: string
+    @Column({ nullable: true, type: 'varchar' })
+    promoCode: string | null;
 
     @Column({ unique: true })
     ticketNumber: string

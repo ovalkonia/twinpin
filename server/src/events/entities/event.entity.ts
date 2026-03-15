@@ -3,6 +3,8 @@ import { Company } from '../../companies/entities/company.entity';
 
 import { Ticket } from "src/tickets/entities/ticket.entity";
 import { Comment } from 'src/comments/entities/comment.entity'
+import { PromoCode } from "src/promocodes/entities/promocode.entity";
+
 
 @Entity('events')
 export class Event {
@@ -53,8 +55,11 @@ export class Event {
     companyId: number
 
     @OneToMany(() => Ticket, (ticket) => ticket.event)
-    tickets: Ticket[];
+    tickets: Ticket[]
 
     @OneToMany(() => Comment, (comment) => comment.event)
-    comments: Comment[];
+    comments: Comment[]
+
+    @OneToMany(() => PromoCode, (promo) => promo.event)
+    promocodes: PromoCode[]
 }
