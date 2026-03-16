@@ -1,8 +1,25 @@
-import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { Toaster } from "react-hot-toast";
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import './App.css';
+
+import { PrivateRoute } from './components/PrivateRoute';
+import Registration from './pages/registration/Registration';
+import Login from './pages/login/Login';
+import ForgotPassword from './pages/forgotPassword/ForgotPassword';
+import ChangePassword from './pages/forgotPassword/ChangePassword';
+import PageBeforeSignUp from './pages/beforeSignUp/BeforeSignUp';
+import { UserRulesPage } from './pages/footerPages/userRules';
+import { PrivacyPolicyPage } from './pages/footerPages/privacyPolicyPage';
+import { HelpPage } from './pages/footerPages/helpPage';
+import Footer from './components/footer';
+import NotFoundPage from './pages/notFound/404';
+import { AuthProvider } from './context/AuthContext';
+import { MainPage } from './pages/home/MainPage.js';
+import AuthLayout from './layouts/authlayout';
+
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
 function ScrollToTop() {
     const { pathname } = useLocation();
@@ -11,23 +28,6 @@ function ScrollToTop() {
     }, [pathname]);
     return null;
 }
-
-import { PrivateRoute } from './components/PrivateRoute'
-import Registration from './pages/registration/Registration';
-import Login from './pages/login/Login';
-import ForgotPassword from './pages/forgotPassword/ForgotPassword';
-import ChangePassword from './pages/forgotPassword/ChangePassword';
-import PageBeforeSignUp from './pages/beforeSignUp/BeforeSignUp';
-import { UserRulesPage } from "./pages/footerPages/userRules"
-import { PrivacyPolicyPage } from "./pages/footerPages/privacyPolicyPage"
-import { HelpPage } from "./pages/footerPages/helpPage"
-import Footer from './components/footer';
-import NotFoundPage from "./pages/notFound/404"
-import { AuthProvider } from './context/AuthContext';
-import { AfterSignUp } from './pages/afterSignUp/AfterSignUp'
-import AuthLayout from './layouts/authlayout';
-
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
 function AppContent() {
     return (
@@ -76,16 +76,7 @@ function AppContent() {
                     <Route path="faq" element={<HelpPage />} />
                 </Route>
 
-                <Route
-                    path="/dashboard"
-                    element={
-                        <PrivateRoute>
-                            <Outlet />
-                        </PrivateRoute>
-                    }
-                >
-                    <Route index element={<AfterSignUp />} />
-                </Route>
+                <Route path="/dashboard" element={<MainPage />} />
 
                 <Route path="*" element={<NotFoundPage />} />
             </Routes>

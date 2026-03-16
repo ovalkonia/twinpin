@@ -85,12 +85,6 @@ nav button {
     max-width: 90px;
 }
 
-nav button:first-of-type {
-    background: #4a6fa5;
-    color: white;
-    box-shadow: 0 2px 8px rgba(255, 107, 0, 0.4);
-}
-
 .fixed-header button:first-of-type:hover {
     background: #ff8533;
     transform: translateY(-2px);
@@ -101,11 +95,6 @@ nav button:first-of-type {
     background: transparent;
     color: #ff6b00;
     border: 1px solid #ff6b00;
-}
-
-nav button:last-of-type:hover {
-    background: white;
-    color: #1a2639;
 }
 
 .fixed-header {
