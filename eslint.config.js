@@ -3,16 +3,14 @@ import pluginJs from "@eslint/js";
 import tseslint from "typescript-eslint";
 import noSecrets from "eslint-plugin-no-secrets";
 
-/** @type {import('eslint').Linter.Config[]} */
 export default tseslint.config(
   {
-    // Global ignores - replaces .eslintignore
     ignores: ["**/dist/**", "**/node_modules/**", "eslint-results.sarif"],
   },
   pluginJs.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    files: ["**/*.ts"],
+    files: ["**/*.ts", "**/*.tsx"],
     plugins: {
       "no-secrets": noSecrets,
     },
@@ -26,16 +24,14 @@ export default tseslint.config(
     rules: {
       "no-unused-vars": "warn",
       "no-console": "off",
-      
-      // 1. Catch high-entropy "keys" (random gibberish)
+      // Catch high-entropy random strings
       "no-secrets/no-secrets": ["error", { "tolerance": 4.1 }],
-
-      // 2. The Sniper: Block hardcoded strings in NestJS Module secrets
+      // Catch 'secret: "anything"' in NestJS modules
       "no-restricted-syntax": [
         "error",
         {
           "selector": "Property[key.name='secret'] > Literal[value=/^.+$/]",
-          "message": "Leaking secrets or smth"
+          "message": "Leaking secrets I see"
         }
       ]
     },
