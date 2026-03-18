@@ -17,6 +17,7 @@ import Footer from './components/footer';
 import NotFoundPage from './pages/notFound/404';
 import { AuthProvider } from './context/AuthContext';
 import { MainPage } from './pages/home/MainPage.js';
+import { ProfilePage } from './pages/profile/ProfilePage';
 import AuthLayout from './layouts/authlayout';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
@@ -58,9 +59,9 @@ function AppContent() {
                 <Route
                     path="/auth"
                     element={
-                        <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-                            <AuthLayout />
-                        </GoogleOAuthProvider>
+                        GOOGLE_CLIENT_ID
+                            ? <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}><AuthLayout /></GoogleOAuthProvider>
+                            : <AuthLayout />
                     }
                 >
                     <Route index element={<Navigate to="sign-in" replace />} />
@@ -77,6 +78,7 @@ function AppContent() {
                 </Route>
 
                 <Route path="/dashboard" element={<MainPage />} />
+                <Route path="/profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
 
                 <Route path="*" element={<NotFoundPage />} />
             </Routes>
