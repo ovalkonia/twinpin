@@ -90,9 +90,10 @@
     color: #e0e0e0;
     font-size: 14px;
     font-family: inherit;
-    resize: vertical;
     box-sizing: border-box;
     transition: border-color 0.2s;
+    resize: none;
+    field-sizing: content;
 }
 
 .profile-bio-input:focus {

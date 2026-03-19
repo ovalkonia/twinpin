@@ -18,6 +18,7 @@ import NotFoundPage from './pages/notFound/404';
 import { AuthProvider } from './context/AuthContext';
 import { MainPage } from './pages/home/MainPage.js';
 import { ProfilePage } from './pages/profile/ProfilePage';
+import EventPage from './pages/events/EventPage';
 import AuthLayout from './layouts/authlayout';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
@@ -79,6 +80,7 @@ function AppContent() {
 
                 <Route path="/dashboard" element={<MainPage />} />
                 <Route path="/profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
+                <Route path="/events/:id" element={<EventPage />} />
 
                 <Route path="*" element={<NotFoundPage />} />
             </Routes>
