@@ -103,14 +103,13 @@ export default function EventPage() {
     const navigate = useNavigate();
     const { isAuth } = useAuth();
 
-    const [isBooked, setIsBooked]           = useState(false);
     const [lightboxPhoto, setLightboxPhoto] = useState<string | null>(null);
 
     const event = MOCK_EVENT;
 
     const handleBook = () => {
         if (!isAuth) { navigate('/auth/sign-in'); return; }
-        setIsBooked(v => !v);
+        navigate(`/checkout/${event.id}`);
     };
 
     return (
@@ -146,7 +145,7 @@ export default function EventPage() {
                         spotsLeft={event.spotsLeft}
                     />
                     <EventBookButton
-                        isBooked={isBooked}
+                        isBooked={false}
                         price={event.price}
                         onClick={handleBook}
                     />

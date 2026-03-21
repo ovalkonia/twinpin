@@ -18,6 +18,8 @@ import NotFoundPage from './pages/notFound/404';
 import { AuthProvider } from './context/AuthContext';
 import { MainPage } from './pages/home/MainPage.js';
 import { ProfilePage } from './pages/profile/ProfilePage';
+import { TicketsPage } from './pages/tickets/TicketsPage';
+import { CheckoutPage } from './pages/checkout/CheckoutPage';
 import EventPage from './pages/events/EventPage';
 import AuthLayout from './layouts/authlayout';
 
@@ -80,6 +82,8 @@ function AppContent() {
 
                 <Route path="/dashboard" element={<MainPage />} />
                 <Route path="/profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
+                <Route path="/tickets" element={<PrivateRoute><TicketsPage /></PrivateRoute>} />
+                <Route path="/checkout/:eventId" element={<PrivateRoute><CheckoutPage /></PrivateRoute>} />
                 <Route path="/events/:id" element={<EventPage />} />
 
                 <Route path="*" element={<NotFoundPage />} />

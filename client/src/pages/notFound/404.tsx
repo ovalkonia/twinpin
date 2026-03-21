@@ -16,9 +16,6 @@ const NotFoundPage = () => {
                     <button onClick={() => navigate(-1)} className="btn-back">
                         ← Go Back
                     </button>
-                    <button onClick={() => navigate('/')} className="btn-home">
-                        Go to Home
-                    </button>
                 </div>
             </div>
         </div>
