@@ -302,6 +302,68 @@
     width: 100%;
 }
 
+/* ── Attendee visibility toggle ─────────────────────────────── */
+.tkt-visibility-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.tkt-toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #666;
+}
+
+.tkt-toggle {
+    position: relative;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.tkt-toggle input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.tkt-toggle-track {
+    display: block;
+    width: 36px;
+    height: 20px;
+    border-radius: 10px;
+    background: #2a2a2a;
+    border: 1px solid #333;
+    position: relative;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.tkt-toggle-track--on {
+    background: #ff6b00;
+    border-color: #ff6b00;
+}
+
+.tkt-toggle-thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: white;
+    transition: left 0.2s;
+}
+
+.tkt-toggle-track--on .tkt-toggle-thumb {
+    left: 18px;
+}
+
 /* ── Action buttons ─────────────────────────────────────────── */
 .tkt-btn {
     display: flex;

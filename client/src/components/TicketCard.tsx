@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { updateTicketVisibility } from '../services/payment';
 
 export interface Ticket {
     id: number;
@@ -12,6 +13,7 @@ export interface Ticket {
     ticketCode: string;
     status: 'active' | 'used' | 'cancelled';
     price: string;
+    showInAttendees: boolean;
 }
 
 const STATUS_LABELS: Record<Ticket['status'], string> = {
@@ -60,8 +62,15 @@ interface TicketCardProps {
 }
 
 export const TicketCard = ({ ticket, isPast = false }: TicketCardProps) => {
-    const [showQr, setShowQr] = useState(false);
+    const [showQr,  setShowQr]  = useState(false);
+    const [visible, setVisible] = useState(ticket.showInAttendees);
     const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(ticket.address)}`;
+
+    const handleVisibilityToggle = () => {
+        const next = !visible;
+        setVisible(next);
+        updateTicketVisibility(ticket.id, next).catch(() => setVisible(!next));
+    };
 
     return (
         <>
@@ -106,6 +115,26 @@ export const TicketCard = ({ ticket, isPast = false }: TicketCardProps) => {
                             {ticket.tickets} {ticket.tickets === 1 ? 'ticket' : 'tickets'}
                         </span>
                         <span className="tkt-price">{ticket.price}</span>
+                    </div>
+
+                    <div className="tkt-visibility-row">
+                        <span className="tkt-toggle-label">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                            </svg>
+                            Show in attendees list
+                        </span>
+                        <label className="tkt-toggle" aria-label="Show in attendees list">
+                            <input
+                                type="checkbox"
+                                checked={visible}
+                                onChange={handleVisibilityToggle}
+                            />
+                            <span className={`tkt-toggle-track${visible ? ' tkt-toggle-track--on' : ''}`}>
+                                <span className="tkt-toggle-thumb" />
+                            </span>
+                        </label>
                     </div>
                 </div>
 

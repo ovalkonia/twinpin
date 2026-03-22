@@ -114,12 +114,13 @@ const CheckoutContent = () => {
 
     const event = MOCK_EVENTS[eventId ?? ''] ?? MOCK_EVENTS['evt-001'];
 
-    const [quantity,       setQuantity]       = useState(1);
-    const [cardholderName, setCardholderName] = useState('');
-    const [cardFocused,    setCardFocused]    = useState(false);
-    const [loading,        setLoading]        = useState(false);
-    const [error,          setError]          = useState<string | null>(null);
-    const [succeeded,      setSucceeded]      = useState(false);
+    const [quantity,         setQuantity]         = useState(1);
+    const [showInAttendees,  setShowInAttendees]  = useState(true);
+    const [cardholderName,   setCardholderName]   = useState('');
+    const [cardFocused,      setCardFocused]      = useState(false);
+    const [loading,          setLoading]          = useState(false);
+    const [error,            setError]            = useState<string | null>(null);
+    const [succeeded,        setSucceeded]        = useState(false);
 
     const unitPrice  = event.price === 'free' ? 0 : event.price;
     const subtotal   = unitPrice * quantity;
@@ -137,7 +138,7 @@ const CheckoutContent = () => {
         setError(null);
 
         try {
-            const { data } = await createPaymentIntent(event.id, quantity);
+            const { data } = await createPaymentIntent(event.id, quantity, showInAttendees);
 
             const result = await stripe.confirmCardPayment(data.clientSecret, {
                 payment_method: {
@@ -282,6 +283,24 @@ const CheckoutContent = () => {
                                 +
                             </button>
                         </div>
+                    </div>
+
+                    {/* Attendee visibility */}
+                    <div className="co-visibility-row">
+                        <div className="co-visibility-info">
+                            <span className="co-visibility-label">Show me in the attendees list</span>
+                            <span className="co-visibility-hint">Your name will be visible on the event page</span>
+                        </div>
+                        <label className="co-toggle" aria-label="Show in attendees list">
+                            <input
+                                type="checkbox"
+                                checked={showInAttendees}
+                                onChange={() => setShowInAttendees(v => !v)}
+                            />
+                            <span className={`co-toggle-track${showInAttendees ? ' co-toggle-track--on' : ''}`}>
+                                <span className="co-toggle-thumb" />
+                            </span>
+                        </label>
                     </div>
 
                     {/* Price breakdown */}
