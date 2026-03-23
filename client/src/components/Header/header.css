@@ -584,6 +584,26 @@
     background: rgba(255, 77, 77, 0.1);
 }
 
+.notification-footer {
+    padding: 10px 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.notification-see-all {
+    display: block;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: #ff6b00;
+    text-decoration: none;
+    padding: 4px 0;
+    transition: color 0.15s;
+}
+
+.notification-see-all:hover {
+    color: #ff8533;
+}
+
 /* ===== Mobile ===== */
 @media (max-width: 600px) {
     .header {

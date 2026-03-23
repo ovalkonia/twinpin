@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useRef, useState} from "react";
-import {useNavigate} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
 import { IconBell } from '../../assets/icons';
 import api from '../../services/api';
 import toast from "react-hot-toast";
@@ -118,6 +118,11 @@ const Notifications: React.FC = () => {
                                 </div>
                             ))
                         )}
+                    </div>
+                    <div className="notification-footer">
+                        <Link to="/notifications" className="notification-see-all" onClick={() => setIsOpen(false)}>
+                            See all notifications
+                        </Link>
                     </div>
                 </div>
             )}

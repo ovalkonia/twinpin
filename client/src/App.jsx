@@ -21,6 +21,7 @@ import { ProfilePage } from './pages/profile/ProfilePage';
 import { TicketsPage } from './pages/tickets/TicketsPage';
 import { CheckoutPage } from './pages/checkout/CheckoutPage';
 import EventPage from './pages/events/EventPage';
+import { NotificationsPage } from './pages/notifications/NotificationsPage';
 import AuthLayout from './layouts/authlayout';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
@@ -83,6 +84,7 @@ function AppContent() {
                 <Route path="/dashboard" element={<MainPage />} />
                 <Route path="/profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
                 <Route path="/tickets" element={<PrivateRoute><TicketsPage /></PrivateRoute>} />
+                <Route path="/notifications" element={<PrivateRoute><NotificationsPage /></PrivateRoute>} />
                 <Route path="/checkout/:eventId" element={<PrivateRoute><CheckoutPage /></PrivateRoute>} />
                 <Route path="/events/:id" element={<EventPage />} />
 
