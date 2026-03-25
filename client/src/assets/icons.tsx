@@ -120,3 +120,40 @@ export const IconCamera: React.FC<IconProps> = ({ size = 16 }) => (
         <circle cx="12" cy="13" r="4" />
     </svg>
 );
+
+export const IconGlobe: React.FC<IconProps> = ({ size = 16 }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...defaults}>
+        <circle cx="12" cy="12" r="10" />
+        <line x1="2" y1="12" x2="22" y2="12" />
+        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+    </svg>
+);
+
+export const IconLinkedIn: React.FC<IconProps> = ({ size = 16 }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...defaults}>
+        <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
+        <rect x="2" y="9" width="4" height="12" />
+        <circle cx="4" cy="4" r="2" />
+    </svg>
+);
+
+export const IconInstagram: React.FC<IconProps> = ({ size = 16 }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...defaults}>
+        <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+        <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+        <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+    </svg>
+);
+
+export const IconTelegram: React.FC<IconProps> = ({ size = 16 }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...defaults}>
+        <path d="M22 2 11 13" />
+        <path d="M22 2 15 22l-4-9-9-4 20-7z" />
+    </svg>
+);
+
+export const IconTikTok: React.FC<IconProps> = ({ size = 16 }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...defaults}>
+        <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" />
+    </svg>
+);
