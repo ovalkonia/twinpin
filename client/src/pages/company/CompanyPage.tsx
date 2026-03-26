@@ -7,6 +7,7 @@ import {
     IconInstagram,
     IconLinkedIn,
     IconMapPin,
+    IconPlus,
     IconTelegram,
     IconTikTok,
 } from '../../assets/icons';
@@ -127,6 +128,10 @@ export const CompanyPage: React.FC = () => {
                     </div>
 
                     <div className="cp-identity-actions">
+                        <Link to="/events/create" className="cp-create-btn">
+                            <IconPlus size={15} />
+                            Create Event
+                        </Link>
                         <Link to="/company/edit" className="cp-edit-btn">
                             Edit Profile
                         </Link>

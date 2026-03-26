@@ -103,6 +103,29 @@
 .cp-identity-actions {
     flex-shrink: 0;
     padding-top: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.cp-create-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 20px;
+    border-radius: 50px;
+    background: #ff6b00;
+    border: none;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.2s;
+    white-space: nowrap;
+}
+
+.cp-create-btn:hover {
+    background: #ff8533;
 }
 
 .cp-edit-btn {

@@ -25,6 +25,7 @@ import { NotificationsPage } from './pages/notifications/NotificationsPage';
 import { RegisterCompanyPage } from './pages/company/RegisterCompanyPage';
 import { CompanyPage } from './pages/company/CompanyPage';
 import { EditCompanyPage } from './pages/company/EditCompanyPage';
+import { CreateEventPage } from './pages/events/CreateEventPage';
 import AuthLayout from './layouts/authlayout';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
@@ -92,6 +93,7 @@ function AppContent() {
                 <Route path="/company/register" element={<PrivateRoute><RegisterCompanyPage /></PrivateRoute>} />
                 <Route path="/company/edit" element={<PrivateRoute><EditCompanyPage /></PrivateRoute>} />
                 <Route path="/checkout/:eventId" element={<PrivateRoute><CheckoutPage /></PrivateRoute>} />
+                <Route path="/events/create" element={<PrivateRoute><CreateEventPage /></PrivateRoute>} />
                 <Route path="/events/:id" element={<EventPage />} />
 
                 <Route path="*" element={<NotFoundPage />} />
