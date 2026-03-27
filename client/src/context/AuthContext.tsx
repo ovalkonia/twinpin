@@ -2,7 +2,8 @@ import { createContext, ReactNode, useContext, useEffect, useState } from 'react
 import { getToken, saveToken, removeToken } from '../services/token'
 import { getUserProfile } from '../services/auth'
 
-interface User {
+export interface User {
+    id: string
     name: string
     email: string
 }
@@ -21,34 +22,24 @@ interface AuthProviderProps {
 
 const AuthContext = createContext<AuthContextType | null>(null)
 
-
-export const AuthProvider = ({ children } : AuthProviderProps) => {
+export const AuthProvider = ({ children }: AuthProviderProps) => {
     const [user, setUser] = useState<User | null>(null)
     const [loading, setLoading] = useState(true)
 
-    // useEffect(() => {
-    //     const checkAuth = async () => {
-    //         const token = getToken()
-
-    //         if (token) {
-    //             try {
-    //                 const userData = await getUserProfile()
-    //                 setUser(userData)
-    //             } catch (error) {
-    //                 removeToken()
-    //             }
-    //         }
-    //         setLoading(false)
-    //     }
-    //     checkAuth()
-    // }, [])
-
     useEffect(() => {
-        setUser({
-            name: 'Test User',
-            email: 'test@test.com'
-        })
-        setLoading(false)
+        const checkAuth = async () => {
+            const token = getToken()
+            if (token) {
+                try {
+                    const userData = await getUserProfile()
+                    setUser(userData)
+                } catch {
+                    removeToken()
+                }
+            }
+            setLoading(false)
+        }
+        checkAuth()
     }, [])
 
     const login = (token: string, userData: User) => {
@@ -61,31 +52,15 @@ export const AuthProvider = ({ children } : AuthProviderProps) => {
         setUser(null)
     }
 
-    const value = {
-        user,
-        isAuth: !!user,
-        loading,
-        login,
-        logout
-    }
-
     return (
-        <AuthContext.Provider value={value}>
+        <AuthContext.Provider value={{ user, isAuth: !!user, loading, login, logout }}>
             {children}
         </AuthContext.Provider>
     )
 }
 
-
-
-
-
-
 export const useAuth = () => {
     const context = useContext(AuthContext)
-    if (!context) {
-        throw new Error('useAuth must be used within AuthProvider')
-    }
+    if (!context) throw new Error('useAuth must be used within AuthProvider')
     return context
-    
 }

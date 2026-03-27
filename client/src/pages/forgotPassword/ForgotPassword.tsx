@@ -17,7 +17,7 @@ const ForgotPassword: React.FC = () => {
             forgotPassword({ email }),
             {
                 loading: 'Sending recovery link...',
-                success: (data) => `Recovery link sent to ${data.email || email}`,
+                success: () => `Recovery link sent to ${email}`,
                 error: (err) => err.response?.data?.message || 'Something went wrong',
             }
         );

@@ -3,9 +3,11 @@ import { Link, useNavigate } from 'react-router-dom';
 import toast from "react-hot-toast";
 import { useGoogleLogin } from '@react-oauth/google';
 import { loginUser } from "../../services/auth";
+import { useAuth } from "../../context/AuthContext";
 
 const Login: React.FC = () => {
     const navigate = useNavigate();
+    const { login } = useAuth();
 
     const [formData, setFormData] = useState({
         email: '',
@@ -14,10 +16,7 @@ const Login: React.FC = () => {
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
+        setFormData(prev => ({ ...prev, [name]: value }));
     };
 
     const googleLogin = useGoogleLogin({
@@ -33,25 +32,14 @@ const Login: React.FC = () => {
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-
-        toast.promise(
-            loginUser(formData),
-            {
-                loading: 'Signing in...',
-                success: (response) => {
-                    if (response.token) {
-                        localStorage.setItem('token', response.token);
-                    }
-
-                    navigate('/dashboard');
-
-                    return `Welcome back, ${response.user?.name || 'User'}!`;
-                },
-                error: (err) => {
-                    return err.response?.data?.message || 'Invalid credentials';
-                },
-            }
-        );
+        try {
+            const response = await loginUser(formData);
+            login(response.token, response.user);
+            toast.success(`Welcome back, ${response.user?.name || 'User'}!`);
+            navigate('/dashboard');
+        } catch (err: any) {
+            toast.error(err.response?.data?.message || 'Invalid credentials');
+        }
     };
 
     return (

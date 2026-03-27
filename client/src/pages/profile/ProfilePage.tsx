@@ -1,36 +1,81 @@
-import { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Link, useParams } from 'react-router-dom';
 import Header from '../../components/Header/header';
 import { useAuth } from '../../context/AuthContext';
+import { getUserById, getUserEvents, getUserTickets, UserProfile, UserEvent, UserTicket } from '../../services/user';
+import { IconCamera } from '../../assets/icons';
 import '../../styles/profile.css';
 
-const MY_CREATED_EVENTS = [
-    { id: 1, category: 'Tech',   gradient: 'linear-gradient(135deg, #0a2e2e, #0a1a2e)', title: 'Dev Conference 2026',    date: 'May 3, 2026',  location: 'San Francisco', price: '$120' },
-    { id: 2, category: 'Music',  gradient: 'linear-gradient(135deg, #1a0a2e, #16213e)', title: 'Rock Night Live',        date: 'Apr 12, 2026', location: 'New York, NY',  price: '$25'  },
-    { id: 3, category: 'Gaming', gradient: 'linear-gradient(135deg, #0a0a2e, #1a0a2e)', title: 'GameCon Expo 2026',      date: 'Jun 8, 2026',  location: 'Seattle, WA',   price: '$55'  },
-];
-
-const TICKET_HISTORY = [
-    { id: 1, category: 'Theatre', gradient: 'linear-gradient(135deg, #2e0a1a, #1a0a2e)', title: 'Shakespeare Festival',  date: 'Apr 18, 2026', location: 'London, UK',      tickets: 2 },
-    { id: 2, category: 'Art',     gradient: 'linear-gradient(135deg, #2e1a0a, #2e0a0a)', title: 'Modern Art Exhibition', date: 'May 15, 2026', location: 'Paris, France',   tickets: 1 },
-    { id: 3, category: 'Food',    gradient: 'linear-gradient(135deg, #2e2a0a, #2e1a0a)', title: 'Street Food Festival',  date: 'May 22, 2026', location: 'Austin, TX',      tickets: 3 },
-    { id: 4, category: 'Sport',   gradient: 'linear-gradient(135deg, #0a2e0a, #0a2e1a)', title: 'City Marathon 5K',      date: 'May 10, 2026', location: 'Chicago, IL',     tickets: 1 },
-];
+const DEFAULT_COVER = 'linear-gradient(135deg, #1a1a2e, #0a0a1a)';
 
 export const ProfilePage = () => {
-    const { user } = useAuth();
+    const { userId } = useParams<{ userId: string }>();
+    const { user: currentUser } = useAuth();
 
-    const [activeTab, setActiveTab]           = useState<'events' | 'tickets'>('events');
-    const [bio, setBio]                       = useState('Event enthusiast and community organizer. I love bringing people together through great experiences.');
-    const [bioEditing, setBioEditing]         = useState(false);
-    const [nameInput, setNameInput]           = useState(user?.name || '');
+    const [profileUser, setProfileUser]       = useState<UserProfile | null>(null);
+    const [profileLoading, setProfileLoading] = useState(true);
+    const [profileError, setProfileError]     = useState(false);
+
+    const [createdEvents, setCreatedEvents]   = useState<UserEvent[]>([]);
+    const [eventsLoading, setEventsLoading]   = useState(true);
+
+    const [ticketHistory, setTicketHistory]   = useState<UserTicket[]>([]);
+    const [ticketsLoading, setTicketsLoading] = useState(true);
+
+    const [activeTab, setActiveTab]             = useState<'events' | 'tickets'>('events');
+    const [bio, setBio]                         = useState('');
+    const [bioEditing, setBioEditing]           = useState(false);
+    const [nameInput, setNameInput]             = useState('');
     const [currentPassword, setCurrentPassword] = useState('');
-    const [newPassword, setNewPassword]       = useState('');
+    const [newPassword, setNewPassword]         = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
 
-    // Placeholder — replace with real Google OAuth status when available
-    const isGoogleConnected = false;
+    const isOwnProfile = currentUser?.id === userId;
 
-    const initial = user?.name?.[0]?.toUpperCase() || '?';
+    const avatarInputRef = useRef<HTMLInputElement>(null);
+    const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (!userId) return;
+
+        setProfileLoading(true);
+        setProfileError(false);
+        setEventsLoading(true);
+        setTicketsLoading(true);
+
+        getUserById(userId)
+            .then(data => {
+                setProfileUser(data);
+                setNameInput(data.name);
+            })
+            .catch(() => setProfileError(true))
+            .finally(() => setProfileLoading(false));
+
+        getUserEvents(userId)
+            .then(setCreatedEvents)
+            .catch(() => setCreatedEvents([]))
+            .finally(() => setEventsLoading(false));
+
+        getUserTickets(userId)
+            .then(setTicketHistory)
+            .catch(() => setTicketHistory([]))
+            .finally(() => setTicketsLoading(false));
+    }, [userId]);
+
+    useEffect(() => {
+        return () => { if (avatarPreview) URL.revokeObjectURL(avatarPreview); };
+    }, [avatarPreview]);
+
+    function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        if (avatarPreview) URL.revokeObjectURL(avatarPreview);
+        setAvatarPreview(URL.createObjectURL(file));
+    }
+
+    const isGoogleConnected = false;
+    const initial = profileUser?.name?.[0]?.toUpperCase() || '?';
+    const totalTickets = ticketHistory.reduce((sum, t) => sum + t.ticketCount, 0);
 
     return (
         <div className="profile-page">
@@ -38,50 +83,90 @@ export const ProfilePage = () => {
 
             <div className="profile-content">
 
+                {profileLoading && (
+                    <div className="profile-loading">Loading profile…</div>
+                )}
+
+                {profileError && !profileLoading && (
+                    <div className="profile-error">User not found.</div>
+                )}
+
+                {!profileLoading && !profileError && (
+                <>
+
                 {/* ── Info Card ──────────────────────────────────────── */}
                 <section className="profile-card" style={{ animationDelay: '0s' }}>
                     <div className="profile-card-left">
-                        <div className="profile-avatar">{initial}</div>
+                        <div className="profile-avatar-wrap">
+                            <div className="profile-avatar">
+                                {avatarPreview
+                                    ? <img className="profile-avatar-img" src={avatarPreview} alt="Avatar" />
+                                    : initial}
+                            </div>
+                            {isOwnProfile && <>
+                                <button
+                                    type="button"
+                                    className="profile-avatar-change"
+                                    onClick={() => avatarInputRef.current?.click()}
+                                    aria-label="Change avatar"
+                                >
+                                    <IconCamera size={14} />
+                                </button>
+                                <input
+                                    ref={avatarInputRef}
+                                    type="file"
+                                    accept="image/*"
+                                    style={{ display: 'none' }}
+                                    onChange={handleAvatarChange}
+                                />
+                            </>}
+                        </div>
                         <div className="profile-identity">
-                            <h1 className="profile-name">{user?.name}</h1>
-                            <p className="profile-email">{user?.email}</p>
+                            <h1 className="profile-name">{profileUser?.name}</h1>
+                            <p className="profile-email">{profileUser?.email}</p>
                         </div>
                     </div>
 
-                    <div className="profile-bio-wrap">
-                        {bioEditing ? (
-                            <textarea
-                                className="profile-bio-input"
-                                value={bio}
-                                onChange={e => setBio(e.target.value)}
-                                rows={3}
-                                autoFocus
-                            />
-                        ) : (
-                            <p className="profile-bio">{bio}</p>
-                        )}
-                        <button
-                            className="profile-bio-toggle"
-                            onClick={() => setBioEditing(v => !v)}
-                        >
-                            {bioEditing ? 'Save bio' : 'Edit bio'}
-                        </button>
-                    </div>
+                    {isOwnProfile && (
+                        <div className="profile-bio-wrap">
+                            {bioEditing ? (
+                                <textarea
+                                    className="profile-bio-input"
+                                    value={bio}
+                                    onChange={e => setBio(e.target.value)}
+                                    rows={3}
+                                    autoFocus
+                                />
+                            ) : (
+                                <p className="profile-bio">{bio || <span style={{ color: '#555' }}>No bio yet.</span>}</p>
+                            )}
+                            <button
+                                className="profile-bio-toggle"
+                                onClick={() => setBioEditing(v => !v)}
+                            >
+                                {bioEditing ? 'Save bio' : 'Edit bio'}
+                            </button>
+                        </div>
+                    )}
 
                     <div className="profile-stats">
                         <div className="profile-stat">
-                            <span className="profile-stat-value">{MY_CREATED_EVENTS.length}</span>
+                            <span className="profile-stat-value">
+                                {eventsLoading ? '—' : createdEvents.length}
+                            </span>
                             <span className="profile-stat-label">Events Created</span>
                         </div>
                         <div className="profile-stat-divider" />
                         <div className="profile-stat">
-                            <span className="profile-stat-value">{TICKET_HISTORY.length}</span>
+                            <span className="profile-stat-value">
+                                {ticketsLoading ? '—' : ticketHistory.length}
+                            </span>
                             <span className="profile-stat-label">Events Attended</span>
                         </div>
                         <div className="profile-stat-divider" />
                         <div className="profile-stat">
                             <span className="profile-stat-value">
-                                {TICKET_HISTORY.reduce((sum, e) => sum + e.tickets, 0)}
+                                {ticketsLoading ? '—' : totalTickets}
                             </span>
                             <span className="profile-stat-label">Tickets Purchased</span>
                         </div>
@@ -108,75 +193,96 @@ export const ProfilePage = () => {
                     </div>
 
                     {activeTab === 'events' && (
-                        <div className="events-grid">
-                            {MY_CREATED_EVENTS.map(event => (
-                                <div key={event.id} className="event-card">
-                                    <div className="event-card-image" style={{ background: event.gradient }}>
-                                        <span className="event-card-category">{event.category}</span>
-                                    </div>
-                                    <div className="event-card-body">
-                                        <div className="event-card-title">{event.title}</div>
-                                        <div className="event-card-meta">
-                                            <span className="event-card-meta-row">
-                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                    <rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
-                                                </svg>
-                                                {event.date}
-                                            </span>
-                                            <span className="event-card-meta-row">
-                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                    <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
-                                                </svg>
-                                                {event.location}
-                                            </span>
+                        eventsLoading ? (
+                            <p className="profile-tab-loading">Loading events…</p>
+                        ) : createdEvents.length === 0 ? (
+                            <p className="profile-tab-empty">No events created yet.</p>
+                        ) : (
+                            <div className="events-grid">
+                                {createdEvents.map(event => (
+                                    <div key={event.id} className="event-card">
+                                        <div
+                                            className="event-card-image"
+                                            style={event.coverUrl
+                                                ? { backgroundImage: `url(${event.coverUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+                                                : { background: DEFAULT_COVER }}
+                                        >
+                                            <span className="event-card-category">{event.category}</span>
                                         </div>
-                                        <div className="event-card-footer">
-                                            <span className="event-card-price">{event.price}</span>
-                                            <button className="event-card-btn">Manage</button>
+                                        <div className="event-card-body">
+                                            <div className="event-card-title">{event.title}</div>
+                                            <div className="event-card-meta">
+                                                <span className="event-card-meta-row">
+                                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                        <rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
+                                                    </svg>
+                                                    {event.date}
+                                                </span>
+                                                <span className="event-card-meta-row">
+                                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                        <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
+                                                    </svg>
+                                                    {event.location}
+                                                </span>
+                                            </div>
+                                            <div className="event-card-footer">
+                                                <span className="event-card-price">{event.price}</span>
+                                                <Link to={`/events/${event.id}/edit`} className="event-card-btn">Manage</Link>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))}
-                        </div>
+                                ))}
+                            </div>
+                        )
                     )}
 
                     {activeTab === 'tickets' && (
-                        <div className="ticket-list">
-                            {TICKET_HISTORY.map(entry => (
-                                <div key={entry.id} className="ticket-item">
-                                    <div className="ticket-item-thumb" style={{ background: entry.gradient }}>
-                                        <span className="ticket-item-category">{entry.category}</span>
-                                    </div>
-                                    <div className="ticket-item-info">
-                                        <div className="ticket-item-title">{entry.title}</div>
-                                        <div className="ticket-item-meta">
-                                            <span className="event-card-meta-row">
-                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                    <rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
-                                                </svg>
-                                                {entry.date}
-                                            </span>
-                                            <span className="event-card-meta-row">
-                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                    <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
-                                                </svg>
-                                                {entry.location}
-                                            </span>
+                        ticketsLoading ? (
+                            <p className="profile-tab-loading">Loading tickets…</p>
+                        ) : ticketHistory.length === 0 ? (
+                            <p className="profile-tab-empty">No tickets purchased yet.</p>
+                        ) : (
+                            <div className="ticket-list">
+                                {ticketHistory.map(entry => (
+                                    <div key={entry.id} className="ticket-item">
+                                        <div
+                                            className="ticket-item-thumb"
+                                            style={{ background: DEFAULT_COVER }}
+                                        >
+                                            <span className="ticket-item-category">{entry.category}</span>
+                                        </div>
+                                        <div className="ticket-item-info">
+                                            <div className="ticket-item-title">{entry.title}</div>
+                                            <div className="ticket-item-meta">
+                                                <span className="event-card-meta-row">
+                                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                        <rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
+                                                    </svg>
+                                                    {entry.date}
+                                                </span>
+                                                <span className="event-card-meta-row">
+                                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                        <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
+                                                    </svg>
+                                                    {entry.location}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div className="ticket-item-badge">
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z" />
+                                            </svg>
+                                            {entry.ticketCount} {entry.ticketCount === 1 ? 'ticket' : 'tickets'}
                                         </div>
                                     </div>
-                                    <div className="ticket-item-badge">
-                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                            <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z" />
-                                        </svg>
-                                        {entry.tickets} {entry.tickets === 1 ? 'ticket' : 'tickets'}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
+                                ))}
+                            </div>
+                        )
                     )}
                 </section>
 
-                {/* ── Settings & Security ────────────────────────────── */}
+                {/* ── Settings & Security (own profile only) ─────────── */}
+                {isOwnProfile && (
                 <section className="profile-section" style={{ animationDelay: '0.16s' }}>
                     <h2 className="profile-section-title">Settings & Security</h2>
 
@@ -198,7 +304,7 @@ export const ProfilePage = () => {
                                 <input
                                     className="settings-input"
                                     type="email"
-                                    value={user?.email || ''}
+                                    value={profileUser?.email || ''}
                                     readOnly
                                     disabled
                                 />
@@ -247,7 +353,7 @@ export const ProfilePage = () => {
                                         <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
                                         <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
                                         <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" />
-                                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84z" />
                                     </svg>
                                     <div>
                                         <div className="integration-name">Google Account</div>
@@ -271,6 +377,10 @@ export const ProfilePage = () => {
 
                     </div>
                 </section>
+                )}
+
+                </>
+                )}
 
             </div>
         </div>

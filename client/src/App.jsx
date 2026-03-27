@@ -86,7 +86,7 @@ function AppContent() {
                 </Route>
 
                 <Route path="/dashboard" element={<MainPage />} />
-                <Route path="/profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
+                <Route path="/profile/:userId" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
                 <Route path="/tickets" element={<PrivateRoute><TicketsPage /></PrivateRoute>} />
                 <Route path="/notifications" element={<PrivateRoute><NotificationsPage /></PrivateRoute>} />
                 <Route path="/company" element={<PrivateRoute><CompanyPage /></PrivateRoute>} />

@@ -1,71 +1,49 @@
 import api from "./api"
-import { saveToken, getToken, removeToken } from './token';
+import { saveToken, removeToken } from './token';
+import { UserProfile } from './user';
 
-export const registerUser = async (userData : {
-    name : string
-    email : string
-    password : string
-}) => {
-    try{
-        const response = await api.post('/auth/register', userData)
-        if (response.data.token) {
-            saveToken(response.data.token)
-        }
-        return response.data
-    } catch (err){
-        throw err
-    }
+export interface AuthResponse {
+    token: string;
+    user: UserProfile;
 }
 
-
-export const loginUser = async (userData : {
-    email : string
-    password : string
-}) => {
-    try {
-        const response = await api.post("/auth/login", userData)
-        if (response.data.token) {
-            saveToken(response.data.token)
-        }
-        return response.data
-    } catch (err) {
-        throw err
-    }
+export const registerUser = async (userData: {
+    name: string
+    email: string
+    password: string
+}): Promise<void> => {
+    await api.post('/auth/register', userData)
 }
 
-export const forgotPassword = async (userData : {
-    email : string
-}) => {
-    try {
-        const response = await api.post("/auth/forgotPassword", userData)
-        return response.data
-    } catch (err) {
-        throw err
+export const loginUser = async (userData: {
+    email: string
+    password: string
+}): Promise<AuthResponse> => {
+    const response = await api.post<AuthResponse>('/auth/login', userData)
+    if (response.data.token) {
+        saveToken(response.data.token)
     }
+    return response.data
 }
 
-export const changePassword = async (userData : {
-    password : string
-    passwordConfirm : string
-}) => {
-    try {
-        const response = await api.post("/auth/changePassword", userData)
-        return response.data
-    } catch (err) {
-        throw err
-    }
+export const forgotPassword = async (userData: {
+    email: string
+}): Promise<void> => {
+    await api.post('/auth/forgotPassword', userData)
+}
+
+export const changePassword = async (userData: {
+    password: string
+    passwordConfirm: string
+}): Promise<void> => {
+    await api.post('/auth/changePassword', userData)
 }
 
 export const logout = () => {
     removeToken()
-    //reset page
 }
 
-export const getUserProfile = async () => {
-    try {
-        const response = await api.get('/users/me')
-        return response.data
-    } catch (err) {
-        throw err
-    }
+export const getUserProfile = async (): Promise<UserProfile> => {
+    const response = await api.get<UserProfile>('/users/me')
+    return response.data
 }

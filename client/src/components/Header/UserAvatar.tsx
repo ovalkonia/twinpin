@@ -45,7 +45,7 @@ export const UserAvatar = () => {
                         <span className="dropdown-user-email">{user?.email}</span>
                     </div>
                     <div className="dropdown-divider" />
-                    <button className="dropdown-item" onClick={() => goTo('/profile')}>
+                    <button className="dropdown-item" onClick={() => goTo(`/profile/${user?.id}`)}>
                         My Profile
                     </button>
                     <button className="dropdown-item" onClick={() => goTo('/company/register')}>

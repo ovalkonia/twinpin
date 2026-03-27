@@ -26,6 +26,22 @@
     animation: fadeInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
+/* ── Loading / error states ─────────────────────────────────── */
+.profile-loading,
+.profile-error,
+.profile-tab-loading,
+.profile-tab-empty {
+    padding: 48px;
+    text-align: center;
+    color: #666;
+    font-size: 15px;
+}
+
+.profile-tab-loading,
+.profile-tab-empty {
+    padding: 32px 16px;
+}
+
 /* ── Info card ──────────────────────────────────────────────── */
 .profile-card {
     display: flex;
@@ -39,10 +55,16 @@
     gap: 20px;
 }
 
+.profile-avatar-wrap {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    flex-shrink: 0;
+}
+
 .profile-avatar {
     width: 80px;
     height: 80px;
-    min-width: 80px;
     border-radius: 50%;
     background: #ff6b00;
     display: flex;
@@ -52,6 +74,42 @@
     font-weight: 700;
     color: white;
     letter-spacing: -1px;
+    overflow: hidden;
+}
+
+.profile-avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    display: block;
+}
+
+.profile-avatar-change {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #1a1a1a;
+    border: 2px solid #0a0a0a;
+    color: #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s, background 0.2s;
+}
+
+.profile-avatar-wrap:hover .profile-avatar-change {
+    opacity: 1;
+}
+
+.profile-avatar-change:hover {
+    background: #ff6b00;
+    color: #fff;
 }
 
 .profile-name {
