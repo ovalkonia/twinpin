@@ -1,7 +1,7 @@
 import {
     ConflictException,
     Injectable,
-    NotFoundException
+    NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcryptjs';
@@ -28,8 +28,8 @@ export class UsersService {
 
     const newUser = this.usersRepository.create({
       email,
-      name,
       password: await bcrypt.hash(password, 10),
+      name,
     });
 
     return await this.usersRepository.save(newUser);
