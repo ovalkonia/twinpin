@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { UsersService } from "../users/users.service";
@@ -13,36 +13,29 @@ export class AuthService {
   ) {}
 
   async register(registerDto: RegisterDto) {
-    const existingUser  = await this.usersService.findByEmail(registerDto.email)
-    if (existingUser) return {error: "we already have account with this email"}
-    const newUser = await this.usersService.create(registerDto)
-    const payload = { sub: newUser.id, email: newUser.email }
-    const token = await this.jwtService.signAsync(payload)
+    const newUser = await this.usersService.create(registerDto);
+    const { password, ...user } = newUser;
 
-    const { passwordHash, ...userWithoutPassword } = newUser
-
-    return {
-      access_token: token,
-      user: userWithoutPassword
-    };
+    return { user };
   }
-
 
   async login(loginDto: LoginDto) {
-    const existingUser  = await this.usersService.findByEmail(loginDto.email)
-    if (!existingUser) return {error: "unfortunately we dont have account with this email"}
+    const existingUser  = await this.usersService.findByEmail(loginDto.email);
+    console.log(existingUser);
+    if (!existingUser || !await bcrypt.compare(loginDto.password, existingUser.password)) {
+      throw new UnauthorizedException("Invalid credentials!");
+    }
 
-    if (!await bcrypt.compare(loginDto.password, existingUser.passwordHash)) return {error: "wrong password"}
+    const access_token = this.jwtService.sign({
+        sub: existingUser.id,
+        email: existingUser.email,
+    });
 
-    const payload = { sub: existingUser.id, email: existingUser.email }
-    const token = await this.jwtService.signAsync(payload)
-
-    const { passwordHash, ...userWithoutPassword } = existingUser
+    const { password, ...user } = existingUser;
 
     return {
-      access_token: token,
-      user: userWithoutPassword
+      access_token,
+      user,
     }
   }
-
 }
