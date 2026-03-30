@@ -14,7 +14,7 @@ export const PrivateRoute = ( { children } : PrivateRouteProps ) => {
     }
 
     if (!isAuth) {
-        return <Navigate to="sign-in" replace />
+        return <Navigate to="/auth/sign-in" replace />
     }
 
     return <>{children}</>

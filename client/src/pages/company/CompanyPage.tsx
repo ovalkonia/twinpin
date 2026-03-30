@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import Header from '../../components/Header/header';
 import {
     IconBuilding,
+    IconClose,
     IconGlobe,
     IconInstagram,
     IconLinkedIn,
@@ -10,13 +12,21 @@ import {
     IconPlus,
     IconTelegram,
     IconTikTok,
+    IconUsers,
 } from '../../assets/icons';
+import { addCompanyMember, removeMember, CompanyMember } from '../../services/company';
 import '../../styles/company-page.css';
 import '../../styles/company-register.css';
 
 // ─── Mock data ────────────────────────────────────────────────────────────────
 
+const MOCK_MEMBERS: CompanyMember[] = [
+    { id: 'm1', name: 'Alice Smith', email: 'alice@twinpin.com' },
+    { id: 'm2', name: 'Bob Jones',   email: 'bob@twinpin.com'   },
+];
+
 const MOCK_COMPANY = {
+    id: 'mock-1',
     name: 'Twinpin Events Ltd.',
     slug: 'twinpin-events',
     logoUrl: null as string | null,
@@ -89,6 +99,36 @@ const SocialLinks: React.FC<{ company: Company }> = ({ company }) => {
 export const CompanyPage: React.FC = () => {
     const c = MOCK_COMPANY;
 
+    const [members, setMembers]             = useState<CompanyMember[]>(MOCK_MEMBERS);
+    const [showForm, setShowForm]           = useState(false);
+    const [inviteEmail, setInviteEmail]     = useState('');
+    const [inviteLoading, setInviteLoading] = useState(false);
+
+    const handleAddMember = async () => {
+        if (!inviteEmail.trim()) return;
+        setInviteLoading(true);
+        try {
+            const newMember = await addCompanyMember(c.id, inviteEmail.trim());
+            setMembers(prev => [...prev, newMember]);
+            setInviteEmail('');
+            setShowForm(false);
+            toast.success('Member invited');
+        } catch {
+            toast.error('Failed to invite member');
+        } finally {
+            setInviteLoading(false);
+        }
+    };
+
+    const handleRemoveMember = async (memberId: string) => {
+        try {
+            await removeMember(c.id, memberId);
+            setMembers(prev => prev.filter(m => m.id !== memberId));
+        } catch {
+            toast.error('Failed to remove member');
+        }
+    };
+
     const hasContact = c.website || c.email || c.address;
 
     return (
@@ -152,6 +192,75 @@ export const CompanyPage: React.FC = () => {
                             <p className="cp-description cp-description--empty">
                                 No description provided yet.
                             </p>
+                        )}
+                    </section>
+
+                    {/* Members */}
+                    <section className="cp-section" style={{ animationDelay: '0.12s' }}>
+                        <div className="cp-members-header">
+                            <h2 className="cp-section-title" style={{ marginBottom: 0 }}>
+                                <span style={{ marginRight: 8, verticalAlign: 'middle', color: '#ff6b00', display: 'inline-flex' }}>
+                                    <IconUsers size={16} />
+                                </span>
+                                Members
+                            </h2>
+                            {!showForm && (
+                                <button className="cp-add-member-btn" onClick={() => setShowForm(true)}>
+                                    <IconPlus size={13} />
+                                    Add Member
+                                </button>
+                            )}
+                        </div>
+
+                        <div className="cp-member-list">
+                            {members.map(m => (
+                                <div key={m.id} className="cp-member-row">
+                                    <div className="cp-member-avatar">
+                                        {m.name.charAt(0).toUpperCase()}
+                                    </div>
+                                    <div className="cp-member-info">
+                                        <span className="cp-member-name">{m.name}</span>
+                                        <span className="cp-member-email">{m.email}</span>
+                                    </div>
+                                    <button
+                                        className="cp-member-remove"
+                                        onClick={() => handleRemoveMember(m.id)}
+                                        title="Remove member"
+                                    >
+                                        <IconClose size={14} />
+                                    </button>
+                                </div>
+                            ))}
+                            {members.length === 0 && (
+                                <p className="cp-description cp-description--empty">No members yet.</p>
+                            )}
+                        </div>
+
+                        {showForm && (
+                            <div className="cp-invite-form">
+                                <input
+                                    className="cp-invite-input"
+                                    type="email"
+                                    placeholder="colleague@email.com"
+                                    value={inviteEmail}
+                                    onChange={e => setInviteEmail(e.target.value)}
+                                    onKeyDown={e => e.key === 'Enter' && handleAddMember()}
+                                    autoFocus
+                                />
+                                <button
+                                    className="cp-invite-submit"
+                                    onClick={handleAddMember}
+                                    disabled={inviteLoading}
+                                >
+                                    {inviteLoading ? 'Inviting…' : 'Invite'}
+                                </button>
+                                <button
+                                    className="cp-invite-cancel"
+                                    onClick={() => { setShowForm(false); setInviteEmail(''); }}
+                                >
+                                    Cancel
+                                </button>
+                            </div>
                         )}
                     </section>
                 </main>

@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import Header from '../../components/Header/header';
 import { useAuth } from '../../context/AuthContext';
 import EventCover from '../../components/Events/EventCover.tsx';
@@ -12,7 +13,17 @@ import EventInfoCard from '../../components/Events/EventInfoCard.tsx';
 import EventBookButton from '../../components/Events/EventBookButton.tsx';
 import EventShare from '../../components/Events/EventShare.tsx';
 import EventLightbox from '../../components/Events/EventLightbox.tsx';
+import {
+    getEventById,
+    getEventAttendees,
+    subscribeToEvent,
+    unsubscribeFromEvent,
+    type Event,
+    type EventAttendee,
+} from '../../services/events';
 import '../../styles/event-page.css';
+
+// ─── Local shape used by sub-components ──────────────────────────────────────
 
 interface EventData {
     id: string;
@@ -29,88 +40,129 @@ interface EventData {
     capacity: number;
     spotsLeft: number;
     faq: { question: string; answer: string }[];
-    attendees: { name: string; id: string }[];
+    attendees: { id: string; name: string }[];
 }
 
-const MOCK_EVENT: EventData = {
-    id: 'evt-001',
-    name: 'Dev Conference 2026',
-    coverPhoto: 'https://picsum.photos/seed/event1/1200/400',
-    photos: [
-        'https://picsum.photos/seed/p1/600/400',
-        'https://picsum.photos/seed/p2/600/400',
-        'https://picsum.photos/seed/p3/600/400',
-    ],
-    date: 'Saturday, May 3, 2026',
-    time: '9:00 AM – 6:00 PM',
-    location: {
-        name: 'Moscone Center',
-        address: '747 Howard St, San Francisco, CA 94103',
-        lat: 37.7845,
-        lng: -122.4008,
-    },
-    organizer: 'TechEvents Inc.',
-    price: 120,
-    category: 'Tech',
-    status: 'upcoming',
-    capacity: 500,
-    spotsLeft: 73,
-    faq: [
-        {
-            question: 'Is parking available?',
-            answer: 'Yes, paid parking is available in the Moscone Center garage on Howard St. Public transit via BART (Powell St.) is recommended.',
+// ─── Mapping helper ───────────────────────────────────────────────────────────
+
+function formatDate(iso: string): string {
+    return new Date(iso).toLocaleDateString('en-US', {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+    });
+}
+
+function formatTimeRange(start: string, end?: string): string {
+    const fmt = (iso: string) =>
+        new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    return end ? `${fmt(start)} – ${fmt(end)}` : fmt(start);
+}
+
+function deriveStatus(start: string, end?: string): EventData['status'] {
+    const now = Date.now();
+    const s = new Date(start).getTime();
+    const e = end ? new Date(end).getTime() : s + 3_600_000;
+    if (now < s) return 'upcoming';
+    if (now < e) return 'ongoing';
+    return 'past';
+}
+
+function mapEvent(event: Event, attendees: EventAttendee[]): EventData {
+    return {
+        id: event.id,
+        name: event.title,
+        coverPhoto: event.coverUrl ?? null,
+        photos: event.photos ?? [],
+        date: formatDate(event.date),
+        time: formatTimeRange(event.date, event.endDate),
+        location: {
+            name: event.location ?? '',
+            address: event.location ?? '',
+            lat: event.lat,
+            lng: event.lng,
         },
-        {
-            question: 'Are pets allowed?',
-            answer: 'Only certified service animals are permitted inside the venue.',
-        },
-        {
-            question: 'What is the refund policy?',
-            answer: 'Full refunds are available up to 7 days before the event. No refunds after that date.',
-        },
-        {
-            question: 'Is food provided?',
-            answer: 'Lunch and coffee breaks are included in the ticket price. Dietary requirements can be noted during checkout.',
-        },
-        {
-            question: 'Is the event wheelchair accessible?',
-            answer: 'Yes, the Moscone Center is fully accessible. Contact us in advance if you need reserved accessible seating.',
-        },
-        {
-            question: 'Will talks be recorded?',
-            answer: 'All keynote sessions will be recorded and shared with ticket holders within 2 weeks of the event.',
-        },
-    ],
-    attendees: [
-        { id: 'a1',  name: 'Alice Martin' },
-        { id: 'a2',  name: 'Bob Chen' },
-        { id: 'a3',  name: 'Carla Diaz' },
-        { id: 'a4',  name: 'David Kim' },
-        { id: 'a5',  name: 'Elsa Nguyen' },
-        { id: 'a6',  name: 'Frank Lopez' },
-        { id: 'a7',  name: 'Grace Wu' },
-        { id: 'a8',  name: 'Hiro Tanaka' },
-        { id: 'a9',  name: 'Iris Patel' },
-        { id: 'a10', name: 'James Scott' },
-        { id: 'a11', name: 'Kira Brown' },
-        { id: 'a12', name: 'Leo Ferreira' },
-        { id: 'a13', name: 'Mia Hassan' },
-        { id: 'a14', name: 'Noah Carter' },
-    ],
-};
+        organizer: event.organizerName,
+        price: event.price === 0 ? 'free' : event.price,
+        category: event.category,
+        status: deriveStatus(event.date, event.endDate),
+        capacity: event.capacity ?? 0,
+        spotsLeft: event.capacity ? event.capacity - event.attendeeCount : 0,
+        faq: [],
+        attendees: attendees
+            .filter(a => a.profileVisible)
+            .map(a => ({ id: a.id, name: a.name })),
+    };
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function EventPage() {
+    const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const { isAuth } = useAuth();
 
+    const [event, setEvent]             = useState<EventData | null>(null);
+    const [loading, setLoading]         = useState(true);
+    const [isBooked, setIsBooked]       = useState(false);
+    const [bookLoading, setBookLoading] = useState(false);
     const [lightboxPhoto, setLightboxPhoto] = useState<string | null>(null);
 
-    const event = MOCK_EVENT;
+    useEffect(() => {
+        if (!id) return;
+        setLoading(true);
 
-    const handleBook = () => {
+        Promise.all([getEventById(id), getEventAttendees(id)])
+            .then(([evt, attendees]) => {
+                setEvent(mapEvent(evt, attendees));
+                setIsBooked(evt.isSubscribed ?? false);
+            })
+            .catch(() => toast.error('Failed to load event'))
+            .finally(() => setLoading(false));
+    }, [id]);
+
+    const handleBook = async () => {
         if (!isAuth) { navigate('/auth/sign-in'); return; }
-        navigate(`/checkout/${event.id}`);
+        if (!event) return;
+
+        if (isBooked) {
+            setBookLoading(true);
+            try {
+                await unsubscribeFromEvent(event.id);
+                setIsBooked(false);
+                toast.success('Booking cancelled');
+            } catch {
+                toast.error('Failed to cancel booking');
+            } finally {
+                setBookLoading(false);
+            }
+            return;
+        }
+
+        if (event.price === 'free') {
+            setBookLoading(true);
+            try {
+                await subscribeToEvent(event.id);
+                setIsBooked(true);
+                toast.success('You\'re going!');
+            } catch {
+                toast.error('Failed to book event');
+            } finally {
+                setBookLoading(false);
+            }
+        } else {
+            navigate(`/checkout/${event.id}`);
+        }
     };
+
+    if (loading) {
+        return (
+            <div className="event-page">
+                <Header />
+                <div className="event-map-skeleton" style={{ height: '320px', margin: '64px 0 0' }} />
+            </div>
+        );
+    }
+
+    if (!event) return null;
 
     return (
         <div className="event-page">
@@ -145,9 +197,9 @@ export default function EventPage() {
                         spotsLeft={event.spotsLeft}
                     />
                     <EventBookButton
-                        isBooked={false}
+                        isBooked={isBooked}
                         price={event.price}
-                        onClick={handleBook}
+                        onClick={bookLoading ? () => {} : handleBook}
                     />
                     <EventShare eventName={event.name} />
                 </aside>

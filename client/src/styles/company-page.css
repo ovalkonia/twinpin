@@ -346,6 +346,180 @@
     background: rgba(255, 107, 0, 0.08);
 }
 
+/* ── Members section ──────────────────────────────────────── */
+
+.cp-members-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.cp-add-member-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 7px 16px;
+    border-radius: 50px;
+    background: transparent;
+    border: 1px solid rgba(255, 107, 0, 0.4);
+    color: #ff6b00;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+    white-space: nowrap;
+}
+
+.cp-add-member-btn:hover {
+    background: rgba(255, 107, 0, 0.1);
+    border-color: #ff6b00;
+}
+
+.cp-member-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.cp-member-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.cp-member-row:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.cp-member-row:first-child {
+    padding-top: 0;
+}
+
+.cp-member-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255, 107, 0, 0.15);
+    color: #ff6b00;
+    font-size: 14px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.cp-member-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.cp-member-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #e0e0e0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.cp-member-email {
+    font-size: 11px;
+    color: #666;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.cp-member-remove {
+    background: none;
+    border: none;
+    color: #555;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    padding: 4px;
+    border-radius: 6px;
+    transition: color 0.15s, background 0.15s;
+    flex-shrink: 0;
+}
+
+.cp-member-remove:hover {
+    color: #e05555;
+    background: rgba(224, 85, 85, 0.1);
+}
+
+.cp-invite-form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+}
+
+.cp-invite-input {
+    flex: 1;
+    min-width: 180px;
+    padding: 9px 14px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 107, 0, 0.3);
+    border-radius: 50px;
+    color: #e0e0e0;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.cp-invite-input::placeholder {
+    color: #555;
+}
+
+.cp-invite-input:focus {
+    border-color: #ff6b00;
+}
+
+.cp-invite-submit {
+    padding: 9px 20px;
+    border-radius: 50px;
+    background: #ff6b00;
+    border: none;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    white-space: nowrap;
+}
+
+.cp-invite-submit:hover:not(:disabled) {
+    background: #ff8533;
+}
+
+.cp-invite-submit:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.cp-invite-cancel {
+    background: none;
+    border: none;
+    color: #666;
+    font-size: 13px;
+    cursor: pointer;
+    padding: 4px 8px;
+    transition: color 0.15s;
+}
+
+.cp-invite-cancel:hover {
+    color: #999;
+}
+
 /* ── Responsive ───────────────────────────────────────────── */
 
 @media (max-width: 900px) {
