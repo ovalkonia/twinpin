@@ -1,0 +1,509 @@
+/* ── Page ────────────────────────────────────────────────────── */
+.checkout-page {
+    min-height: 100vh;
+    padding-top: 64px;
+    background: #0a0a0a;
+    color: #e0e0e0;
+    font-family: system-ui, -apple-system, sans-serif;
+}
+
+.checkout-wrap {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 48px 32px 64px;
+}
+
+/* ── Back link ───────────────────────────────────────────────── */
+.checkout-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: none;
+    color: #666;
+    font-size: 14px;
+    font-family: inherit;
+    cursor: pointer;
+    padding: 0;
+    margin-bottom: 32px;
+    transition: color 0.2s;
+}
+
+.checkout-back:hover {
+    color: #ff6b00;
+}
+
+/* ── Page heading ────────────────────────────────────────────── */
+.checkout-heading {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #e0e0e0;
+    margin: 0 0 32px;
+    letter-spacing: -0.3px;
+}
+
+.checkout-heading span {
+    color: #ff6b00;
+}
+
+/* ── Two-column grid ─────────────────────────────────────────── */
+.checkout-grid {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 28px;
+    align-items: start;
+    animation: co-fadeIn 0.35s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+/* ── Shared card ─────────────────────────────────────────────── */
+.checkout-card {
+    background: #111;
+    border: 1px solid rgba(255, 107, 0, 0.15);
+    border-radius: 16px;
+    padding: 28px;
+}
+
+.checkout-card-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #e0e0e0;
+    margin: 0 0 22px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* ── Order summary ───────────────────────────────────────────── */
+.co-event-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.co-event-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #e0e0e0;
+    margin: 0;
+}
+
+.co-event-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.co-event-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #888;
+}
+
+/* ── Quantity selector ───────────────────────────────────────── */
+.co-qty-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.co-qty-label {
+    font-size: 14px;
+    color: #ccc;
+}
+
+.co-qty-control {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    border: 1px solid rgba(255, 107, 0, 0.25);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.co-qty-btn {
+    width: 34px;
+    height: 34px;
+    background: transparent;
+    border: none;
+    color: #ff6b00;
+    font-size: 18px;
+    font-family: inherit;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+}
+
+.co-qty-btn:hover:not(:disabled) {
+    background: rgba(255, 107, 0, 0.1);
+}
+
+.co-qty-btn:disabled {
+    color: #444;
+    cursor: not-allowed;
+}
+
+.co-qty-value {
+    width: 36px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 700;
+    color: #e0e0e0;
+    border-left: 1px solid rgba(255, 107, 0, 0.15);
+    border-right: 1px solid rgba(255, 107, 0, 0.15);
+    line-height: 34px;
+}
+
+/* ── Attendee visibility toggle ──────────────────────────────── */
+.co-visibility-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    margin-bottom: 16px;
+}
+
+.co-visibility-info {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.co-visibility-label {
+    font-size: 14px;
+    color: #ccc;
+}
+
+.co-visibility-hint {
+    font-size: 12px;
+    color: #555;
+}
+
+.co-toggle {
+    position: relative;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.co-toggle input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.co-toggle-track {
+    display: block;
+    width: 40px;
+    height: 22px;
+    border-radius: 11px;
+    background: #2a2a2a;
+    border: 1px solid #333;
+    position: relative;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.co-toggle-track--on {
+    background: #ff6b00;
+    border-color: #ff6b00;
+}
+
+.co-toggle-thumb {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: white;
+    transition: left 0.2s;
+}
+
+.co-toggle-track--on .co-toggle-thumb {
+    left: 21px;
+}
+
+/* ── Price breakdown ─────────────────────────────────────────── */
+.co-price-lines {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.co-price-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    color: #888;
+}
+
+.co-price-row span:last-child {
+    color: #ccc;
+}
+
+.co-price-divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.07);
+    margin: 4px 0;
+}
+
+.co-price-total {
+    display: flex;
+    justify-content: space-between;
+    font-size: 16px;
+    font-weight: 700;
+    color: #e0e0e0;
+}
+
+.co-price-total span:last-child {
+    color: #ff6b00;
+}
+
+/* ── Payment form ────────────────────────────────────────────── */
+.co-field {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    margin-bottom: 18px;
+}
+
+.co-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #ccc;
+}
+
+.co-input {
+    padding: 11px 14px;
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    border-radius: 8px;
+    color: #e0e0e0;
+    font-size: 14px;
+    font-family: inherit;
+    transition: border-color 0.2s;
+    outline: none;
+}
+
+.co-input:focus {
+    border-color: #ff6b00;
+    background: #1e1e1e;
+}
+
+.co-input::placeholder {
+    color: #444;
+}
+
+/* ── Stripe CardElement wrapper ──────────────────────────────── */
+.co-card-element {
+    padding: 11px 14px;
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    border-radius: 8px;
+    transition: border-color 0.2s;
+}
+
+.co-card-element--focus {
+    border-color: #ff6b00;
+    background: #1e1e1e;
+}
+
+/* ── Error message ───────────────────────────────────────────── */
+.co-error {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 14px;
+    background: rgba(231, 76, 60, 0.08);
+    border: 1px solid rgba(231, 76, 60, 0.25);
+    border-radius: 8px;
+    color: #e74c3c;
+    font-size: 13px;
+    margin-bottom: 16px;
+}
+
+/* ── Pay button ──────────────────────────────────────────────── */
+.co-pay-btn {
+    width: 100%;
+    padding: 14px;
+    background: #ff6b00;
+    color: white;
+    border: none;
+    border-radius: 50px;
+    font-size: 15px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background 0.2s, opacity 0.2s;
+    margin-top: 8px;
+}
+
+.co-pay-btn:hover:not(:disabled) {
+    background: #ff8533;
+}
+
+.co-pay-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.co-pay-btn-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: co-spin 0.7s linear infinite;
+}
+
+/* ── Secure badge ────────────────────────────────────────────── */
+.co-secure {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #555;
+    margin-top: 14px;
+}
+
+/* ── Success screen ──────────────────────────────────────────── */
+.co-success {
+    max-width: 480px;
+    margin: 60px auto 0;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    animation: co-fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.co-success-icon {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: rgba(46, 204, 113, 0.12);
+    border: 2px solid rgba(46, 204, 113, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #2ecc71;
+}
+
+.co-success-title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #e0e0e0;
+    margin: 0;
+}
+
+.co-success-sub {
+    font-size: 14px;
+    color: #666;
+    margin: 0;
+    line-height: 1.6;
+}
+
+.co-success-detail {
+    background: #111;
+    border: 1px solid rgba(255, 107, 0, 0.15);
+    border-radius: 12px;
+    padding: 18px 24px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.co-success-detail-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: #888;
+}
+
+.co-success-detail-row span:last-child {
+    color: #ccc;
+    font-weight: 600;
+}
+
+.co-success-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.co-success-btn-primary {
+    flex: 1;
+    padding: 12px 20px;
+    background: #ff6b00;
+    color: white;
+    border: none;
+    border-radius: 50px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.co-success-btn-primary:hover {
+    background: #ff8533;
+}
+
+.co-success-btn-ghost {
+    flex: 1;
+    padding: 12px 20px;
+    background: transparent;
+    color: #ff6b00;
+    border: 1px solid rgba(255, 107, 0, 0.35);
+    border-radius: 50px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.co-success-btn-ghost:hover {
+    background: rgba(255, 107, 0, 0.08);
+    border-color: #ff6b00;
+}
+
+/* ── Animations ──────────────────────────────────────────────── */
+@keyframes co-fadeIn {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes co-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ── Responsive ──────────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .checkout-wrap {
+        padding: 32px 16px 48px;
+    }
+
+    .checkout-grid {
+        grid-template-columns: 1fr;
+    }
+}

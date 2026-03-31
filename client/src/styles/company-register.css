@@ -1,0 +1,602 @@
+/* =========================================================
+   Company Registration — Multi-Step Wizard
+   ========================================================= */
+
+@keyframes cr-fadeInUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes cr-fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* ── Page shell ───────────────────────────────────────────── */
+
+.company-register-page {
+    min-height: 100vh;
+    background: #0a0a0a;
+    color: #e0e0e0;
+}
+
+.company-register-container {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: calc(64px + 44px) 24px 80px;
+}
+
+.company-register-heading {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #e0e0e0;
+    margin: 0 0 36px;
+    letter-spacing: -0.2px;
+}
+
+/* ── Step Indicator ───────────────────────────────────────── */
+
+.cr-step-indicator {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 32px;
+}
+
+.cr-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    width: 72px;
+}
+
+.cr-step-circle {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    transition: background 0.3s, border-color 0.3s, color 0.3s;
+}
+
+.cr-step--done .cr-step-circle {
+    background: #ff6b00;
+    border: 2px solid #ff6b00;
+    color: #fff;
+}
+
+.cr-step--active .cr-step-circle {
+    background: transparent;
+    border: 2px solid #ff6b00;
+    color: #ff6b00;
+}
+
+.cr-step--future .cr-step-circle {
+    background: transparent;
+    border: 2px solid #333;
+    color: #555;
+}
+
+.cr-step-label {
+    font-size: 11px;
+    color: #666;
+    text-align: center;
+    white-space: nowrap;
+    letter-spacing: 0.2px;
+}
+
+.cr-step--active .cr-step-label  { color: #ff6b00; font-weight: 600; }
+.cr-step--done .cr-step-label    { color: #888; }
+
+.cr-step-line {
+    flex: 1;
+    height: 2px;
+    background: #2a2a2a;
+    margin-top: 17px;
+    transition: background 0.4s ease;
+    border-radius: 1px;
+}
+
+.cr-step-line--done {
+    background: #ff6b00;
+}
+
+/* ── Card ─────────────────────────────────────────────────── */
+
+.company-register-card {
+    background: #111;
+    border: 1px solid rgba(255, 107, 0, 0.15);
+    border-radius: 16px;
+    padding: 40px;
+    animation: cr-fadeInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.05s both;
+}
+
+/* ── Step content ─────────────────────────────────────────── */
+
+.cr-step-content {
+    animation: cr-fadeIn 0.25s ease both;
+}
+
+.cr-step-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #e0e0e0;
+    margin: 0 0 28px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    position: relative;
+}
+
+.cr-step-title::after {
+    content: '';
+    display: block;
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 28px;
+    height: 2px;
+    background: #ff6b00;
+    border-radius: 2px;
+}
+
+/* ── Fields ───────────────────────────────────────────────── */
+
+.cr-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 20px;
+}
+
+.cr-label {
+    display: block;
+    color: #ccc;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.cr-required {
+    color: #ff6b00;
+    margin-left: 2px;
+}
+
+.cr-input {
+    width: 100%;
+    padding: 10px 14px;
+    background: #1e1e1e;
+    border: 1px solid #333;
+    border-radius: 8px;
+    color: #e0e0e0;
+    font-size: 14px;
+    font-family: inherit;
+    transition: border-color 0.2s, background 0.2s;
+    box-sizing: border-box;
+}
+
+.cr-input::placeholder { color: #444; }
+
+.cr-input:focus {
+    outline: none;
+    border-color: #ff6b00;
+    background: #222;
+}
+
+.cr-input--error {
+    border-color: rgba(255, 68, 68, 0.6);
+}
+
+.cr-textarea {
+    resize: none;
+    field-sizing: content;
+    width: 100%;
+    padding: 10px 14px;
+    background: #1e1e1e;
+    border: 1px solid #333;
+    border-radius: 8px;
+    color: #e0e0e0;
+    font-size: 14px;
+    font-family: inherit;
+    line-height: 1.6;
+    min-height: 140px;
+    transition: border-color 0.2s, background 0.2s;
+    box-sizing: border-box;
+}
+
+.cr-textarea::placeholder { color: #444; }
+
+.cr-textarea:focus {
+    outline: none;
+    border-color: #ff6b00;
+    background: #222;
+}
+
+.cr-error {
+    font-size: 12px;
+    color: #ff4444;
+    margin-top: 2px;
+}
+
+.cr-slug-preview {
+    font-size: 12px;
+    color: #555;
+    font-family: 'ui-monospace', 'SFMono-Regular', monospace;
+    margin-top: 2px;
+}
+
+.cr-slug-value {
+    color: #ff8533;
+}
+
+/* ── Input with icon prefix ───────────────────────────────── */
+
+.cr-input-icon-wrap {
+    position: relative;
+}
+
+.cr-input-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #555;
+    display: flex;
+    align-items: center;
+    pointer-events: none;
+}
+
+.cr-input--with-icon {
+    padding-left: 38px;
+}
+
+/* ── File upload zones ────────────────────────────────────── */
+
+.cr-upload-row {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    margin-bottom: 4px;
+}
+
+.cr-field--logo {
+    flex-shrink: 0;
+    margin-bottom: 0;
+}
+
+.cr-field--cover {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+.cr-upload-zone {
+    border: 2px dashed rgba(255, 107, 0, 0.35);
+    border-radius: 12px;
+    cursor: pointer;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #161616;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.cr-upload-zone:hover,
+.cr-upload-zone:focus {
+    outline: none;
+    border-color: #ff6b00;
+    background: rgba(255, 107, 0, 0.04);
+}
+
+.cr-upload-zone--square {
+    width: 120px;
+    height: 120px;
+    flex-shrink: 0;
+}
+
+.cr-upload-zone--cover {
+    width: 100%;
+    aspect-ratio: 16 / 6;
+}
+
+.cr-upload-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    color: #555;
+    padding: 12px;
+    text-align: center;
+}
+
+.cr-upload-placeholder span {
+    font-size: 12px;
+}
+
+.cr-upload-hint {
+    font-size: 11px !important;
+    color: #444;
+}
+
+.cr-upload-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* ── Category chips ───────────────────────────────────────── */
+
+.cr-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.cr-chips--compact {
+    gap: 6px;
+}
+
+.cr-chip {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: transparent;
+    color: #666;
+    font-family: inherit;
+    transition: border-color 0.2s, color 0.2s, background 0.2s;
+}
+
+.cr-chip:hover {
+    border-color: rgba(255, 107, 0, 0.4);
+    color: #ccc;
+}
+
+.cr-chip--selected {
+    background: rgba(255, 107, 0, 0.12);
+    border-color: rgba(255, 107, 0, 0.4);
+    color: #ff6b00;
+}
+
+.cr-chip--sm {
+    padding: 4px 10px;
+    font-size: 11px;
+    cursor: default;
+}
+
+/* ── Social links grid ────────────────────────────────────── */
+
+.cr-social-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+/* ── Section divider ──────────────────────────────────────── */
+
+.cr-section-divider {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #555;
+    margin: 28px 0 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* ── Review ───────────────────────────────────────────────── */
+
+.cr-review-hint {
+    font-size: 13px;
+    color: #666;
+    margin: -12px 0 20px;
+}
+
+.cr-review {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.cr-review-media {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    aspect-ratio: 16 / 6;
+    background: #1a1a1a;
+    border: 1px solid rgba(255, 107, 0, 0.1);
+    margin-bottom: 8px;
+}
+
+.cr-review-cover {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.cr-review-cover-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #1a1a1a 0%, #222 100%);
+}
+
+.cr-review-logo-wrap {
+    position: absolute;
+    bottom: 14px;
+    left: 16px;
+    width: 60px;
+    height: 60px;
+    border-radius: 10px;
+    border: 2px solid rgba(255, 107, 0, 0.3);
+    overflow: hidden;
+    background: #111;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.cr-review-logo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.cr-review-logo-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #444;
+}
+
+.cr-review-section {
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    padding: 20px 0;
+}
+
+.cr-review-section:last-child {
+    padding-bottom: 0;
+}
+
+.cr-review-section-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #555;
+    margin: 0 0 12px;
+}
+
+.cr-review-row {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding: 5px 0;
+}
+
+.cr-review-row--block {
+    flex-direction: column;
+    gap: 6px;
+}
+
+.cr-review-label {
+    font-size: 13px;
+    color: #555;
+    min-width: 90px;
+    flex-shrink: 0;
+}
+
+.cr-review-value {
+    font-size: 14px;
+    color: #e0e0e0;
+    word-break: break-word;
+}
+
+.cr-review-value--mono {
+    font-family: 'ui-monospace', 'SFMono-Regular', monospace;
+    font-size: 13px;
+}
+
+.cr-review-description {
+    font-size: 13px;
+    color: #999;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    margin: 0;
+}
+
+/* ── Navigation row ───────────────────────────────────────── */
+
+.cr-nav {
+    display: flex;
+    align-items: center;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.cr-nav-spacer {
+    flex: 1;
+}
+
+.cr-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 11px 28px;
+    border-radius: 50px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.cr-btn--primary {
+    background: #ff6b00;
+    color: #fff;
+    border: none;
+}
+
+.cr-btn--primary:hover {
+    background: #ff8533;
+}
+
+.cr-btn--primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.cr-btn--ghost {
+    background: transparent;
+    border: 1px solid rgba(255, 107, 0, 0.4);
+    color: #ff6b00;
+}
+
+.cr-btn--ghost:hover {
+    background: rgba(255, 107, 0, 0.1);
+    border-color: #ff6b00;
+}
+
+/* ── Responsive ───────────────────────────────────────────── */
+
+@media (max-width: 600px) {
+    .company-register-container {
+        padding: calc(64px + 24px) 16px 64px;
+    }
+
+    .company-register-heading {
+        font-size: 1.2rem;
+        margin-bottom: 24px;
+    }
+
+    .company-register-card {
+        padding: 24px 20px;
+    }
+
+    .cr-step { width: 48px; }
+    .cr-step-label { display: none; }
+    .cr-step-circle { width: 32px; height: 32px; font-size: 13px; }
+    .cr-step-line { margin-top: 15px; }
+
+    .cr-upload-row {
+        flex-direction: column;
+    }
+
+    .cr-upload-zone--square {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 1 / 1;
+    }
+
+    .cr-social-grid {
+        grid-template-columns: 1fr;
+    }
+}

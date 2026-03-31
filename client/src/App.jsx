@@ -1,35 +1,116 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
+import { Toaster } from "react-hot-toast";
+import { GoogleOAuthProvider } from '@react-oauth/google';
+import './App.css';
 
-function App() {
-  const [count, setCount] = useState(0)
+import { PrivateRoute } from './components/PrivateRoute';
+import Registration from './pages/registration/Registration';
+import Login from './pages/login/Login';
+import ForgotPassword from './pages/forgotPassword/ForgotPassword';
+import ChangePassword from './pages/forgotPassword/ChangePassword';
+import PageBeforeSignUp from './pages/beforeSignUp/BeforeSignUp';
+import { UserRulesPage } from './pages/footerPages/userRules';
+import { PrivacyPolicyPage } from './pages/footerPages/privacyPolicyPage';
+import { HelpPage } from './pages/footerPages/helpPage';
+import Footer from './components/footer';
+import NotFoundPage from './pages/notFound/404';
+import { AuthProvider } from './context/AuthContext';
+import { MainPage } from './pages/home/MainPage.js';
+import { ProfilePage } from './pages/profile/ProfilePage';
+import { TicketsPage } from './pages/tickets/TicketsPage';
+import { CheckoutPage } from './pages/checkout/CheckoutPage';
+import EventPage from './pages/events/EventPage';
+import { NotificationsPage } from './pages/notifications/NotificationsPage';
+import { RegisterCompanyPage } from './pages/company/RegisterCompanyPage';
+import { CompanyPage } from './pages/company/CompanyPage';
+import { EditCompanyPage } from './pages/company/EditCompanyPage';
+import { CreateEventPage } from './pages/events/CreateEventPage';
+import AuthLayout from './layouts/authlayout';
 
-  return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
+function ScrollToTop() {
+    const { pathname } = useLocation();
+    useEffect(() => {
+        window.scrollTo({ top: 0, behavior: 'instant' });
+    }, [pathname]);
+    return null;
 }
 
-export default App
+function AppContent() {
+    return (
+        <div className="app-layout">
+            <ScrollToTop />
+            <Toaster
+                position="top-center"
+                toastOptions={{
+                    style: {
+                        background: '#1a1a1a',
+                        color: '#e0e0e0',
+                        border: '1px solid rgba(255, 107, 0, 0.3)',
+                        borderRadius: '10px',
+                        fontSize: '14px',
+                        fontFamily: 'system-ui, -apple-system, sans-serif',
+                    },
+                    success: {
+                        iconTheme: { primary: '#ff6b00', secondary: '#1a1a1a' },
+                    },
+                    error: {
+                        iconTheme: { primary: '#ff4444', secondary: '#1a1a1a' },
+                    },
+                }}
+            />
+            <Routes>
+                <Route path="/" element={<PageBeforeSignUp />} />
+
+                <Route
+                    path="/auth"
+                    element={
+                        GOOGLE_CLIENT_ID
+                            ? <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}><AuthLayout /></GoogleOAuthProvider>
+                            : <AuthLayout />
+                    }
+                >
+                    <Route index element={<Navigate to="sign-in" replace />} />
+                    <Route path="sign-up" element={<Registration />} />
+                    <Route path="sign-in" element={<Login />} />
+                    <Route path="forgot-password" element={<ForgotPassword />} />
+                    <Route path="change-password" element={<ChangePassword />} />
+                </Route>
+
+                <Route path="/info" element={<Outlet />}>
+                    <Route path="rules" element={<UserRulesPage />} />
+                    <Route path="privacy" element={<PrivacyPolicyPage />} />
+                    <Route path="faq" element={<HelpPage />} />
+                </Route>
+
+                <Route path="/dashboard" element={<MainPage />} />
+                <Route path="/profile/:userId" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
+                <Route path="/tickets" element={<PrivateRoute><TicketsPage /></PrivateRoute>} />
+                <Route path="/notifications" element={<PrivateRoute><NotificationsPage /></PrivateRoute>} />
+                <Route path="/company" element={<PrivateRoute><CompanyPage /></PrivateRoute>} />
+                <Route path="/company/register" element={<PrivateRoute><RegisterCompanyPage /></PrivateRoute>} />
+                <Route path="/company/edit" element={<PrivateRoute><EditCompanyPage /></PrivateRoute>} />
+                <Route path="/checkout/:eventId" element={<PrivateRoute><CheckoutPage /></PrivateRoute>} />
+                <Route path="/events/create" element={<PrivateRoute><CreateEventPage /></PrivateRoute>} />
+                <Route path="/events/:id" element={<EventPage />} />
+
+                <Route path="*" element={<NotFoundPage />} />
+            </Routes>
+            <Footer />
+        </div>
+    );
+}
+
+function App() {
+    return (
+        <BrowserRouter>
+            <AuthProvider>
+                <AppContent />
+            </AuthProvider>
+        </BrowserRouter>
+    );
+}
+
+export default App;
