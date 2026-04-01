@@ -1,0 +1,547 @@
+/* =========================================================
+   Create Event — Wizard
+   ========================================================= */
+
+@keyframes ev-fadeInUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes ev-fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* ── Page shell ───────────────────────────────────────────── */
+
+.ev-page {
+    min-height: 100vh;
+    background: #0a0a0a;
+    color: #e0e0e0;
+}
+
+.ev-container {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: calc(64px + 44px) 24px 80px;
+}
+
+.ev-heading {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #e0e0e0;
+    margin: 0 0 36px;
+    letter-spacing: -0.2px;
+}
+
+/* ── Card ─────────────────────────────────────────────────── */
+
+.ev-card {
+    background: #111;
+    border: 1px solid rgba(255, 107, 0, 0.15);
+    border-radius: 16px;
+    padding: 40px;
+    animation: ev-fadeInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.05s both;
+}
+
+.ev-step-content {
+    animation: ev-fadeIn 0.22s ease both;
+}
+
+/* ── Select ───────────────────────────────────────────────── */
+
+.ev-select {
+    width: 100%;
+    padding: 10px 36px 10px 14px;
+    background: #1e1e1e;
+    border: 1px solid #333;
+    border-radius: 8px;
+    color: #e0e0e0;
+    font-size: 14px;
+    font-family: inherit;
+    transition: border-color 0.2s, background 0.2s;
+    box-sizing: border-box;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+}
+
+.ev-select:focus {
+    outline: none;
+    border-color: #ff6b00;
+    background-color: #222;
+}
+
+.ev-select option {
+    background: #1e1e1e;
+    color: #e0e0e0;
+}
+
+/* ── Date + Time row ──────────────────────────────────────── */
+
+.ev-datetime-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+/* Style native date/time inputs to match cr-input */
+input[type="date"].cr-input,
+input[type="time"].cr-input {
+    color-scheme: dark;
+}
+
+/* ── Cover upload (16:9) ──────────────────────────────────── */
+
+.ev-cover-zone {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+}
+
+/* ── Gallery grid ─────────────────────────────────────────── */
+
+.ev-gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+}
+
+.ev-gallery-item {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 107, 0, 0.15);
+}
+
+.ev-gallery-thumb {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.ev-gallery-remove {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: rgba(10, 10, 10, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #ccc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    padding: 0;
+}
+
+.ev-gallery-remove:hover {
+    background: rgba(255, 77, 77, 0.85);
+    color: #fff;
+    border-color: transparent;
+}
+
+.ev-gallery-add {
+    aspect-ratio: 1 / 1;
+    border: 2px dashed rgba(255, 107, 0, 0.35);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    color: #555;
+    font-size: 11px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s, color 0.2s;
+    background: #161616;
+}
+
+.ev-gallery-add:hover {
+    border-color: #ff6b00;
+    background: rgba(255, 107, 0, 0.04);
+    color: #999;
+}
+
+/* ── Segmented control (Free/Paid, visibility) ────────────── */
+
+.ev-segmented {
+    display: inline-flex;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 50px;
+    padding: 3px;
+    gap: 2px;
+}
+
+.ev-segmented-btn {
+    padding: 7px 18px;
+    border-radius: 50px;
+    border: none;
+    background: transparent;
+    color: #666;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    white-space: nowrap;
+}
+
+.ev-segmented-btn--active {
+    background: #ff6b00;
+    color: #fff;
+}
+
+/* ── Qty spinner ──────────────────────────────────────────── */
+
+.ev-qty-control {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid rgba(255, 107, 0, 0.25);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.ev-qty-btn {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    color: #999;
+    font-size: 18px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    font-family: inherit;
+}
+
+.ev-qty-btn:hover:not(:disabled) {
+    background: rgba(255, 107, 0, 0.1);
+    color: #ff6b00;
+}
+
+.ev-qty-btn:disabled {
+    color: #444;
+    cursor: not-allowed;
+}
+
+.ev-qty-input {
+    min-width: 72px;
+    height: 36px;
+    text-align: center;
+    font-size: 15px;
+    font-weight: 600;
+    color: #e0e0e0;
+    background: transparent;
+    border: none;
+    border-left: 1px solid rgba(255, 107, 0, 0.15);
+    border-right: 1px solid rgba(255, 107, 0, 0.15);
+    padding: 0 8px;
+    outline: none;
+    font-family: inherit;
+    -moz-appearance: textfield;
+}
+
+.ev-qty-input::-webkit-outer-spin-button,
+.ev-qty-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* ── Price with € prefix ──────────────────────────────────── */
+
+.ev-price-wrap {
+    position: relative;
+}
+
+.ev-price-prefix {
+    position: absolute;
+    left: 13px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #666;
+    font-size: 14px;
+    font-weight: 600;
+    pointer-events: none;
+    user-select: none;
+}
+
+.ev-price-input {
+    padding-left: 28px;
+}
+
+/* ── Toggle switch ────────────────────────────────────────── */
+
+.ev-toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px 0;
+}
+
+.ev-toggle-label {
+    font-size: 14px;
+    color: #ccc;
+    flex: 1;
+}
+
+.ev-toggle-label small {
+    display: block;
+    font-size: 12px;
+    color: #666;
+    margin-top: 2px;
+}
+
+.ev-toggle-wrap {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.ev-toggle {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.ev-toggle-track {
+    display: block;
+    width: 40px;
+    height: 22px;
+    border-radius: 11px;
+    background: #2a2a2a;
+    border: 1px solid #333;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+    position: relative;
+}
+
+.ev-toggle-track--on {
+    background: #ff6b00;
+    border-color: #ff6b00;
+}
+
+.ev-toggle-thumb {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #fff;
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+.ev-toggle-track--on .ev-toggle-thumb {
+    transform: translateX(18px);
+}
+
+/* ── Promo codes ──────────────────────────────────────────── */
+
+.ev-promo-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.ev-promo-row {
+    display: grid;
+    grid-template-columns: 1fr 100px 32px;
+    gap: 8px;
+    align-items: center;
+}
+
+.ev-promo-remove {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 36px;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    color: #555;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    padding: 0;
+}
+
+.ev-promo-remove:hover {
+    background: rgba(255, 77, 77, 0.1);
+    border-color: rgba(255, 77, 77, 0.4);
+    color: #ff4d4d;
+}
+
+.ev-add-promo-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: transparent;
+    border: 1px solid rgba(255, 107, 0, 0.35);
+    border-radius: 50px;
+    color: #ff6b00;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.ev-add-promo-btn:hover {
+    background: rgba(255, 107, 0, 0.08);
+    border-color: #ff6b00;
+}
+
+/* ── Review ───────────────────────────────────────────────── */
+
+.ev-review-cover {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #1a1a1a;
+    margin-bottom: 20px;
+    border: 1px solid rgba(255, 107, 0, 0.1);
+}
+
+.ev-review-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.ev-review-cover-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #1a1a1a 0%, #222 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #444;
+    font-size: 13px;
+}
+
+.ev-promo-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-top: 4px;
+}
+
+.ev-promo-table th {
+    text-align: left;
+    color: #555;
+    font-weight: 600;
+    padding: 4px 8px 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.ev-promo-table td {
+    color: #ccc;
+    padding: 6px 8px 6px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+/* ── Tags ─────────────────────────────────────────────────── */
+
+.ev-tag-list {
+    margin-bottom: 8px;
+}
+
+.ev-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding-right: 6px;
+}
+
+.ev-tag-remove {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    padding: 0;
+    opacity: 0.7;
+    transition: opacity 0.15s;
+}
+
+.ev-tag-remove:hover {
+    opacity: 1;
+}
+
+/* ── Discount % suffix ────────────────────────────────────── */
+
+.ev-discount-wrap {
+    position: relative;
+}
+
+.ev-discount-input {
+    padding-right: 28px;
+}
+
+.ev-discount-suffix {
+    position: absolute;
+    right: 13px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #666;
+    font-size: 14px;
+    font-weight: 600;
+    pointer-events: none;
+    user-select: none;
+}
+
+/* ── Responsive ───────────────────────────────────────────── */
+
+@media (max-width: 900px) {
+    .cr-step-label { display: none; }
+    .cr-step { width: 44px; }
+}
+
+@media (max-width: 600px) {
+    .ev-container {
+        padding: calc(64px + 24px) 16px 64px;
+    }
+
+    .ev-card {
+        padding: 24px 20px;
+    }
+
+    .ev-datetime-row {
+        grid-template-columns: 1fr;
+    }
+
+    .ev-gallery-grid {
+        grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+    }
+
+    .ev-segmented {
+        width: 100%;
+    }
+
+    .ev-segmented-btn {
+        flex: 1;
+        text-align: center;
+    }
+
+    .ev-promo-row {
+        grid-template-columns: 1fr 80px 32px;
+    }
+}
