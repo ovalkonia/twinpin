@@ -4,6 +4,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
+import { CompaniesModule } from './companies/companies.module';
+import { Company } from './companies/entities/company.entity';
 import { User } from './users/entities/user.entity';
 import { UsersModule } from './users/users.module';
 
@@ -23,12 +26,14 @@ import { UsersModule } from './users/users.module';
         username: configService.getOrThrow<string>('POSTGRES_USER'),
         password: configService.getOrThrow<string>('POSTGRES_PASSWORD'),
         database: configService.getOrThrow<string>('POSTGRES_DB'),
-        entities: [User],
+        entities: [User, Company],
         synchronize: true,
       }),
     }),
     UsersModule,
     AuthModule,
+    CloudinaryModule,
+    CompaniesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

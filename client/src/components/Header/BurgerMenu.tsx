@@ -1,6 +1,7 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { getMyCompany } from '../../services/company';
 import { IconBell, IconBuilding, IconChevron, IconClose, IconLogOut, IconTicket, IconUser } from '../../assets/icons';
 
 interface BurgerMenuProps {
@@ -12,6 +13,7 @@ export const BurgerMenu = ({ isOpen, onClose }: BurgerMenuProps) => {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
     const drawerRef = useRef<HTMLDivElement>(null);
+    const [companyLoading, setCompanyLoading] = useState(false);
 
     useEffect(() => {
         if (isOpen) {
@@ -27,9 +29,21 @@ export const BurgerMenu = ({ isOpen, onClose }: BurgerMenuProps) => {
         onClose();
     };
 
+    const handleCompanyClick = async () => {
+        setCompanyLoading(true);
+        try {
+            await getMyCompany();
+            goTo('/company');
+        } catch {
+            goTo('/company/register');
+        } finally {
+            setCompanyLoading(false);
+        }
+    };
+
     const handleLogout = () => {
         logout();
-        navigate('/');
+        navigate('/auth/sign-in');
         onClose();
     };
 
@@ -71,7 +85,7 @@ export const BurgerMenu = ({ isOpen, onClose }: BurgerMenuProps) => {
                         My Tickets
                         <span className="burger-item-arrow"><IconChevron /></span>
                     </button>
-                    <button className="burger-item" onClick={() => goTo('/company')}>
+                    <button className="burger-item" onClick={handleCompanyClick} disabled={companyLoading}>
                         <span className="burger-item-icon"><IconBuilding /></span>
                         Company Profile
                         <span className="burger-item-arrow"><IconChevron /></span>
