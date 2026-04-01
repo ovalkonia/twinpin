@@ -9,8 +9,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     super({
       clientID: configService.getOrThrow<string>('GOOGLE_CLIENT_ID'),
       clientSecret: configService.get<string>('GOOGLE_CLIENT_SECRET'),
-      // Callback lands back on `/auth/google` (single route).
-      callbackURL: `${configService.getOrThrow<string>('URL_BACKEND')}/auth/google`,
+      callbackURL: `${configService.getOrThrow<string>('URL_BACKEND')}/auth/google/callback`,
       scope: ['email', 'profile'],
       // Keep it simple: no offline/refresh token flow.
       accessType: 'online',

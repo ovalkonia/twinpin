@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { Toaster } from "react-hot-toast";
-import { GoogleOAuthProvider } from '@react-oauth/google';
 import './App.css';
 
 import { PrivateRoute } from './components/PrivateRoute';
@@ -27,8 +26,7 @@ import { CompanyPage } from './pages/company/CompanyPage';
 import { EditCompanyPage } from './pages/company/EditCompanyPage';
 import { CreateEventPage } from './pages/events/CreateEventPage';
 import AuthLayout from './layouts/authlayout';
-
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+import GoogleCallback from './pages/auth/GoogleCallback';
 
 function ScrollToTop() {
     const { pathname } = useLocation();
@@ -64,14 +62,9 @@ function AppContent() {
             <Routes>
                 <Route path="/" element={<PageBeforeSignUp />} />
 
-                <Route
-                    path="/auth"
-                    element={
-                        GOOGLE_CLIENT_ID
-                            ? <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}><AuthLayout /></GoogleOAuthProvider>
-                            : <AuthLayout />
-                    }
-                >
+                <Route path="/auth/callback" element={<GoogleCallback />} />
+
+                <Route path="/auth" element={<AuthLayout />}>
                     <Route index element={<Navigate to="sign-in" replace />} />
                     <Route path="sign-up" element={<Registration />} />
                     <Route path="sign-in" element={<Login />} />

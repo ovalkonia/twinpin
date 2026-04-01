@@ -56,7 +56,7 @@ export class AuthService {
       user = await this.usersService.create({
         email,
         password: randomBytes(16).toString('hex'),
-        name: `${googleUser?.firstName} ${googleUser?.lastName}` || undefined,
+        name: [googleUser?.firstName, googleUser?.lastName].filter(Boolean).join(' ') || undefined,
       });
     }
 
@@ -69,6 +69,9 @@ export class AuthService {
       email: user.email,
     });
 
-    return { access_token };
+    return {
+      access_token,
+      user: { id: user.id, name: user.name, email: user.email },
+    };
   }
 }

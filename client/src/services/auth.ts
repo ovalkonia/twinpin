@@ -3,7 +3,7 @@ import { saveToken, removeToken } from './token';
 import { UserProfile } from './user';
 
 export interface AuthResponse {
-    token: string;
+    access_token: string;
     user: UserProfile;
 }
 
@@ -20,8 +20,8 @@ export const loginUser = async (userData: {
     password: string
 }): Promise<AuthResponse> => {
     const response = await api.post<AuthResponse>('/auth/login', userData)
-    if (response.data.token) {
-        saveToken(response.data.token)
+    if (response.data.access_token) {
+        saveToken(response.data.access_token)
     }
     return response.data
 }

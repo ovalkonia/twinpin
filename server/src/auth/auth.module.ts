@@ -13,6 +13,7 @@ import { GoogleStrategy } from "./strategies/google.strategy";
     PassportModule,
     UsersModule,
     JwtModule.registerAsync({
+      imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         secret: configService.getOrThrow<string>('JWT_ACCESS_SECRET'),

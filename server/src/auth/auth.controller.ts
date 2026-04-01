@@ -12,21 +12,21 @@ export class AuthController {
     private readonly authService: AuthService,
 ) {}
 
-  @Post("/register")
+  @Post('/register')
   register(@Body() registerDto: RegisterDto) {
     return this.authService.register(registerDto);
   }
 
-  @Post("/login")
+  @Post('/login')
   @HttpCode(HttpStatus.OK)
   async login(
-    @Res() res: any,
+    @Res({ passthrough: true }) res: any,
     @Body() loginDto: LoginDto
   ) {
     const data = await this.authService.login(loginDto);
     res.cookie('access_token', data.access_token, {
         expires: new Date(Date.now() + 1000 * 60 * 60 * 24),
-        sameSimte: 'strict',
+        sameSite: 'strict',
         httpOnly: true,
     });
     return data;
@@ -34,17 +34,26 @@ export class AuthController {
 
   @Get('/google')
   @UseGuards(AuthGuard('google'))
-  async googleAuth(
-    @Req() req: any,
-    @Res() res: any,
-) {
-    if (!req?.user) return;
-    const { access_token } = await this.authService.googleLogin(req.user);
-    res.cookie('access_token', access_token, {
-        expires: new Date(Date.now() + 1000 * 60 * 60 * 24),
-        sameSimte: 'strict',
-        httpOnly: true,
+  async googleAuth() {}
+
+  @Get('/google/callback')
+  @UseGuards(AuthGuard('google'))
+  async googleAuthRedirect(@Req() req: any, @Res() res: any) {
+    const frontendUrl = this.configService.getOrThrow<string>('URL_FRONTEND');
+
+    if (!req.user) {
+      return res.redirect(`${frontendUrl}/auth/sign-in?error=no_user`);
+    }
+
+    const { access_token, user } = await this.authService.googleLogin(req.user);
+
+    const params = new URLSearchParams({
+      token: access_token,
+      id: String(user.id),
+      name: user.name || '',
+      email: user.email,
     });
-    return res.redirect(`${this.configService.getOrThrow<string>('URL_FRONTEND')}`);
+
+    return res.redirect(`${frontendUrl}/auth/callback?${params.toString()}`);
   }
 }

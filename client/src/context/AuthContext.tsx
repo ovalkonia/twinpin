@@ -42,10 +42,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         checkAuth()
     }, [])
 
-    const login = (token: string, userData: User) => {
-        saveToken(token)
-        setUser(userData)
-    }
+    const login = async (token: string, userData: User) => {
+        saveToken(token);
+        setUser(userData);
+        return Promise.resolve();
+    };
 
     const logout = () => {
         removeToken()

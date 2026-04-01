@@ -61,7 +61,7 @@ export const BurgerMenu = ({ isOpen, onClose }: BurgerMenuProps) => {
                 <div className="burger-divider" />
 
                 <nav className="burger-nav">
-                    <button className="burger-item" onClick={() => goTo('/profile')}>
+                    <button className="burger-item" onClick={() => goTo(`/profile/${user?.id}`)}>
                         <span className="burger-item-icon"><IconUser /></span>
                         My Profile
                         <span className="burger-item-arrow"><IconChevron /></span>
