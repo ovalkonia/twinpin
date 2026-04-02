@@ -35,6 +35,13 @@ export class CompaniesService {
         return Object.assign(saved, { stats: STATS }) as unknown as Company & { stats: typeof STATS };
     }
 
+    async findOwnedByUserId(userId: number): Promise<Company | null> {
+        return this.companyRepo.findOne({
+            where: { owner: { id: userId } },
+            relations: ['owner'],
+        });
+    }
+
     async findMy(userId: number): Promise<Company & { stats: typeof STATS }> {
         const company = await this.companyRepo.findOne({
             where: { owner: { id: userId } },

@@ -15,16 +15,16 @@ export class Company {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column()
+    @Column({ type: 'varchar', length: 255 })
     name: string;
 
-    @Column({ unique: true })
+    @Column({ type: 'varchar', length: 160, unique: true })
     slug: string;
 
-    @Column({ nullable: true })
+    @Column({ type: 'varchar', length: 2048, nullable: true })
     logoUrl: string;
 
-    @Column({ nullable: true })
+    @Column({ type: 'varchar', length: 2048, nullable: true })
     coverUrl: string;
 
     @Column({ type: 'text' })
@@ -33,25 +33,25 @@ export class Company {
     @Column({ type: 'simple-array', nullable: true })
     categories: string[];
 
-    @Column({ nullable: true })
+    @Column({ type: 'varchar', length: 2048, nullable: true })
     website: string;
 
-    @Column({ nullable: true })
+    @Column({ type: 'varchar', length: 320, nullable: true })
     email: string;
 
-    @Column({ nullable: true })
+    @Column({ type: 'varchar', length: 500, nullable: true })
     address: string;
 
-    @Column({ nullable: true })
+    @Column({ type: 'varchar', length: 512, nullable: true })
     linkedin: string;
 
-    @Column({ nullable: true })
+    @Column({ type: 'varchar', length: 512, nullable: true })
     instagram: string;
 
-    @Column({ nullable: true })
+    @Column({ type: 'varchar', length: 512, nullable: true })
     tiktok: string;
 
-    @Column({ nullable: true })
+    @Column({ type: 'varchar', length: 512, nullable: true })
     telegram: string;
 
     @ManyToOne(() => User, user => user.ownedCompanies, { eager: false })

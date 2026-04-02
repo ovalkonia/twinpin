@@ -6,14 +6,20 @@ export class User {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({ unique: true })
+    @Column({ type: 'varchar', length: 320, unique: true })
     email: string;
 
-    @Column({ select: true })
+    @Column({ type: 'varchar', length: 255, select: true })
     password: string;
 
-    @Column({ nullable: true })
+    @Column({ type: 'varchar', length: 255, nullable: true })
     name: string;
+
+    @Column({ type: 'varchar', length: 2048, nullable: true })
+    avatarUrl: string;
+
+    @Column({ type: 'boolean', default: true })
+    profilePublic: boolean;
 
     @Column({
         type: "enum",
