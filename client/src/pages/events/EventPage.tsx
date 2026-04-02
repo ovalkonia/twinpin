@@ -96,7 +96,7 @@ function mapEvent(event: Event, attendees: EventAttendee[]): EventData {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function EventPage() {
-    const { id } = useParams<{ id: string }>();
+    const { id, eventId } = useParams<{ id?: string; eventId?: string }>();
     const navigate = useNavigate();
     const { isAuth } = useAuth();
 
@@ -107,17 +107,18 @@ export default function EventPage() {
     const [lightboxPhoto, setLightboxPhoto] = useState<string | null>(null);
 
     useEffect(() => {
-        if (!id) return;
+        const resolvedId = id ?? eventId;
+        if (!resolvedId) return;
         setLoading(true);
 
-        Promise.all([getEventById(id), getEventAttendees(id)])
+        Promise.all([getEventById(resolvedId), getEventAttendees(resolvedId)])
             .then(([evt, attendees]) => {
                 setEvent(mapEvent(evt, attendees));
                 setIsBooked(evt.isSubscribed ?? false);
             })
             .catch(() => toast.error('Failed to load event'))
             .finally(() => setLoading(false));
-    }, [id]);
+    }, [id, eventId]);
 
     const handleBook = async () => {
         if (!isAuth) { navigate('/auth/sign-in'); return; }

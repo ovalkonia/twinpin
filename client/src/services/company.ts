@@ -4,6 +4,10 @@ export interface Company {
     id: string;
     name: string;
     slug: string;
+    owner?: {
+        id: string;
+        name?: string;
+    };
     logoUrl: string | null;
     coverUrl: string | null;
     description: string;

@@ -12,10 +12,14 @@ import {
 } from '../../services/company';
 import '../../styles/company-page.css';
 import '../../styles/company-register.css';
+import { getUserEvents, type UserEvent } from '../../services/user';
+import { deleteEvent } from '../../services/events';
 
 export const CompanyPage: React.FC = () => {
     const [company, setCompany] = useState<Company | null>(null);
     const [members, setMembers] = useState<CompanyMember[]>([]);
+    const [events, setEvents] = useState<UserEvent[]>([]);
+    const [eventsLoading, setEventsLoading] = useState(true);
     const [inviteEmail, setInviteEmail] = useState('');
     const [inviteLoading, setInviteLoading] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -27,6 +31,20 @@ export const CompanyPage: React.FC = () => {
                 setCompany(c);
                 const list = await getCompanyMembers(c.id);
                 setMembers(list);
+                if (c.owner?.id) {
+                    setEventsLoading(true);
+                    try {
+                        const ev = await getUserEvents(c.owner.id);
+                        setEvents(ev);
+                    } catch {
+                        setEvents([]);
+                    } finally {
+                        setEventsLoading(false);
+                    }
+                } else {
+                    setEvents([]);
+                    setEventsLoading(false);
+                }
             })
             .catch(() => setCompany(null))
             .finally(() => setLoading(false));
@@ -164,6 +182,97 @@ export const CompanyPage: React.FC = () => {
                                         <strong>Email:</strong> {company.email}
                                     </p>
                                 )}
+                            </div>
+                        )}
+                    </section>
+
+                    <section className="cp-section">
+                        <div className="cp-members-header">
+                            <h2 className="cp-section-title" style={{ marginBottom: 0 }}>
+                                Events
+                            </h2>
+                        </div>
+
+                        {eventsLoading ? (
+                            <p>Loading events…</p>
+                        ) : events.length === 0 ? (
+                            <p>No events yet.</p>
+                        ) : (
+                            <div className="events-grid">
+                                {events.map((event) => (
+                                    <div key={event.id} className="event-card">
+                                        <div
+                                            className="event-card-image"
+                                            style={
+                                                event.coverUrl
+                                                    ? {
+                                                        backgroundImage: `url(${event.coverUrl})`,
+                                                        backgroundSize: 'cover',
+                                                        backgroundPosition: 'center',
+                                                    }
+                                                    : { background: 'linear-gradient(135deg, #1a1a2e, #0a0a1a)' }
+                                            }
+                                        >
+                                            <span className="event-card-category">
+                                                {event.category}
+                                            </span>
+                                        </div>
+                                        <div className="event-card-body">
+                                            <div className="event-card-title">
+                                                {event.title}
+                                            </div>
+                                            <div className="event-card-meta">
+                                                <span className="event-card-meta-row">
+                                                    {event.date}
+                                                </span>
+                                                <span className="event-card-meta-row">
+                                                    {event.location}
+                                                </span>
+                                            </div>
+                                            <div className="event-card-footer">
+                                                <span className="event-card-price">
+                                                    {event.price}
+                                                </span>
+                                                <Link
+                                                    to={`/events/${event.id}/edit`}
+                                                    className="event-card-btn"
+                                                >
+                                                    Manage
+                                                </Link>
+                                                <button
+                                                    className="event-card-btn"
+                                                    type="button"
+                                                    style={{
+                                                        background: 'transparent',
+                                                        border:
+                                                            '1px solid rgba(255,107,0,0.4)',
+                                                        color: '#ff6b00',
+                                                    }}
+                                                    onClick={async (e) => {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+                                                        const ok = window.confirm('Delete this event? This cannot be undone.');
+                                                        if (!ok) return;
+                                                        try {
+                                                            await deleteEvent(event.id);
+                                                            setEvents((prev) =>
+                                                                prev.filter(
+                                                                    (x) =>
+                                                                        x.id !== event.id,
+                                                                ),
+                                                            );
+                                                            toast.success('Event deleted');
+                                                        } catch {
+                                                            toast.error('Failed to delete event');
+                                                        }
+                                                    }}
+                                                >
+                                                    Delete
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         )}
                     </section>

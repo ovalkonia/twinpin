@@ -27,15 +27,38 @@ export class TicketsService {
       capacity: number | null | undefined;
     },
   ): Promise<Ticket> {
-    const tier = this.ticketRepo.create({
-      event,
+    return this.createTier(event, {
       name: 'General admission',
       description: null,
+      price: input.price,
+      currency: input.currency,
+      capacity: input.capacity,
+      sortOrder: 0,
+      isDefault: true,
+    });
+  }
+
+  async createTier(
+    event: Event,
+    input: {
+      name: string;
+      description?: string | null;
+      price: number;
+      currency: string;
+      capacity: number | null | undefined;
+      sortOrder: number;
+      isDefault: boolean;
+    },
+  ): Promise<Ticket> {
+    const tier = this.ticketRepo.create({
+      event,
+      name: input.name,
+      description: input.description ?? null,
       price: String(input.price),
       currency: input.currency,
       quantityAvailable: input.capacity ?? null,
-      sortOrder: 0,
-      isDefault: true,
+      sortOrder: input.sortOrder,
+      isDefault: input.isDefault,
     });
     return this.ticketRepo.save(tier);
   }

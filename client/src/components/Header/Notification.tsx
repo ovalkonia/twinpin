@@ -6,11 +6,13 @@ import toast from "react-hot-toast";
 
 
 interface Notification {
-    event_id: string | number;
-    author_name?: string;
-    event_title: string;
-    location: string;
+    id: string;
+    type: string;
+    message: string;
     date: string;
+    read: boolean;
+    category: 'event' | 'ticket' | 'system';
+    title: string;
 }
 
 const formatDate = (dateString: string): string => {
@@ -63,21 +65,12 @@ const Notifications: React.FC = () => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    const handleDeleteNotification = async (eventId: string | number) => {
+    const handleDeleteNotification = async (notificationId: string) => {
         try {
-            await api.delete(`/notifications/events/${eventId}`);
-            setNotifications(prev => prev.filter(n => n.event_id !== eventId));
+            await api.delete(`/notifications/${notificationId}`);
+            setNotifications(prev => prev.filter(n => n.id !== notificationId));
         } catch (error) {
             toast.error("Failed to delete");
-        }
-    };
-    const handleClearAll = async () => {
-        try {
-            await api.delete('/notifications');
-            setNotifications([]);
-            toast.success("Cleared");
-        } catch (error) {
-            toast.error("Failed to clear");
         }
     };
     return (
@@ -93,9 +86,6 @@ const Notifications: React.FC = () => {
                 <div className="notification-dropdown">
                     <div className="notification-header">
                         <h3>Notifications</h3>
-                        {notifications.length > 0 && (
-                            <button onClick={handleClearAll} className="clear-all-btn">Clear all</button>
-                        )}
                     </div>
 
                     <div className="notification-list">
@@ -105,16 +95,16 @@ const Notifications: React.FC = () => {
                             <p className="notification-status">No notifications</p>
                         ) : (
                             notifications.map(n => (
-                                <div key={n.event_id} className="notification-item">
+                                <div key={n.id} className="notification-item">
                                     <div
                                         className="notification-item-body"
-                                        onClick={() => { navigate(`/dashboard/post/${n.event_id}`); setIsOpen(false); }}
+                                        onClick={() => { navigate('/notifications'); setIsOpen(false); }}
                                     >
-                                        <p className="notification-title">{n.event_title}</p>
-                                        {n.author_name && <p className="notification-author">{n.author_name}</p>}
-                                        <p className="notification-meta">{n.location} · {formatDate(n.date)}</p>
+                                        <p className="notification-title">{n.title}</p>
+                                        <p className="notification-author">{n.category}</p>
+                                        <p className="notification-meta">{n.message} · {formatDate(n.date)}</p>
                                     </div>
-                                    <button className="notification-delete-btn" onClick={() => handleDeleteNotification(n.event_id)}>&times;</button>
+                                    <button className="notification-delete-btn" onClick={() => handleDeleteNotification(n.id)}>&times;</button>
                                 </div>
                             ))
                         )}

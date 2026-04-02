@@ -10,6 +10,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  ValidateNested,
   IsUrl,
   MaxLength,
   Min,
@@ -18,6 +19,32 @@ import {
 import { EventFormat } from '../enums/event-format.enum';
 import { EventStatus } from '../enums/event-status.enum';
 import { VisitorListPrivacy } from '../enums/visitor-list-privacy.enum';
+
+export class TicketTierDto {
+  @ApiProperty()
+  @IsString()
+  @MinLength(1)
+  @MaxLength(120)
+  name: string;
+
+  @ApiProperty()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  price: number;
+
+  @ApiPropertyOptional({ default: 'USD' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(10)
+  currency?: string;
+
+  @ApiProperty()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  capacity: number;
+}
 
 export class CreateEventFieldsDto {
   @ApiProperty()
@@ -125,4 +152,26 @@ export class CreateEventFieldsDto {
   @IsUrl({ require_tld: false })
   @MaxLength(2000)
   redirectAfterPurchase?: string;
+
+  @ApiPropertyOptional({
+    type: [TicketTierDto],
+    description:
+      'Optional custom ticket tiers. The first tier is treated as the default tier for bookings.',
+  })
+  @IsOptional()
+  @Transform(({ value }) => {
+    // In multipart/form-data, arrays of objects are usually sent as JSON strings.
+    if (typeof value === 'string') {
+      try {
+        return JSON.parse(value) as unknown;
+      } catch {
+        return value;
+      }
+    }
+    return value;
+  })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => TicketTierDto)
+  tickets?: TicketTierDto[];
 }

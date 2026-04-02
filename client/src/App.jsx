@@ -20,6 +20,7 @@ import { ProfilePage } from './pages/profile/ProfilePage';
 import { TicketsPage } from './pages/tickets/TicketsPage';
 import { CheckoutPage } from './pages/checkout/CheckoutPage';
 import EventPage from './pages/events/EventPage';
+import { EditEventPage } from './pages/events/EditEventPage';
 import { NotificationsPage } from './pages/notifications/NotificationsPage';
 import { RegisterCompanyPage } from './pages/company/RegisterCompanyPage';
 import { CompanyPage } from './pages/company/CompanyPage';
@@ -79,6 +80,7 @@ function AppContent() {
                 </Route>
 
                 <Route path="/dashboard" element={<MainPage />} />
+                <Route path="/profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
                 <Route path="/profile/:userId" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
                 <Route path="/tickets" element={<PrivateRoute><TicketsPage /></PrivateRoute>} />
                 <Route path="/notifications" element={<PrivateRoute><NotificationsPage /></PrivateRoute>} />
@@ -88,6 +90,12 @@ function AppContent() {
                 <Route path="/checkout/:eventId" element={<PrivateRoute><CheckoutPage /></PrivateRoute>} />
                 <Route path="/events/create" element={<PrivateRoute><CreateEventPage /></PrivateRoute>} />
                 <Route path="/events/:id" element={<EventPage />} />
+                <Route path="/events/:id/edit" element={<PrivateRoute><EditEventPage /></PrivateRoute>} />
+
+                {/* Compatibility routes referenced by header UI */}
+                <Route path="/dashboard/my-tickets" element={<PrivateRoute><TicketsPage /></PrivateRoute>} />
+                <Route path="/dashboard/settings" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
+                <Route path="/dashboard/post/:eventId" element={<EventPage />} />
 
                 <Route path="*" element={<NotFoundPage />} />
             </Routes>

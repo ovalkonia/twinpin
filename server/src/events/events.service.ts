@@ -143,17 +143,31 @@ export class EventsService {
 
   async findFiltered(
     filter: EventsFilterQueryDto,
+    viewer?: User | null,
   ): Promise<PaginatedEventsResponseDto> {
     const page = filter.page ?? 1;
     const limit = filter.limit ?? 20;
     const at = this.now();
 
+    const viewerId = viewer?.id;
+
     const qb = this.eventRepo
       .createQueryBuilder('e')
       .leftJoinAndSelect('e.company', 'company')
       .leftJoinAndSelect('company.owner', 'owner')
-      .where('e.status = :pub', { pub: EventStatus.PUBLISHED })
-      .andWhere('(e.publishAt IS NULL OR e.publishAt <= :at)', { at });
+      .where(
+        new Brackets((q) => {
+          q.where('e.status = :pub', { pub: EventStatus.PUBLISHED })
+            .andWhere('(e.publishAt IS NULL OR e.publishAt <= :at)', { at });
+
+          if (viewerId != null) {
+            q.orWhere(
+              'owner.id = :viewerId AND e.status != :cancelled',
+              { viewerId, cancelled: EventStatus.CANCELLED },
+            );
+          }
+        }),
+      );
 
     if (filter.format) {
       qb.andWhere('e.format = :format', { format: filter.format });
@@ -295,11 +309,30 @@ export class EventsService {
 
     const saved = await this.eventRepo.save(row);
 
-    await this.ticketsService.createGeneralAdmission(saved, {
-      price: dto.price,
-      currency: dto.currency ?? 'USD',
-      capacity: dto.capacity,
-    });
+    const defaultCurrency = dto.currency ?? 'USD';
+    const ticketTiers =
+      dto.tickets?.length
+        ? dto.tickets
+        : [
+            {
+              name: 'General admission',
+              price: dto.price,
+              currency: defaultCurrency,
+              capacity: dto.capacity ?? 1,
+            },
+          ];
+
+    for (let i = 0; i < ticketTiers.length; i++) {
+      const t = ticketTiers[i];
+      await this.ticketsService.createTier(saved, {
+        name: t.name,
+        price: t.price,
+        currency: t.currency ?? defaultCurrency,
+        capacity: t.capacity,
+        sortOrder: i,
+        isDefault: i === 0,
+      });
+    }
 
     const full = await this.eventRepo.findOneOrFail({
       where: { id: saved.id },
@@ -480,19 +513,45 @@ export class EventsService {
     }
 
     let tier: Ticket;
+    let soldOnTier: number;
     if (ticketId) {
       const t = tiers.find((x) => x.id === ticketId);
       if (!t) throw new NotFoundException('Ticket tier not found');
       tier = t;
+      soldOnTier = await this.bookingsService.sumQuantityForTicket(tier.id);
     } else if (tiers.length === 1) {
       tier = tiers[0];
+      soldOnTier = await this.bookingsService.sumQuantityForTicket(tier.id);
     } else {
-      throw new BadRequestException(
-        'This event has multiple ticket tiers; pass ticketId when subscribing',
-      );
+      // If the frontend doesn’t specify a tier, pick the best matching tier:
+      // 1) Prefer the default tier if it has capacity.
+      // 2) Otherwise, pick the cheapest tier that can fit the requested quantity.
+      const defaultTier = tiers.find((t) => t.isDefault);
+
+      if (defaultTier) {
+        const sold = await this.bookingsService.sumQuantityForTicket(
+          defaultTier.id,
+        );
+        const canFit =
+          defaultTier.quantityAvailable == null ||
+          sold + quantity <= defaultTier.quantityAvailable;
+
+        if (canFit) {
+          tier = defaultTier;
+          soldOnTier = sold;
+        } else {
+          tier = await this.pickCheapestTierThatFits(
+            tiers,
+            quantity,
+          );
+          soldOnTier = await this.bookingsService.sumQuantityForTicket(tier.id);
+        }
+      } else {
+        tier = await this.pickCheapestTierThatFits(tiers, quantity);
+        soldOnTier = await this.bookingsService.sumQuantityForTicket(tier.id);
+      }
     }
 
-    const soldOnTier = await this.bookingsService.sumQuantityForTicket(tier.id);
     if (
       tier.quantityAvailable != null &&
       soldOnTier + quantity > tier.quantityAvailable
@@ -516,6 +575,26 @@ export class EventsService {
       tier,
       quantity,
     });
+  }
+
+  private async pickCheapestTierThatFits(
+    tiers: Ticket[],
+    quantity: number,
+  ): Promise<Ticket> {
+    const ordered = [...tiers].sort((a, b) => {
+      const ap = Number(a.price);
+      const bp = Number(b.price);
+      if (ap !== bp) return ap - bp;
+      return a.sortOrder - b.sortOrder;
+    });
+
+    for (const t of ordered) {
+      const sold = await this.bookingsService.sumQuantityForTicket(t.id);
+      const canFit = t.quantityAvailable == null || sold + quantity <= t.quantityAvailable;
+      if (canFit) return t;
+    }
+
+    throw new ConflictException('Event is full');
   }
 
   async unsubscribe(userId: number, eventId: string): Promise<void> {

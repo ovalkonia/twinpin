@@ -128,6 +128,12 @@ export class UsersService {
     return await this.usersRepository.save(user);
   }
 
+  async updateAvatar(id: number, avatarUrl: string): Promise<User> {
+    const user = await this.findOne(id);
+    user.avatarUrl = avatarUrl;
+    return this.usersRepository.save(user);
+  }
+
   async remove(id: number): Promise<void> {
     const result = await this.usersRepository.delete(id);
     if (!result.affected) {

@@ -1,16 +1,20 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import Header from '../../components/Header/header';
 import { useAuth } from '../../context/AuthContext';
-import { getUserById, getUserEvents, getUserTickets, UserProfile, UserEvent, UserTicket } from '../../services/user';
+import { getUserById, getUserEvents, getUserTickets, updateUser, updateUserAvatar, type UserProfile, UserEvent, type UserTicket } from '../../services/user';
+import { deleteEvent } from '../../services/events';
 import { IconCamera } from '../../assets/icons';
 import '../../styles/profile.css';
 
 const DEFAULT_COVER = 'linear-gradient(135deg, #1a1a2e, #0a0a1a)';
 
 export const ProfilePage = () => {
-    const { userId } = useParams<{ userId: string }>();
+    const { userId: routeUserId } = useParams<{ userId?: string }>();
     const { user: currentUser } = useAuth();
+
+    const resolvedUserId = routeUserId ?? currentUser?.id;
 
     const [profileUser, setProfileUser]       = useState<UserProfile | null>(null);
     const [profileLoading, setProfileLoading] = useState(true);
@@ -30,48 +34,109 @@ export const ProfilePage = () => {
     const [newPassword, setNewPassword]         = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
 
-    const isOwnProfile = currentUser?.id === userId;
+    const [savingProfile, setSavingProfile] = useState(false);
+    const [savingPassword, setSavingPassword] = useState(false);
+
+    const isOwnProfile = Boolean(currentUser?.id && resolvedUserId && currentUser.id === resolvedUserId);
 
     const avatarInputRef = useRef<HTMLInputElement>(null);
-    const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+    const [avatarObjectUrl, setAvatarObjectUrl] = useState<string | null>(null);
+    const [savingAvatar, setSavingAvatar] = useState(false);
+
+    const avatarSrc = avatarObjectUrl ?? profileUser?.avatarUrl ?? null;
 
     useEffect(() => {
-        if (!userId) return;
+        if (!resolvedUserId) return;
 
         setProfileLoading(true);
         setProfileError(false);
         setEventsLoading(true);
         setTicketsLoading(true);
 
-        getUserById(userId)
+        getUserById(resolvedUserId)
             .then(data => {
                 setProfileUser(data);
                 setNameInput(data.name);
+                setAvatarObjectUrl(null);
             })
             .catch(() => setProfileError(true))
             .finally(() => setProfileLoading(false));
 
-        getUserEvents(userId)
+        getUserEvents(resolvedUserId)
             .then(setCreatedEvents)
             .catch(() => setCreatedEvents([]))
             .finally(() => setEventsLoading(false));
 
-        getUserTickets(userId)
+        getUserTickets(resolvedUserId)
             .then(setTicketHistory)
             .catch(() => setTicketHistory([]))
             .finally(() => setTicketsLoading(false));
-    }, [userId]);
+    }, [resolvedUserId]);
 
     useEffect(() => {
-        return () => { if (avatarPreview) URL.revokeObjectURL(avatarPreview); };
-    }, [avatarPreview]);
+        return () => {
+            if (avatarObjectUrl) URL.revokeObjectURL(avatarObjectUrl);
+        };
+    }, [avatarObjectUrl]);
 
     function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
         const file = e.target.files?.[0];
         if (!file) return;
-        if (avatarPreview) URL.revokeObjectURL(avatarPreview);
-        setAvatarPreview(URL.createObjectURL(file));
-    }
+        if (!resolvedUserId) return;
+        if (savingAvatar) return;
+        if (avatarObjectUrl) URL.revokeObjectURL(avatarObjectUrl);
+        setAvatarObjectUrl(URL.createObjectURL(file));
+        setSavingAvatar(true);
+        updateUserAvatar(resolvedUserId, file)
+            .then((updated) => {
+                setProfileUser(updated);
+                setAvatarObjectUrl(null);
+                toast.success('Avatar updated');
+            })
+            .catch(() => {
+                toast.error('Failed to update avatar');
+                setAvatarObjectUrl(null);
+            })
+            .finally(() => setSavingAvatar(false));
+    };
+
+    const handleSaveProfile = async () => {
+        if (!resolvedUserId) return;
+        setSavingProfile(true);
+        try {
+            const updated = await updateUser(resolvedUserId, { name: nameInput });
+            setProfileUser(updated);
+            toast.success('Profile updated');
+        } catch {
+            toast.error('Failed to update profile');
+        } finally {
+            setSavingProfile(false);
+        }
+    };
+
+    const handleUpdatePassword = async () => {
+        if (!resolvedUserId) return;
+        if (!newPassword || !confirmPassword) {
+            toast.error('Please enter a new password');
+            return;
+        }
+        if (newPassword !== confirmPassword) {
+            toast.error('Passwords do not match');
+            return;
+        }
+        setSavingPassword(true);
+        try {
+            await updateUser(resolvedUserId, { password: newPassword });
+            toast.success('Password updated');
+            setNewPassword('');
+            setConfirmPassword('');
+            setCurrentPassword('');
+        } catch {
+            toast.error('Failed to update password');
+        } finally {
+            setSavingPassword(false);
+        }
+    };
 
     const isGoogleConnected = false;
     const initial = profileUser?.name?.[0]?.toUpperCase() || '?';
@@ -99,8 +164,8 @@ export const ProfilePage = () => {
                     <div className="profile-card-left">
                         <div className="profile-avatar-wrap">
                             <div className="profile-avatar">
-                                {avatarPreview
-                                    ? <img className="profile-avatar-img" src={avatarPreview} alt="Avatar" />
+                                {avatarSrc
+                                    ? <img className="profile-avatar-img" src={avatarSrc} alt="Avatar" />
                                     : initial}
                             </div>
                             {isOwnProfile && <>
@@ -129,23 +194,9 @@ export const ProfilePage = () => {
 
                     {isOwnProfile && (
                         <div className="profile-bio-wrap">
-                            {bioEditing ? (
-                                <textarea
-                                    className="profile-bio-input"
-                                    value={bio}
-                                    onChange={e => setBio(e.target.value)}
-                                    rows={3}
-                                    autoFocus
-                                />
-                            ) : (
-                                <p className="profile-bio">{bio || <span style={{ color: '#555' }}>No bio yet.</span>}</p>
-                            )}
-                            <button
-                                className="profile-bio-toggle"
-                                onClick={() => setBioEditing(v => !v)}
-                            >
-                                {bioEditing ? 'Save bio' : 'Edit bio'}
-                            </button>
+                            <p className="profile-bio" style={{ color: '#555' }}>
+                                Bio editing is not available yet.
+                            </p>
                         </div>
                     )}
 
@@ -228,6 +279,28 @@ export const ProfilePage = () => {
                                             <div className="event-card-footer">
                                                 <span className="event-card-price">{event.price}</span>
                                                 <Link to={`/events/${event.id}/edit`} className="event-card-btn">Manage</Link>
+                                                {isOwnProfile && (
+                                                    <button
+                                                        className="event-card-btn"
+                                                        type="button"
+                                                        style={{ background: 'transparent', border: '1px solid rgba(255,107,0,0.4)', color: '#ff6b00' }}
+                                                        onClick={async (e) => {
+                                                            e.preventDefault();
+                                                            e.stopPropagation();
+                                                            const ok = window.confirm('Delete this event? This cannot be undone.');
+                                                            if (!ok) return;
+                                                            try {
+                                                                await deleteEvent(event.id);
+                                                                setCreatedEvents(prev => prev.filter(x => x.id !== event.id));
+                                                                toast.success('Event deleted');
+                                                            } catch {
+                                                                toast.error('Failed to delete event');
+                                                            }
+                                                        }}
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
@@ -291,7 +364,13 @@ export const ProfilePage = () => {
                         {/* Edit Profile */}
                         <div className="settings-card">
                             <h3 className="settings-card-title">Edit Profile</h3>
-                            <form onSubmit={e => e.preventDefault()} className="settings-form">
+                            <form
+                                onSubmit={(e) => {
+                                    e.preventDefault();
+                                    handleSaveProfile();
+                                }}
+                                className="settings-form"
+                            >
                                 <label className="settings-label">Display name</label>
                                 <input
                                     className="settings-input"
@@ -308,14 +387,26 @@ export const ProfilePage = () => {
                                     readOnly
                                     disabled
                                 />
-                                <button type="submit" className="settings-btn">Save changes</button>
+                                <button
+                                    type="submit"
+                                    className="settings-btn"
+                                    disabled={savingProfile}
+                                >
+                                    {savingProfile ? 'Saving…' : 'Save changes'}
+                                </button>
                             </form>
                         </div>
 
                         {/* Change Password */}
                         <div className="settings-card">
                             <h3 className="settings-card-title">Change Password</h3>
-                            <form onSubmit={e => e.preventDefault()} className="settings-form">
+                            <form
+                                onSubmit={(e) => {
+                                    e.preventDefault();
+                                    handleUpdatePassword();
+                                }}
+                                className="settings-form"
+                            >
                                 <label className="settings-label">Current password</label>
                                 <input
                                     className="settings-input"
@@ -340,7 +431,13 @@ export const ProfilePage = () => {
                                     onChange={e => setConfirmPassword(e.target.value)}
                                     placeholder="••••••••"
                                 />
-                                <button type="submit" className="settings-btn">Update password</button>
+                                <button
+                                    type="submit"
+                                    className="settings-btn"
+                                    disabled={savingPassword}
+                                >
+                                    {savingPassword ? 'Updating…' : 'Update password'}
+                                </button>
                             </form>
                         </div>
 

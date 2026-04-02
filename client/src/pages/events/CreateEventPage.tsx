@@ -29,6 +29,13 @@ interface PromoCode {
     discount: number;
 }
 
+interface CustomTicketTierForm {
+    id: string;
+    name: string;
+    price: number;
+    quantity: number;
+}
+
 interface EventFormData {
     name: string;
     tags: string[];
@@ -43,6 +50,7 @@ interface EventFormData {
     isFree: boolean;
     ticketCount: number;
     price: number;
+    customTiers: CustomTicketTierForm[];
     redirectUrl: string;
     attendeeVisibility: 'everyone' | 'attendees';
     organizerNotifications: boolean;
@@ -56,6 +64,7 @@ interface FormErrors {
     startTime?: string;
     ticketCount?: string;
     price?: string;
+    customTiers?: string;
     redirectUrl?: string;
 }
 
@@ -112,6 +121,7 @@ export const CreateEventPage: React.FC = () => {
         isFree: true,
         ticketCount: 1,
         price: 0,
+        customTiers: [],
         redirectUrl: '',
         attendeeVisibility: 'everyone',
         organizerNotifications: true,
@@ -188,6 +198,49 @@ export const CreateEventPage: React.FC = () => {
         setForm(prev => ({ ...prev, tags: prev.tags.filter(t => t !== tag) }));
     }
 
+    // ── Custom ticket tiers ─────────────────────────────────────────────
+
+    function addCustomTier() {
+        setForm(prev => ({
+            ...prev,
+            customTiers: [
+                ...prev.customTiers,
+                {
+                    id: crypto.randomUUID(),
+                    name: 'VIP',
+                    price: prev.isFree ? 0 : prev.price,
+                    quantity: 1,
+                },
+            ],
+        }));
+        setErrors(prev => ({ ...prev, customTiers: undefined }));
+    }
+
+    function removeCustomTier(tierId: string) {
+        setForm(prev => ({
+            ...prev,
+            customTiers: prev.customTiers.filter(t => t.id !== tierId),
+        }));
+    }
+
+    function updateCustomTier(
+        tierId: string,
+        field: 'name' | 'price' | 'quantity',
+        value: string | number,
+    ) {
+        setForm(prev => ({
+            ...prev,
+            customTiers: prev.customTiers.map(t => {
+                if (t.id !== tierId) return t;
+                return {
+                    ...t,
+                    [field]: field === 'name' ? String(value) : Number(value),
+                };
+            }),
+        }));
+        setErrors(prev => ({ ...prev, customTiers: undefined }));
+    }
+
     // ── Promo codes ─────────────────────────────────────────────────────────
 
     function addPromo() {
@@ -220,6 +273,9 @@ export const CreateEventPage: React.FC = () => {
         if (s === 0) {
             if (!form.name.trim()) e.name = 'Event name is required.';
             if (form.tags.length === 0) e.tags = 'Please add at least one category tag.';
+            if (form.tags.length > 0 && form.tags[0].length > 120) {
+                e.tags = 'The first tag (category) must be <= 120 characters.';
+            }
         }
         if (s === 1) {
             if (!form.startDate) e.startDate = 'Start date is required.';
@@ -228,6 +284,17 @@ export const CreateEventPage: React.FC = () => {
         if (s === 3) {
             if (form.ticketCount < 1) e.ticketCount = 'At least 1 ticket is required.';
             if (!form.isFree && form.price <= 0) e.price = 'Enter a valid price.';
+
+            if (form.customTiers.length) {
+                const invalid = form.customTiers.some(t => {
+                    const nameOk = t.name.trim().length >= 1;
+                    const qtyOk = Number.isFinite(t.quantity) && t.quantity >= 1;
+                    const priceOk = Number.isFinite(t.price) && t.price >= 0;
+                    return !(nameOk && qtyOk && priceOk);
+                });
+                if (invalid) e.customTiers = 'Fix all custom ticket types (name, price, quantity).';
+            }
+
             if (form.redirectUrl && !isValidUrl(form.redirectUrl))
                 e.redirectUrl = 'Enter a valid URL (including https://).';
         }
@@ -263,9 +330,25 @@ export const CreateEventPage: React.FC = () => {
                 price: form.isFree ? 0 : form.price,
                 currency: 'EUR',
                 capacity: form.ticketCount,
+                tickets: [
+                    {
+                        name: 'General admission',
+                        price: form.isFree ? 0 : form.price,
+                        currency: 'EUR',
+                        capacity: form.ticketCount,
+                    },
+                    ...form.customTiers.map(t => ({
+                        name: t.name,
+                        price: t.price,
+                        currency: 'EUR',
+                        capacity: t.quantity,
+                    })),
+                ],
                 cover: form.coverFile ?? undefined,
                 photos: form.galleryFiles.length ? form.galleryFiles : undefined,
-                status: form.publishDate ? 'published' : 'draft',
+                // Always publish so the event shows up on the dashboard.
+                // publishAt is only used for scheduled visibility.
+                status: 'published',
                 publishAt: publishAt ? publishAt.toISOString() : undefined,
                 visitorListPrivacy:
                     form.attendeeVisibility === 'everyone' ? 'everybody' : 'attendees',
@@ -275,7 +358,7 @@ export const CreateEventPage: React.FC = () => {
 
             const created = await createEvent(payload);
             toast.success('Event created successfully!');
-            navigate(`/events/${created.id}`);
+            navigate(`/events/${created.id}/edit`);
         } catch (e: any) {
             toast.error(e?.response?.data?.message || 'Failed to create event');
         } finally {
@@ -504,7 +587,7 @@ export const CreateEventPage: React.FC = () => {
                     <input
                         ref={galleryInputRef}
                         type="file"
-                        accept="image/*"
+                        accept="image/*,video/*"
                         multiple
                         style={{ display: 'none' }}
                         onChange={handleGalleryChange}
@@ -592,6 +675,80 @@ export const CreateEventPage: React.FC = () => {
                         {errors.price && <span className="cr-error">{errors.price}</span>}
                     </div>
                 )}
+
+                {/* Additional ticket types */}
+                <div className="cr-section-divider">Ticket types</div>
+                {form.customTiers.length > 0 ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                        {form.customTiers.map(tier => (
+                            <div
+                                key={tier.id}
+                                style={{
+                                    display: 'grid',
+                                    gridTemplateColumns: '1fr 140px 140px 42px',
+                                    gap: 10,
+                                    alignItems: 'end',
+                                }}
+                            >
+                                <div className="cr-field" style={{ margin: 0 }}>
+                                    <label className="cr-label" style={{ display: 'block' }}>
+                                        Name
+                                    </label>
+                                    <input
+                                        className={`cr-input${errors.customTiers ? ' cr-input--error' : ''}`}
+                                        value={tier.name}
+                                        onChange={e => updateCustomTier(tier.id, 'name', e.target.value)}
+                                    />
+                                </div>
+
+                                <div className="cr-field" style={{ margin: 0 }}>
+                                    <label className="cr-label" style={{ display: 'block' }}>
+                                        Price
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min={0}
+                                        step={0.01}
+                                        className="cr-input"
+                                        value={tier.price}
+                                        onChange={e => updateCustomTier(tier.id, 'price', parseFloat(e.target.value) || 0)}
+                                    />
+                                </div>
+
+                                <div className="cr-field" style={{ margin: 0 }}>
+                                    <label className="cr-label" style={{ display: 'block' }}>
+                                        Quantity
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min={1}
+                                        className="cr-input"
+                                        value={tier.quantity}
+                                        onChange={e => updateCustomTier(tier.id, 'quantity', Math.max(1, parseInt(e.target.value) || 1))}
+                                    />
+                                </div>
+
+                                <button
+                                    type="button"
+                                    className="cr-btn cr-btn--ghost"
+                                    style={{ padding: 8, justifySelf: 'end' }}
+                                    onClick={() => removeCustomTier(tier.id)}
+                                    aria-label="Remove ticket type"
+                                >
+                                    <IconClose size={14} />
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <p style={{ marginTop: -2, color: '#777' }}>No additional ticket types yet.</p>
+                )}
+
+                <button type="button" className="ev-add-promo-btn" onClick={addCustomTier}>
+                    <IconPlus size={13} />
+                    Add ticket type
+                </button>
+                {errors.customTiers && <span className="cr-error">{errors.customTiers}</span>}
 
                 {/* Redirect URL */}
                 <div className="cr-field">
@@ -802,11 +959,27 @@ export const CreateEventPage: React.FC = () => {
                         <p className="cr-review-section-title">Tickets</p>
                         <div className="cr-review-row">
                             <span className="cr-review-label">Type</span>
-                            <span className="cr-review-value">{form.isFree ? 'Free' : `Paid — €${form.price.toFixed(2)}`}</span>
+                            <span className="cr-review-value">
+                                {1 + form.customTiers.length} type{1 + form.customTiers.length === 1 ? '' : 's'} ·{' '}
+                                min price:{' '}
+                                {(() => {
+                                    const prices = [
+                                        form.isFree ? 0 : form.price,
+                                        ...form.customTiers.map(t => t.price),
+                                    ];
+                                    const min = Math.min(...prices);
+                                    return min === 0 ? 'Free' : `€${min.toFixed(2)}`;
+                                })()}
+                            </span>
                         </div>
                         <div className="cr-review-row">
                             <span className="cr-review-label">Count</span>
-                            <span className="cr-review-value">{form.ticketCount.toLocaleString()}</span>
+                            <span className="cr-review-value">
+                                {(
+                                    form.ticketCount +
+                                    form.customTiers.reduce((s, t) => s + t.quantity, 0)
+                                ).toLocaleString()}
+                            </span>
                         </div>
                         {form.redirectUrl && (
                             <div className="cr-review-row">

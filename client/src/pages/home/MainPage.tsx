@@ -4,6 +4,7 @@ import Header from '../../components/Header/header';
 import { useAuth } from '../../context/AuthContext';
 import { IconCalendar, IconMapPin } from '../../assets/icons';
 import { getEvents, type Event } from '../../services/events';
+import toast from 'react-hot-toast';
 import './dashboard.css';
 
 export const MainPage = () => {
@@ -12,14 +13,37 @@ export const MainPage = () => {
 
     const [loading, setLoading] = useState(true);
     const [events, setEvents] = useState<Event[]>([]);
+    const [page, setPage] = useState(1);
+    const [total, setTotal] = useState(0);
+    const [loadingMore, setLoadingMore] = useState(false);
 
     useEffect(() => {
         setLoading(true);
-        getEvents({ limit: 8, dateFrom: new Date().toISOString() })
-            .then((res) => setEvents(res.data))
+        getEvents({ limit: 20, page })
+            .then((res) => {
+                setEvents(res.data);
+                setTotal(res.total);
+            })
             .catch(() => setEvents([]))
             .finally(() => setLoading(false));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    const loadMore = async () => {
+        if (loadingMore) return;
+        const nextPage = page + 1;
+        setLoadingMore(true);
+        try {
+            const res = await getEvents({ limit: 20, page: nextPage });
+            setEvents(prev => [...prev, ...res.data]);
+            setPage(nextPage);
+            setTotal(res.total);
+        } catch {
+            toast.error('Failed to load more events');
+        } finally {
+            setLoadingMore(false);
+        }
+    };
 
     const gradientFor = useMemo(() => {
         const map: Record<string, string> = {
@@ -59,8 +83,14 @@ export const MainPage = () => {
 
             <div className="dashboard-section">
                 <div className="dashboard-section-header">
-                    <h2 className="dashboard-section-title">Upcoming Events</h2>
-                    <button className="dashboard-see-all">See all</button>
+                    <h2 className="dashboard-section-title">All Events</h2>
+                    <button
+                        className="dashboard-see-all"
+                        onClick={loadMore}
+                        disabled={events.length >= total || loadingMore}
+                    >
+                        {events.length >= total ? 'All loaded' : loadingMore ? 'Loading…' : 'Load more'}
+                    </button>
                 </div>
 
                 <div className="events-grid">
@@ -75,7 +105,15 @@ export const MainPage = () => {
                             >
                                 <div
                                     className="event-card-image"
-                                    style={{ background: gradientFor(event.category) }}
+                                    style={
+                                        event.coverUrl
+                                            ? {
+                                                backgroundImage: `url(${event.coverUrl})`,
+                                                backgroundSize: 'cover',
+                                                backgroundPosition: 'center',
+                                            }
+                                            : { background: gradientFor(event.category) }
+                                    }
                                 >
                                     <span className="event-card-category">
                                         {event.category}

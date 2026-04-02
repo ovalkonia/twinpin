@@ -272,7 +272,9 @@ export const NotificationsPage: React.FC = () => {
         setSelected(new Set());
     };
 
-    const deleteSelected = () => {
+    const deleteSelected = async () => {
+        const ids = Array.from(selected);
+        await Promise.all(ids.map((id) => api.delete(`/notifications/${id}`).catch(() => undefined)));
         setNotifications(prev => prev.filter(n => !selected.has(n.id)));
         setSelected(new Set());
     };
