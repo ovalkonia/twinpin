@@ -15,9 +15,9 @@ export class AuthService {
 
   async register(registerDto: RegisterDto) {
     const newUser = await this.usersService.create(registerDto);
-    const { password, ...user } = newUser;
+    const { password, ...rest } = newUser;
 
-    return { user };
+    return { user: { ...rest, id: String(rest.id) } };
   }
 
   async login(loginDto: LoginDto) {
@@ -31,12 +31,12 @@ export class AuthService {
         email: existingUser.email,
     });
 
-    const { password, ...user } = existingUser;
+    const { password, ...rest } = existingUser;
 
     return {
       access_token,
-      user,
-    }
+      user: { ...rest, id: String(rest.id) },
+    };
   }
 
   async googleLogin(googleUser: any) {
@@ -71,7 +71,11 @@ export class AuthService {
 
     return {
       access_token,
-      user: { id: user.id, name: user.name, email: user.email },
+      user: {
+        id: String(user.id),
+        name: user.name,
+        email: user.email,
+      },
     };
   }
 }

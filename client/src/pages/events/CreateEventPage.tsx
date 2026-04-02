@@ -13,9 +13,11 @@ import {
 import '../../styles/company-register.css';
 import '../../styles/create-event.css';
 
-// ─── Constants ────────────────────────────────────────────────────────────────
+import { getMyCompany } from '../../services/company';
+import { createEvent } from '../../services/events';
+import type { Company } from '../../services/company';
 
-const MOCK_USER_COMPANY = { id: 'c1', name: 'Twinpin Events Ltd.' };
+// ─── Constants ────────────────────────────────────────────────────────────────
 
 const STEPS = ['Event', 'Details', 'Media', 'Tickets', 'Review'];
 
@@ -94,6 +96,7 @@ export const CreateEventPage: React.FC = () => {
     const [errors, setErrors] = useState<FormErrors>({});
     const [submitting, setSubmitting] = useState(false);
     const [tagInput, setTagInput] = useState('');
+    const [myCompany, setMyCompany] = useState<Company | null>(null);
 
     const [form, setForm] = useState<EventFormData>({
         name: '',
@@ -129,6 +132,12 @@ export const CreateEventPage: React.FC = () => {
             galleryPreviews.forEach(u => URL.revokeObjectURL(u));
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    useEffect(() => {
+        getMyCompany()
+            .then((c) => setMyCompany(c))
+            .catch(() => setMyCompany(null));
     }, []);
 
     function handleCoverChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -237,10 +246,41 @@ export const CreateEventPage: React.FC = () => {
 
     async function handleSubmit() {
         setSubmitting(true);
-        await new Promise(r => setTimeout(r, 900));
-        setSubmitting(false);
-        toast.success('Event published successfully!');
-        navigate('/events/evt-001');
+        try {
+            const start = new Date(`${form.startDate}T${form.startTime}:00`);
+            const publishAt = form.publishDate
+                ? new Date(`${form.publishDate}T${form.publishTime || '00:00'}:00`)
+                : null;
+
+            const payload: any = {
+                title: form.name,
+                description: form.description,
+                format: 'offline',
+                category: form.tags[0] ?? 'General',
+                tags: form.tags,
+                date: start.toISOString(),
+                location: form.address,
+                price: form.isFree ? 0 : form.price,
+                currency: 'EUR',
+                capacity: form.ticketCount,
+                cover: form.coverFile ?? undefined,
+                photos: form.galleryFiles.length ? form.galleryFiles : undefined,
+                status: form.publishDate ? 'published' : 'draft',
+                publishAt: publishAt ? publishAt.toISOString() : undefined,
+                visitorListPrivacy:
+                    form.attendeeVisibility === 'everyone' ? 'everybody' : 'attendees',
+                notifyOnNewVisitor: form.organizerNotifications,
+                redirectAfterPurchase: form.redirectUrl || undefined,
+            };
+
+            const created = await createEvent(payload);
+            toast.success('Event created successfully!');
+            navigate(`/events/${created.id}`);
+        } catch (e: any) {
+            toast.error(e?.response?.data?.message || 'Failed to create event');
+        } finally {
+            setSubmitting(false);
+        }
     }
 
     // ── Render steps ────────────────────────────────────────────────────────
@@ -464,7 +504,7 @@ export const CreateEventPage: React.FC = () => {
                     <input
                         ref={galleryInputRef}
                         type="file"
-                        accept="image/*,video/*"
+                        accept="image/*"
                         multiple
                         style={{ display: 'none' }}
                         onChange={handleGalleryChange}
@@ -691,7 +731,7 @@ export const CreateEventPage: React.FC = () => {
                         </div>
                         <div className="cr-review-row">
                             <span className="cr-review-label">Company</span>
-                            <span className="cr-review-value">{MOCK_USER_COMPANY.name}</span>
+                            <span className="cr-review-value">{myCompany?.name || 'your company'}</span>
                         </div>
                         <div className="cr-review-row cr-review-row--block">
                             <span className="cr-review-label">Tags</span>

@@ -43,7 +43,11 @@ const Registration: React.FC = () => {
                     navigate('/auth/sign-in');
                     return `Welcome, ${formData.name}! Please log in.`;
                 },
-                error: (err) => err.response?.data?.message || 'Registration failed',
+                error: (err: { response?: { data?: { message?: string | string[] } } }) => {
+                    const m = err.response?.data?.message;
+                    if (Array.isArray(m)) return m.join(' ');
+                    return m || 'Registration failed';
+                },
             }
         );
     };

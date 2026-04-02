@@ -23,8 +23,14 @@ async function bootstrap() {
     transform: true,
   }));
 
+  const frontend = process.env.URL_FRONTEND;
+  const corsOrigin =
+    !frontend || frontend === '*'
+      ? true
+      : frontend.split(',').map((o) => o.trim()).filter(Boolean);
+
   app.enableCors({
-    origin: process.env.URL_FRONTEND,
+    origin: corsOrigin,
     credentials: true,
   });
 

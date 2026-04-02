@@ -23,6 +23,8 @@ export interface UserTicket {
     date: string;
     location: string;
     ticketCount: number;
+    price?: string;
+    currency?: string;
 }
 
 export const getUserById = async (id: string): Promise<UserProfile> => {

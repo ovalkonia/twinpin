@@ -32,7 +32,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             if (token) {
                 try {
                     const userData = await getUserProfile()
-                    setUser(userData)
+                    setUser({ ...userData, id: String(userData.id) })
                 } catch {
                     removeToken()
                 }

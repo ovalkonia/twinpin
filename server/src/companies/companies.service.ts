@@ -1,12 +1,27 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DeepPartial, Repository } from 'typeorm';
+import { User } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
 import { Company } from './entities/company.entity';
 
 const STATS = { eventsCreated: 0, totalAttendees: 0 };
+
+function stripUser(u: User) {
+  const { password: _pw, ...rest } = u;
+  return { ...rest, id: String(rest.id) };
+}
+
+function toApiCompany<T extends Company & { stats?: typeof STATS }>(c: T) {
+  return {
+    ...c,
+    id: String(c.id),
+    owner: c.owner ? stripUser(c.owner) : c.owner,
+    members: c.members?.map((m) => stripUser(m)),
+  };
+}
 
 @Injectable()
 export class CompaniesService {
@@ -32,7 +47,11 @@ export class CompaniesService {
         };
         const company = this.companyRepo.create(data);
         const saved = await this.companyRepo.save(company);
-        return Object.assign(saved, { stats: STATS }) as unknown as Company & { stats: typeof STATS };
+        return toApiCompany(
+            Object.assign(saved, { stats: STATS }) as Company & {
+                stats: typeof STATS;
+            },
+        );
     }
 
     async findOwnedByUserId(userId: number): Promise<Company | null> {
@@ -49,7 +68,11 @@ export class CompaniesService {
         });
 
         if (!company) throw new NotFoundException('You have no registered company');
-        return Object.assign(company, { stats: STATS }) as unknown as Company & { stats: typeof STATS };
+        return toApiCompany(
+            Object.assign(company, { stats: STATS }) as Company & {
+                stats: typeof STATS;
+            },
+        );
     }
 
     async findBySlug(slug: string): Promise<Company & { stats: typeof STATS }> {
@@ -59,7 +82,11 @@ export class CompaniesService {
         });
 
         if (!company) throw new NotFoundException(`Company "${slug}" not found`);
-        return Object.assign(company, { stats: STATS }) as unknown as Company & { stats: typeof STATS };
+        return toApiCompany(
+            Object.assign(company, { stats: STATS }) as Company & {
+                stats: typeof STATS;
+            },
+        );
     }
 
     async update(
@@ -83,7 +110,7 @@ export class CompaniesService {
         if (coverUrl) company.coverUrl = coverUrl;
 
         const saved = await this.companyRepo.save(company);
-        return { ...saved, stats: STATS };
+        return toApiCompany({ ...saved, stats: STATS });
     }
 
     async getMembers(companyId: number) {
@@ -94,7 +121,11 @@ export class CompaniesService {
 
         if (!company) throw new NotFoundException('Company not found');
 
-        return company.members.map(({ id, name, email }) => ({ id, name, email }));
+        return company.members.map(({ id, name, email }) => ({
+            id: String(id),
+            name,
+            email,
+        }));
     }
 
     async addMember(companyId: number, email: string, requestingUserId: number) {
@@ -114,7 +145,11 @@ export class CompaniesService {
             await this.companyRepo.save(company);
         }
 
-        return { id: user.id, name: user.name, email: user.email };
+        return {
+            id: String(user.id),
+            name: user.name,
+            email: user.email,
+        };
     }
 
     async removeMember(companyId: number, memberId: number, requestingUserId: number) {

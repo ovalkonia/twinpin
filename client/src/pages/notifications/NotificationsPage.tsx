@@ -1,18 +1,12 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Header from '../../components/Header/header';
 import { IconBell, IconCalendar, IconCheck, IconClose, IconMapPin, IconTicket } from '../../assets/icons';
 import '../../styles/notifications.css';
+import api from '../../services/api';
 
 type NotificationCategory = 'event' | 'ticket' | 'system';
-type NotificationType =
-    | 'event_time_change'
-    | 'event_place_change'
-    | 'event_cancelled'
-    | 'ticket_payment_confirmed'
-    | 'ticket_reminder'
-    | 'system_security'
-    | 'system_rules';
+type NotificationType = string;
 
 interface FullNotification {
     id: string;
@@ -205,10 +199,19 @@ const ICON_CLASS: Record<NotificationCategory, string> = {
 };
 
 export const NotificationsPage: React.FC = () => {
-    const [notifications, setNotifications] = useState<FullNotification[]>(MOCK_NOTIFICATIONS);
+    const [notifications, setNotifications] = useState<FullNotification[]>([]);
+    const [loading, setLoading] = useState(true);
     const [activeFilter, setActiveFilter] = useState<FilterType>('all');
     const [search, setSearch] = useState('');
     const [selected, setSelected] = useState<Set<string>>(new Set());
+
+    useEffect(() => {
+        setLoading(true);
+        api.get<FullNotification[]>('/notifications')
+            .then(res => setNotifications(res.data))
+            .catch(() => setNotifications([]))
+            .finally(() => setLoading(false));
+    }, []);
 
     const counts = useMemo(() => ({
         all: notifications.length,
@@ -244,16 +247,27 @@ export const NotificationsPage: React.FC = () => {
         });
     };
 
-    const markRead = (id: string) =>
-        setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
-
-    const deleteOne = (id: string, e: React.MouseEvent) => {
-        e.stopPropagation();
-        setNotifications(prev => prev.filter(n => n.id !== id));
-        setSelected(prev => { const next = new Set(prev); next.delete(id); return next; });
+    const markRead = async (id: string) => {
+        try {
+            await api.patch(`/notifications/${id}/read`);
+        } finally {
+            setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+        }
     };
 
-    const markSelectedRead = () => {
+    const deleteOne = async (id: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        try {
+            await api.delete(`/notifications/${id}`);
+        } finally {
+            setNotifications(prev => prev.filter(n => n.id !== id));
+            setSelected(prev => { const next = new Set(prev); next.delete(id); return next; });
+        }
+    };
+
+    const markSelectedRead = async () => {
+        const ids = Array.from(selected);
+        await Promise.all(ids.map((id) => api.patch(`/notifications/${id}/read`).catch(() => undefined)));
         setNotifications(prev => prev.map(n => selected.has(n.id) ? { ...n, read: true } : n));
         setSelected(new Set());
     };

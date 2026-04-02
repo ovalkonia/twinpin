@@ -22,7 +22,10 @@ const Login: React.FC = () => {
         e.preventDefault();
         try {
             const response = await loginUser(formData);
-            login(response.access_token, response.user);
+            login(response.access_token, {
+                ...response.user,
+                id: String(response.user.id),
+            });
             toast.success(`Welcome back, ${response.user?.name || 'User'}!`);
             navigate('/dashboard');
         } catch (err: any) {

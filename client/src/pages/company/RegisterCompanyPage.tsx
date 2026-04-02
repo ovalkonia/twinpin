@@ -14,6 +14,7 @@ import {
     IconTikTok,
 } from '../../assets/icons';
 import '../../styles/company-register.css';
+import { registerCompany } from '../../services/company';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -180,7 +181,21 @@ export const RegisterCompanyPage: React.FC = () => {
     const handleSubmit = async () => {
         setSubmitting(true);
         try {
-            await new Promise(r => setTimeout(r, 900));
+            await registerCompany({
+                name: form.name,
+                slug: form.slug,
+                description: form.description,
+                categories: form.categories,
+                website: form.website,
+                email: form.email,
+                address: form.address,
+                linkedin: form.linkedin,
+                instagram: form.instagram,
+                tiktok: form.tiktok,
+                telegram: form.telegram,
+                logo: form.logo ?? undefined,
+                cover: form.cover ?? undefined,
+            });
             toast.success('Company registered successfully!');
             navigate('/company');
         } catch {

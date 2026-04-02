@@ -78,7 +78,18 @@ export interface CreateEventInput {
     capacity?: number;
     cover?: File;
     photos?: File[];
+    /** When the event becomes publicly visible (scheduled events). */
+    publishAt?: string;
     status?: 'draft' | 'published';
+
+    /** Controls whether attendees can see the attendee list. */
+    visitorListPrivacy?: 'everybody' | 'attendees';
+
+    /** Whether the organizer receives a notification when a new visitor books. */
+    notifyOnNewVisitor?: boolean;
+
+    /** Optional redirect after successful purchase. */
+    redirectAfterPurchase?: string;
 }
 
 export type UpdateEventInput = Partial<CreateEventInput>;
@@ -170,8 +181,15 @@ export const getSimilarEvents = async (id: string, limit = 4): Promise<Event[]> 
 // ─── Attendance ───────────────────────────────────────────────────────────────
 
 /** Subscribe the current user to an event (book a spot). */
-export const subscribeToEvent = async (id: string): Promise<void> => {
-    await api.post(`/events/${id}/subscribe`);
+export const subscribeToEvent = async (
+    id: string,
+    quantity = 1,
+    ticketId?: string,
+): Promise<void> => {
+    const params = new URLSearchParams();
+    params.set('quantity', String(quantity));
+    if (ticketId) params.set('ticketId', ticketId);
+    await api.post(`/events/${id}/subscribe?${params.toString()}`);
 };
 
 /** Unsubscribe the current user from an event. */

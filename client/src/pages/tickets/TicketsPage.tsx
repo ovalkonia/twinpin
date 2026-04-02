@@ -1,75 +1,59 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import toast from 'react-hot-toast';
 import Header from '../../components/Header/header';
 import { TicketCard, type Ticket } from '../../components/TicketCard';
+import { useAuth } from '../../context/AuthContext';
+import { getUserTickets, type UserTicket } from '../../services/user';
 import '../../styles/tickets.css';
 
-const TICKETS: Ticket[] = [
-    {
-        id: 1,
-        category: 'Theatre',
-        title:     'Shakespeare Festival',
-        date:      'Apr 18, 2026',
-        time:      '7:30 PM',
-        location:  'London, UK',
-        address:   'Royal Shakespeare Theatre, Stratford-upon-Avon, UK',
-        tickets:         2,
-        ticketCode:      'TKT-8821',
-        status:          'active',
-        price:           '$90',
-        showInAttendees: true,
-    },
-    {
-        id: 2,
-        category: 'Art',
-        title:     'Modern Art Exhibition',
-        date:      'May 15, 2026',
-        time:      '10:00 AM',
-        location:  'Paris, France',
-        address:   'Centre Pompidou, Paris, France',
-        tickets:         1,
-        ticketCode:      'TKT-4432',
-        status:          'active',
-        price:           '$25',
-        showInAttendees: true,
-    },
-    {
-        id: 3,
-        category: 'Food',
-        title:     'Street Food Festival',
-        date:      'Jan 22, 2026',
-        time:      '12:00 PM',
-        location:  'Austin, TX',
-        address:   '6th Street Austin TX USA',
-        tickets:         3,
-        ticketCode:      'TKT-7701',
-        status:          'used',
-        price:           '$60',
-        showInAttendees: false,
-    },
-    {
-        id: 4,
-        category: 'Sport',
-        title:     'City Marathon 5K',
-        date:      'Feb 10, 2026',
-        time:      '8:00 AM',
-        location:  'Chicago, IL',
-        address:   'Grant Park Chicago IL USA',
-        tickets:         1,
-        ticketCode:      'TKT-3395',
-        status:          'cancelled',
-        price:           '$30',
-        showInAttendees: false,
-    },
-];
-
-const now = new Date();
-
 export const TicketsPage = () => {
+    const { user } = useAuth();
     const [activeTab, setActiveTab] = useState<'upcoming' | 'past'>('upcoming');
 
-    const upcoming = TICKETS.filter(t => new Date(t.date) >= now);
-    const past     = TICKETS.filter(t => new Date(t.date) <  now);
-    const list     = activeTab === 'upcoming' ? upcoming : past;
+    const [loading, setLoading] = useState(true);
+    const [raw, setRaw] = useState<UserTicket[]>([]);
+
+    useEffect(() => {
+        if (!user?.id) return;
+        setLoading(true);
+        getUserTickets(user.id)
+            .then(setRaw)
+            .catch(() => setRaw([]))
+            .finally(() => setLoading(false));
+    }, [user?.id]);
+
+    const now = useMemo(() => new Date(), []);
+
+    const formatDate = (iso: string) =>
+        new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+    const formatTime = (iso: string) =>
+        new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+
+    const toTicketCard = (t: UserTicket): Ticket => {
+        const d = new Date(t.date);
+        const status: Ticket['status'] = d >= now ? 'active' : 'used';
+        const unitPrice = t.price ? Number(t.price) : 0;
+        const priceLabel = unitPrice === 0 ? 'Free' : `$${unitPrice.toFixed(unitPrice % 1 === 0 ? 0 : 2)}`;
+        return {
+            id: t.id,
+            category: t.category,
+            title: t.title,
+            date: formatDate(t.date),
+            time: formatTime(t.date),
+            location: t.location,
+            address: t.location,
+            tickets: t.ticketCount,
+            ticketCode: `TKT-${t.id.slice(0, 8).toUpperCase()}`,
+            status,
+            price: priceLabel,
+            showInAttendees: true,
+        };
+    };
+
+    const upcoming = raw.filter(t => new Date(t.date) >= now).map(toTicketCard);
+    const past = raw.filter(t => new Date(t.date) < now).map(toTicketCard);
+    const list = activeTab === 'upcoming' ? upcoming : past;
 
     return (
         <div className="tickets-page">
@@ -107,7 +91,11 @@ export const TicketsPage = () => {
                 </div>
 
                 {/* ── Ticket list ────────────────────────────────────── */}
-                {list.length > 0 ? (
+                {loading ? (
+                    <div className="tickets-empty">
+                        <p>Loading...</p>
+                    </div>
+                ) : list.length > 0 ? (
                     <div className="tickets-list">
                         {list.map(ticket => (
                             <TicketCard
