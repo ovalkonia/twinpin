@@ -143,31 +143,17 @@ export class EventsService {
 
   async findFiltered(
     filter: EventsFilterQueryDto,
-    viewer?: User | null,
   ): Promise<PaginatedEventsResponseDto> {
     const page = filter.page ?? 1;
     const limit = filter.limit ?? 20;
     const at = this.now();
 
-    const viewerId = viewer?.id;
-
     const qb = this.eventRepo
       .createQueryBuilder('e')
       .leftJoinAndSelect('e.company', 'company')
       .leftJoinAndSelect('company.owner', 'owner')
-      .where(
-        new Brackets((q) => {
-          q.where('e.status = :pub', { pub: EventStatus.PUBLISHED })
-            .andWhere('(e.publishAt IS NULL OR e.publishAt <= :at)', { at });
-
-          if (viewerId != null) {
-            q.orWhere(
-              'owner.id = :viewerId AND e.status != :cancelled',
-              { viewerId, cancelled: EventStatus.CANCELLED },
-            );
-          }
-        }),
-      );
+      .where('e.status = :pub', { pub: EventStatus.PUBLISHED })
+      .andWhere('(e.publishAt IS NULL OR e.publishAt <= :at)', { at });
 
     if (filter.format) {
       qb.andWhere('e.format = :format', { format: filter.format });
@@ -316,7 +302,7 @@ export class EventsService {
         : [
             {
               name: 'General admission',
-              price: dto.price,
+              price: dto.price ?? 0,
               currency: defaultCurrency,
               capacity: dto.capacity ?? 1,
             },

@@ -455,6 +455,17 @@
     background: rgba(224, 85, 85, 0.1);
 }
 
+.cp-member-invite {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-top: 16px;
+}
+
+.cp-member-invite .cr-input {
+    flex: 1;
+}
+
 .cp-invite-form {
     display: flex;
     align-items: center;

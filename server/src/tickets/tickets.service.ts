@@ -54,7 +54,7 @@ export class TicketsService {
       event,
       name: input.name,
       description: input.description ?? null,
-      price: String(input.price),
+      price: String(input.price ?? 0),
       currency: input.currency,
       quantityAvailable: input.capacity ?? null,
       sortOrder: input.sortOrder,

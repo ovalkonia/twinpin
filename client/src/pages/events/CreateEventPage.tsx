@@ -60,6 +60,7 @@ interface EventFormData {
 interface FormErrors {
     name?: string;
     tags?: string;
+    description?: string;
     startDate?: string;
     startTime?: string;
     ticketCount?: string;
@@ -278,6 +279,7 @@ export const CreateEventPage: React.FC = () => {
             }
         }
         if (s === 1) {
+            if (!form.description.trim()) e.description = 'Description is required.';
             if (!form.startDate) e.startDate = 'Start date is required.';
             if (!form.startTime) e.startTime = 'Start time is required.';
         }
@@ -360,7 +362,8 @@ export const CreateEventPage: React.FC = () => {
             toast.success('Event created successfully!');
             navigate(`/events/${created.id}/edit`);
         } catch (e: any) {
-            toast.error(e?.response?.data?.message || 'Failed to create event');
+            const msg = e?.response?.data?.message;
+            toast.error(typeof msg === 'string' ? msg : 'Failed to create event');
         } finally {
             setSubmitting(false);
         }
@@ -445,13 +448,16 @@ export const CreateEventPage: React.FC = () => {
                 <h2 className="cr-step-title">Details</h2>
 
                 <div className="cr-field">
-                    <label className="cr-label">Description</label>
+                    <label className="cr-label">
+                        Description <span className="cr-required">*</span>
+                    </label>
                     <textarea
-                        className="cr-textarea"
+                        className={`cr-textarea${errors.description ? ' cr-input--error' : ''}`}
                         placeholder="Tell people what your event is about…"
                         value={form.description}
                         onChange={e => set('description', e.target.value)}
                     />
+                    {errors.description && <span className="cr-error">{errors.description}</span>}
                 </div>
 
                 <div className="cr-field">

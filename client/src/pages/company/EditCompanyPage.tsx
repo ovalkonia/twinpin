@@ -144,7 +144,8 @@ export const EditCompanyPage: React.FC = () => {
             toast.success('Changes saved.');
             navigate('/company');
         } catch (e: any) {
-            toast.error(e?.response?.data?.message || 'Failed to save company');
+            const msg = e?.response?.data?.message;
+            toast.error(typeof msg === 'string' ? msg : 'Failed to save company');
         } finally {
             setSaving(false);
         }

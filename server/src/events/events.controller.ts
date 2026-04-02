@@ -70,12 +70,10 @@ export class EventsController {
   @Get()
   @ApiOperation({ summary: 'Paginated public events with filters' })
   @ApiOkResponse({ type: PaginatedEventsResponseDto })
-  @UseGuards(OptionalJwtAuthGuard)
   async list(
     @Query() query: EventsFilterQueryDto,
-    @CurrentUser() user?: User,
   ): Promise<PaginatedEventsResponseDto> {
-    return this.eventsService.findFiltered(query, user ?? null);
+    return this.eventsService.findFiltered(query);
   }
 
   @Post()

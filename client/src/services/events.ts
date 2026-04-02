@@ -113,8 +113,6 @@ function buildEventFormData(input: CreateEventInput | UpdateEventInput): FormDat
         if (key === 'tags' && Array.isArray(value)) {
             value.forEach(tag => fd.append('tags[]', tag));
         } else if (key === 'tickets' && Array.isArray(value)) {
-            // multipart/form-data can’t represent arrays of objects directly,
-            // so we send `tickets` as a JSON string and parse server-side.
             fd.append('tickets', JSON.stringify(value));
         } else if (key === 'photos' && Array.isArray(value)) {
             value.forEach(file => fd.append('photos', file));

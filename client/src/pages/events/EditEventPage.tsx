@@ -89,7 +89,8 @@ export const EditEventPage = () => {
             toast.success('Event updated');
             navigate(`/events/${event.id}`);
         } catch (e: any) {
-            toast.error(e?.response?.data?.message || 'Failed to update event');
+            const msg = e?.response?.data?.message;
+            toast.error(typeof msg === 'string' ? msg : 'Failed to update event');
         } finally {
             setSaving(false);
         }

@@ -48,7 +48,8 @@ export const CheckoutPage: React.FC = () => {
             await subscribeToEvent(event.id, quantity);
             setSucceeded(true);
         } catch (e: any) {
-            toast.error(e?.response?.data?.message || 'Failed to complete booking');
+            const msg = e?.response?.data?.message;
+            toast.error(typeof msg === 'string' ? msg : 'Failed to complete booking');
         } finally {
             setSubmitting(false);
         }

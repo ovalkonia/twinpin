@@ -139,10 +139,6 @@ export const CompanyPage: React.FC = () => {
                                 </span>
                             ))}
                         </div>
-                        <div className="cp-stats">
-                            <span>{company.stats?.eventsCreated ?? 0} events</span>
-                            <span>{company.stats?.totalAttendees ?? 0} attendees</span>
-                        </div>
                     </div>
 
                     <div className="cp-identity-actions">
@@ -313,6 +309,23 @@ export const CompanyPage: React.FC = () => {
                         </div>
                     </section>
                 </main>
+
+                <aside className="cp-sidebar">
+                    <div className="cp-sidebar-card">
+                        <p className="cp-card-title">Stats</p>
+                        <div className="cp-stats-row">
+                            <div className="cp-stat">
+                                <span className="cp-stat-value">{company.stats?.eventsCreated ?? 0}</span>
+                                <span className="cp-stat-label">Events</span>
+                            </div>
+                            <div className="cp-stat-divider" />
+                            <div className="cp-stat">
+                                <span className="cp-stat-value">{company.stats?.totalAttendees ?? 0}</span>
+                                <span className="cp-stat-label">Attendees</span>
+                            </div>
+                        </div>
+                    </div>
+                </aside>
             </div>
         </div>
     );

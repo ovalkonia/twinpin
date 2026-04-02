@@ -159,17 +159,6 @@ export class CreateEventFieldsDto {
       'Optional custom ticket tiers. The first tier is treated as the default tier for bookings.',
   })
   @IsOptional()
-  @Transform(({ value }) => {
-    // In multipart/form-data, arrays of objects are usually sent as JSON strings.
-    if (typeof value === 'string') {
-      try {
-        return JSON.parse(value) as unknown;
-      } catch {
-        return value;
-      }
-    }
-    return value;
-  })
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => TicketTierDto)

@@ -11,5 +11,18 @@ export function normalizeEventMultipartBody(
   const { ['tags[]']: _t, ...rest } = body as Record<string, unknown> & {
     'tags[]'?: unknown;
   };
-  return { ...rest, ...(tags !== undefined ? { tags } : {}) };
+
+  let tickets: unknown = rest.tickets;
+  if (typeof tickets === 'string') {
+    try {
+      tickets = JSON.parse(tickets) as unknown;
+    } catch {
+    }
+  }
+
+  return {
+    ...rest,
+    ...(tags !== undefined ? { tags } : {}),
+    ...(tickets !== undefined ? { tickets } : {}),
+  };
 }
