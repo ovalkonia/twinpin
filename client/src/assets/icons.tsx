@@ -164,3 +164,15 @@ export const IconPlus: React.FC<IconProps> = ({ size = 16 }) => (
         <line x1="5" y1="12" x2="19" y2="12" />
     </svg>
 );
+
+export const IconPlay: React.FC<IconProps> = ({ size = 16 }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" stroke="none">
+        <polygon points="5 3 19 12 5 21 5 3" />
+    </svg>
+);
+
+export const IconShield: React.FC<IconProps> = ({ size = 16 }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...defaults}>
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+    </svg>
+);

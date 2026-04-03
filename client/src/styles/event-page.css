@@ -95,6 +95,7 @@
     background: #111;
     cursor: pointer;
     padding: 0;
+    position: relative;
     transition: border-color 0.2s, transform 0.2s;
 }
 
@@ -611,6 +612,342 @@
 .event-lightbox-close:hover {
     border-color: #ff6b00;
     color: #ff6b00;
+}
+
+/* ─── Attendee avatar image ───────────────────────────────── */
+
+.event-attendee-avatar {
+    text-decoration: none;
+    color: white;
+}
+
+.event-attendee-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    display: block;
+}
+
+/* ─── Description ─────────────────────────────────────────── */
+
+.event-description {
+    margin-bottom: 32px;
+    animation: fadeInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.06s both;
+}
+
+.event-description-text {
+    font-size: 15px;
+    color: #bbb;
+    line-height: 1.75;
+    margin: 0;
+    white-space: pre-line;
+}
+
+/* ─── Video in spiral ─────────────────────────────────────── */
+
+.event-spiral-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.event-spiral-play-badge {
+    position: absolute;
+    bottom: 6px;
+    right: 6px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: rgba(10, 10, 10, 0.75);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    pointer-events: none;
+}
+
+/* ─── Ticket Selector ─────────────────────────────────────── */
+
+.ev-ticket-selector {
+    background: rgba(255, 255, 255, 0.025);
+    border: 1px solid rgba(255, 107, 0, 0.15);
+    border-radius: 16px;
+    padding: 20px;
+    animation: fadeInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.1s both;
+}
+
+.ev-ticket-selector-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin: 0 0 14px;
+}
+
+.ev-ticket-tiers {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.ev-ticket-tier {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px;
+    background: #111;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 10px;
+    cursor: pointer;
+    text-align: left;
+    transition: border-color 0.2s, background 0.2s;
+    font-family: inherit;
+    width: 100%;
+}
+
+.ev-ticket-tier:hover:not(:disabled) {
+    border-color: rgba(255, 107, 0, 0.4);
+}
+
+.ev-ticket-tier--selected {
+    border-color: #ff6b00;
+    background: rgba(255, 107, 0, 0.06);
+}
+
+.ev-ticket-tier--soldout {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.ev-ticket-tier-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 0;
+}
+
+.ev-ticket-tier-radio {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid #333;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.2s;
+}
+
+.ev-ticket-tier--selected .ev-ticket-tier-radio {
+    border-color: #ff6b00;
+}
+
+.ev-ticket-tier-radio-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ff6b00;
+    display: block;
+}
+
+.ev-ticket-tier-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.ev-ticket-tier-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #e0e0e0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ev-ticket-tier-avail {
+    font-size: 11px;
+    color: #666;
+}
+
+.ev-ticket-tier-price {
+    font-size: 14px;
+    font-weight: 700;
+    color: #ff6b00;
+    flex-shrink: 0;
+}
+
+/* ─── Qty row ─────────────────────────────────────────────── */
+
+.ev-ticket-qty-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+}
+
+.ev-ticket-qty-label {
+    font-size: 13px;
+    color: #ccc;
+}
+
+.ev-ticket-qty-ctrl {
+    display: flex;
+    align-items: center;
+    border: 1px solid rgba(255, 107, 0, 0.25);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.ev-ticket-qty-ctrl button {
+    width: 30px;
+    height: 30px;
+    background: transparent;
+    border: none;
+    color: #ff6b00;
+    font-size: 16px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ev-ticket-qty-ctrl button:hover:not(:disabled) {
+    background: rgba(255, 107, 0, 0.1);
+}
+
+.ev-ticket-qty-ctrl button:disabled {
+    color: #444;
+    cursor: not-allowed;
+}
+
+.ev-ticket-qty-ctrl span {
+    width: 32px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 700;
+    color: #e0e0e0;
+    border-left: 1px solid rgba(255, 107, 0, 0.15);
+    border-right: 1px solid rgba(255, 107, 0, 0.15);
+    line-height: 30px;
+}
+
+/* ─── Price summary ───────────────────────────────────────── */
+
+.ev-ticket-price-summary {
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    padding-top: 12px;
+    margin-bottom: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.ev-ticket-price-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #888;
+}
+
+.ev-ticket-price-row--fee {
+    color: #666;
+}
+
+.ev-ticket-price-total {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    font-weight: 700;
+    color: #e0e0e0;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    padding-top: 8px;
+    margin-top: 4px;
+}
+
+.ev-ticket-price-total span:last-child {
+    color: #ff6b00;
+}
+
+/* ─── Checkout button ─────────────────────────────────────── */
+
+.ev-ticket-checkout-btn {
+    width: 100%;
+    padding: 12px 20px;
+    background: #ff6b00;
+    color: white;
+    border: none;
+    border-radius: 50px;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.2s, opacity 0.2s;
+}
+
+.ev-ticket-checkout-btn:hover:not(:disabled) {
+    background: #ff8533;
+}
+
+.ev-ticket-checkout-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ─── Booked state ────────────────────────────────────────── */
+
+.ev-ticket-booked {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 14px;
+    background: rgba(46, 204, 113, 0.1);
+    border: 1px solid rgba(46, 204, 113, 0.3);
+    border-radius: 10px;
+    color: #2ecc71;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+
+.ev-ticket-booked-check {
+    font-size: 16px;
+}
+
+.ev-ticket-cancel-btn {
+    width: 100%;
+    padding: 10px;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50px;
+    color: #666;
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s;
+}
+
+.ev-ticket-cancel-btn:hover:not(:disabled) {
+    border-color: rgba(255, 77, 77, 0.4);
+    color: #ff4d4d;
+}
+
+.ev-ticket-empty {
+    color: #555;
+    font-size: 13px;
+    text-align: center;
+    padding: 16px 0;
+    margin: 0;
 }
 
 /* ─── Responsive ──────────────────────────────────────────── */

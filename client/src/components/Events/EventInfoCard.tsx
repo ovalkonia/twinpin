@@ -36,8 +36,7 @@ export default function EventInfoCard({ date, time, location, organizer, price, 
                     <IconMapPin size={15} />
                     <div className="event-info-item-text">
                         <span className="event-info-label">Location</span>
-                        <span className="event-info-value">{location.name}</span>
-                        <span className="event-info-address">{location.address}</span>
+                        <span className="event-info-value">{location.name || location.address}</span>
                     </div>
                 </li>
                 <li className="event-info-item">

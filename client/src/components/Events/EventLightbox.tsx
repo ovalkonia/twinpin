@@ -6,12 +6,18 @@ interface Props {
     onClose: () => void;
 }
 
+function isVideo(url: string): boolean {
+    return /\/video\/upload\//.test(url) || /\.(mp4|mov|webm|ogg)(\?|$)/i.test(url);
+}
+
 export default function EventLightbox({ photo, onClose }: Props) {
     useEffect(() => {
         const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
         document.addEventListener('keydown', handler);
         return () => document.removeEventListener('keydown', handler);
     }, [onClose]);
+
+    const video = isVideo(photo);
 
     return (
         <div className="event-lightbox" onClick={onClose}>
@@ -22,12 +28,22 @@ export default function EventLightbox({ photo, onClose }: Props) {
             >
                 <IconClose size={18} />
             </button>
-            <img
-                src={photo}
-                alt="Event photo"
-                className="event-lightbox-img"
-                onClick={e => e.stopPropagation()}
-            />
+            {video ? (
+                <video
+                    src={photo}
+                    controls
+                    autoPlay
+                    className="event-lightbox-img"
+                    onClick={e => e.stopPropagation()}
+                />
+            ) : (
+                <img
+                    src={photo}
+                    alt="Event media"
+                    className="event-lightbox-img"
+                    onClick={e => e.stopPropagation()}
+                />
+            )}
         </div>
     );
 }

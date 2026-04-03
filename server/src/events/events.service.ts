@@ -15,6 +15,7 @@ import {
   EventAttendeeResponseDto,
   EventResponseDto,
   PaginatedEventsResponseDto,
+  TicketTierResponseDto,
 } from './dto/api-response.dto';
 import { CreateEventFieldsDto } from './dto/create-event-fields.dto';
 import { EventsFilterQueryDto } from './dto/events-filter-query.dto';
@@ -603,7 +604,6 @@ export class EventsService {
     });
     if (!event) throw new NotFoundException('Event not found');
     if (!this.isPubliclyVisible(event, this.now())) {
-        console.log("YEAH");
       throw new NotFoundException('Event not found');
     }
 
@@ -639,6 +639,37 @@ export class EventsService {
       });
     }
     return out;
+  }
+
+  async getTicketsForEvent(eventId: string): Promise<TicketTierResponseDto[]> {
+    const event = await this.eventRepo.findOne({
+      where: { id: eventId },
+      relations: [...EVENT_RELATIONS],
+    });
+    if (!event) throw new NotFoundException('Event not found');
+    if (!this.isPubliclyVisible(event, this.now()))
+      throw new NotFoundException('Event not found');
+
+    const tiers = await this.ticketsService.findOrderedForEvent(eventId);
+    return Promise.all(
+      tiers.map(async (t) => {
+        const sold = await this.bookingsService.sumQuantityForTicket(t.id);
+        const available =
+          t.quantityAvailable != null
+            ? Math.max(0, t.quantityAvailable - sold)
+            : null;
+        return {
+          id: t.id,
+          name: t.name,
+          description: t.description ?? undefined,
+          price: Number(t.price),
+          currency: t.currency,
+          availableSpots: available,
+          isDefault: t.isDefault,
+          sortOrder: t.sortOrder,
+        };
+      }),
+    );
   }
 }
 

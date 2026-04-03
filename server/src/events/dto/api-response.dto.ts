@@ -1,5 +1,16 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
+export class TicketTierResponseDto {
+  @ApiProperty() id: string;
+  @ApiProperty() name: string;
+  @ApiPropertyOptional() description?: string;
+  @ApiProperty() price: number;
+  @ApiProperty() currency: string;
+  @ApiPropertyOptional({ nullable: true }) availableSpots: number | null;
+  @ApiProperty() isDefault: boolean;
+  @ApiProperty() sortOrder: number;
+}
+
 export class EventAttendeeResponseDto {
   @ApiProperty()
   id: string;

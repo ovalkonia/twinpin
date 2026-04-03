@@ -10,24 +10,26 @@ import EventMap from '../../components/Events/EventMap.tsx';
 import EventFaq from '../../components/Events/EventFaq.tsx';
 import EventGoing from '../../components/Events/EventGoing.tsx';
 import EventInfoCard from '../../components/Events/EventInfoCard.tsx';
-import EventBookButton from '../../components/Events/EventBookButton.tsx';
+import EventTicketSelector from '../../components/Events/EventTicketSelector.tsx';
 import EventShare from '../../components/Events/EventShare.tsx';
 import EventLightbox from '../../components/Events/EventLightbox.tsx';
 import {
     getEventById,
     getEventAttendees,
-    subscribeToEvent,
+    getEventTickets,
     unsubscribeFromEvent,
     type Event,
     type EventAttendee,
+    type TicketTier,
 } from '../../services/events';
 import '../../styles/event-page.css';
 
-// ─── Local shape used by sub-components ──────────────────────────────────────
+// ─── Local shape ──────────────────────────────────────────────────────────────
 
 interface EventData {
     id: string;
     name: string;
+    description: string;
     coverPhoto: string | null;
     photos: string[];
     date: string;
@@ -40,10 +42,11 @@ interface EventData {
     capacity: number;
     spotsLeft: number;
     faq: { question: string; answer: string }[];
-    attendees: { id: string; name: string }[];
+    attendees: { id: string; name: string; avatarUrl?: string }[];
+    tickets: TicketTier[];
 }
 
-// ─── Mapping helper ───────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatDate(iso: string): string {
     return new Date(iso).toLocaleDateString('en-US', {
@@ -66,10 +69,11 @@ function deriveStatus(start: string, end?: string): EventData['status'] {
     return 'past';
 }
 
-function mapEvent(event: Event, attendees: EventAttendee[]): EventData {
+function mapEvent(event: Event, attendees: EventAttendee[]): Omit<EventData, 'tickets'> {
     return {
         id: event.id,
         name: event.title,
+        description: event.description,
         coverPhoto: event.coverUrl ?? null,
         photos: event.photos ?? [],
         date: formatDate(event.date),
@@ -89,7 +93,7 @@ function mapEvent(event: Event, attendees: EventAttendee[]): EventData {
         faq: [],
         attendees: attendees
             .filter(a => a.profileVisible)
-            .map(a => ({ id: a.id, name: a.name })),
+            .map(a => ({ id: a.id, name: a.name, avatarUrl: a.avatarUrl })),
     };
 }
 
@@ -100,58 +104,47 @@ export default function EventPage() {
     const navigate = useNavigate();
     const { isAuth } = useAuth();
 
-    const [event, setEvent]             = useState<EventData | null>(null);
-    const [loading, setLoading]         = useState(true);
-    const [isBooked, setIsBooked]       = useState(false);
-    const [bookLoading, setBookLoading] = useState(false);
-    const [lightboxPhoto, setLightboxPhoto] = useState<string | null>(null);
+    const [event, setEvent]               = useState<EventData | null>(null);
+    const [loading, setLoading]           = useState(true);
+    const [isBooked, setIsBooked]         = useState(false);
+    const [cancelLoading, setCancelLoading] = useState(false);
+    const [lightboxMedia, setLightboxMedia] = useState<string | null>(null);
 
     useEffect(() => {
         const resolvedId = id ?? eventId;
         if (!resolvedId) return;
         setLoading(true);
 
-        Promise.all([getEventById(resolvedId), getEventAttendees(resolvedId)])
-            .then(([evt, attendees]) => {
-                setEvent(mapEvent(evt, attendees));
+        Promise.all([
+            getEventById(resolvedId),
+            getEventAttendees(resolvedId),
+            getEventTickets(resolvedId),
+        ])
+            .then(([evt, attendees, tickets]) => {
+                setEvent({ ...mapEvent(evt, attendees), tickets });
                 setIsBooked(evt.isSubscribed ?? false);
             })
             .catch(() => toast.error('Failed to load event'))
             .finally(() => setLoading(false));
     }, [id, eventId]);
 
-    const handleBook = async () => {
-        if (!isAuth) { navigate('/auth/sign-in'); return; }
+    const handleCancel = async () => {
         if (!event) return;
-
-        if (isBooked) {
-            setBookLoading(true);
-            try {
-                await unsubscribeFromEvent(event.id);
-                setIsBooked(false);
-                toast.success('Booking cancelled');
-            } catch {
-                toast.error('Failed to cancel booking');
-            } finally {
-                setBookLoading(false);
-            }
-            return;
+        setCancelLoading(true);
+        try {
+            await unsubscribeFromEvent(event.id);
+            setIsBooked(false);
+            toast.success('Booking cancelled');
+        } catch {
+            toast.error('Failed to cancel booking');
+        } finally {
+            setCancelLoading(false);
         }
+    };
 
-        if (event.price === 'free') {
-            setBookLoading(true);
-            try {
-                await subscribeToEvent(event.id);
-                setIsBooked(true);
-                toast.success('You\'re going!');
-            } catch {
-                toast.error('Failed to book event');
-            } finally {
-                setBookLoading(false);
-            }
-        } else {
-            navigate(`/checkout/${event.id}`);
-        }
+    const handleCheckout = (ticketId: string, qty: number) => {
+        if (!event) return;
+        navigate(`/checkout/${event.id}?ticketId=${ticketId}&qty=${qty}`);
     };
 
     if (loading) {
@@ -171,7 +164,7 @@ export default function EventPage() {
 
             <EventCover coverPhoto={event.coverPhoto} name={event.name} />
 
-            <EventPhotoSpiral photos={event.photos} onPhotoClick={setLightboxPhoto} />
+            <EventPhotoSpiral photos={event.photos} onPhotoClick={setLightboxMedia} />
 
             <div className="event-layout">
                 <main className="event-main">
@@ -182,6 +175,14 @@ export default function EventPage() {
                         date={event.date}
                         time={event.time}
                     />
+
+                    {event.description && (
+                        <div className="event-description">
+                            <h3 className="event-section-title">About</h3>
+                            <p className="event-description-text">{event.description}</p>
+                        </div>
+                    )}
+
                     <EventMap location={event.location} />
                     <EventFaq faq={event.faq} />
                     <EventGoing attendees={event.attendees} />
@@ -197,17 +198,21 @@ export default function EventPage() {
                         capacity={event.capacity}
                         spotsLeft={event.spotsLeft}
                     />
-                    <EventBookButton
+                    <EventTicketSelector
+                        tickets={event.tickets}
                         isBooked={isBooked}
-                        price={event.price}
-                        onClick={bookLoading ? () => {} : handleBook}
+                        isAuth={isAuth}
+                        loading={cancelLoading}
+                        onCheckout={handleCheckout}
+                        onCancel={handleCancel}
+                        onAuthRequired={() => navigate('/auth/sign-in')}
                     />
                     <EventShare eventName={event.name} />
                 </aside>
             </div>
 
-            {lightboxPhoto && (
-                <EventLightbox photo={lightboxPhoto} onClose={() => setLightboxPhoto(null)} />
+            {lightboxMedia && (
+                <EventLightbox photo={lightboxMedia} onClose={() => setLightboxMedia(null)} />
             )}
         </div>
     );

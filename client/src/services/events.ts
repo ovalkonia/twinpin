@@ -26,6 +26,17 @@ export interface Event {
     isSubscribed?: boolean;
 }
 
+export interface TicketTier {
+    id: string;
+    name: string;
+    description?: string;
+    price: number;
+    currency: string;
+    availableSpots: number | null;
+    isDefault: boolean;
+    sortOrder: number;
+}
+
 export interface EventAttendee {
     id: string;
     name: string;
@@ -171,6 +182,12 @@ export const updateEvent = async (id: string, input: UpdateEventInput): Promise<
     const response = await api.patch<Event>(`/events/${id}`, buildEventFormData(input), {
         headers: { 'Content-Type': 'multipart/form-data' },
     });
+    return response.data;
+};
+
+/** Fetch ticket tiers for an event with live availability. */
+export const getEventTickets = async (id: string): Promise<TicketTier[]> => {
+    const response = await api.get<TicketTier[]>(`/events/${id}/tickets`);
     return response.data;
 };
 

@@ -40,6 +40,7 @@ import {
   EventAttendeeResponseDto,
   EventResponseDto,
   PaginatedEventsResponseDto,
+  TicketTierResponseDto,
 } from './dto/api-response.dto';
 import { CreateEventFieldsDto } from './dto/create-event-fields.dto';
 import { EventsFilterQueryDto } from './dto/events-filter-query.dto';
@@ -294,6 +295,16 @@ export class EventsController {
     @CurrentUser() user: User,
   ): Promise<void> {
     return this.eventComments.deleteComment(eventId, commentId, user.id);
+  }
+
+  @Get(':id/tickets')
+  @UseGuards(OptionalJwtAuthGuard)
+  @ApiOperation({ summary: 'List ticket tiers for an event with live availability' })
+  @ApiOkResponse({ type: [TicketTierResponseDto] })
+  async getTickets(
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+  ): Promise<TicketTierResponseDto[]> {
+    return this.eventsService.getTicketsForEvent(id);
   }
 
   @Get(':id')
