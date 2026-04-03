@@ -64,6 +64,7 @@ export class CreateEventFieldsDto {
   format: EventFormat;
 
   @ApiProperty()
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim().toLowerCase() : value))
   @IsString()
   @MaxLength(120)
   category: string;

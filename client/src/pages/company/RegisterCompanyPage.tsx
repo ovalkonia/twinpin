@@ -6,6 +6,7 @@ import {
     IconBuilding,
     IconCamera,
     IconCheck,
+    IconClose,
     IconGlobe,
     IconInstagram,
     IconLinkedIn,
@@ -41,8 +42,6 @@ const INITIAL_FORM: CompanyFormData = {
     linkedin: '', instagram: '', tiktok: '', telegram: '',
 };
 
-const CATEGORIES = ['IT', 'Music', 'Charity', 'Sport', 'Art', 'Food', 'Business', 'Education'];
-
 const STEP_LABELS = ['Identity', 'About', 'Contact', 'Review'];
 
 const SOCIAL_FIELDS: { key: keyof CompanyFormData; label: string; placeholder: string; icon: React.ReactNode }[] = [
@@ -77,6 +76,21 @@ export const RegisterCompanyPage: React.FC = () => {
     const [coverPreview, setCoverPreview] = useState<string | null>(null);
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [submitting, setSubmitting] = useState(false);
+    const [tagInput, setTagInput] = useState('');
+
+    const addTag = (raw: string) => {
+        const trimmed = raw.trim();
+        if (!trimmed) return;
+        setForm(f => {
+            if (f.categories.some(t => t.toLowerCase() === trimmed.toLowerCase())) return f;
+            return { ...f, categories: [...f.categories, trimmed] };
+        });
+        setErrors(prev => ({ ...prev, categories: '' }));
+    };
+
+    const removeTag = (tag: string) => {
+        setForm(f => ({ ...f, categories: f.categories.filter(t => t !== tag) }));
+    };
 
     const logoInputRef    = useRef<HTMLInputElement>(null);
     const coverInputRef   = useRef<HTMLInputElement>(null);
@@ -150,15 +164,6 @@ export const RegisterCompanyPage: React.FC = () => {
         if (coverPreview) URL.revokeObjectURL(coverPreview);
         setForm(f => ({ ...f, cover: file }));
         setCoverPreview(URL.createObjectURL(file));
-    };
-
-    const toggleCategory = (cat: string) => {
-        setForm(f => ({
-            ...f,
-            categories: f.categories.includes(cat)
-                ? f.categories.filter(c => c !== cat)
-                : [...f.categories, cat],
-        }));
     };
 
     // ── Validation ──────────────────────────────────────────────────────────
@@ -396,18 +401,44 @@ export const RegisterCompanyPage: React.FC = () => {
 
             <div className="cr-field">
                 <label className="cr-label">Activity Categories <span className="cr-required">*</span></label>
-                <div className="cr-chips">
-                    {CATEGORIES.map(cat => (
-                        <button
-                            key={cat}
-                            type="button"
-                            className={`cr-chip${form.categories.includes(cat) ? ' cr-chip--selected' : ''}`}
-                            onClick={() => toggleCategory(cat)}
-                        >
-                            {cat}
-                        </button>
-                    ))}
-                </div>
+                {form.categories.length > 0 && (
+                    <div className="cr-chips ev-tag-list">
+                        {form.categories.map(tag => (
+                            <span key={tag} className="cr-chip cr-chip--selected ev-tag">
+                                {tag}
+                                <button
+                                    type="button"
+                                    className="ev-tag-remove"
+                                    onClick={() => removeTag(tag)}
+                                    aria-label={`Remove ${tag}`}
+                                >
+                                    <IconClose size={10} />
+                                </button>
+                            </span>
+                        ))}
+                    </div>
+                )}
+                <input
+                    className={`cr-input${errors.categories ? ' cr-input--error' : ''}`}
+                    placeholder="e.g. Music, Tech, Outdoor… (Enter or comma to add)"
+                    value={tagInput}
+                    onChange={e => {
+                        const val = e.target.value;
+                        if (val.endsWith(',')) {
+                            addTag(val.slice(0, -1));
+                            setTagInput('');
+                        } else {
+                            setTagInput(val);
+                        }
+                    }}
+                    onKeyDown={e => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            addTag(tagInput);
+                            setTagInput('');
+                        }
+                    }}
+                />
                 {errors.categories && <span className="cr-error">{errors.categories}</span>}
             </div>
         </div>

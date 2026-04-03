@@ -83,6 +83,12 @@ export class EventResponseDto {
   @ApiProperty()
   organizerName: string;
 
+  @ApiPropertyOptional()
+  organizerSlug?: string;
+
+  @ApiPropertyOptional()
+  organizerLogoUrl?: string;
+
   @ApiProperty({ enum: ['draft', 'published', 'cancelled'] })
   status: 'draft' | 'published' | 'cancelled';
 

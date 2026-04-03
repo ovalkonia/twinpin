@@ -12,6 +12,13 @@ const Header: React.FC = () => {
     const navigate = useNavigate();
     const { isAuth } = useAuth();
     const [menuOpen, setMenuOpen] = useState(false);
+    const [searchVal, setSearchVal] = useState('');
+
+    const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key !== 'Enter') return;
+        const q = searchVal.trim();
+        navigate(q ? `/dashboard?q=${encodeURIComponent(q)}` : '/dashboard');
+    };
 
     return (
         <>
@@ -26,6 +33,9 @@ const Header: React.FC = () => {
                         type="text"
                         placeholder="Search events..."
                         className="header-search-input"
+                        value={searchVal}
+                        onChange={e => setSearchVal(e.target.value)}
+                        onKeyDown={handleSearch}
                     />
                 </div>
 

@@ -22,6 +22,7 @@ export class EventsFilterQueryDto {
 
   @ApiPropertyOptional()
   @IsOptional()
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim().toLowerCase() : value))
   @IsString()
   @MaxLength(120)
   category?: string;
@@ -80,4 +81,14 @@ export class EventsFilterQueryDto {
   @Min(1)
   @Max(100)
   limit?: number;
+
+  @ApiPropertyOptional({ enum: ['date', 'price'] })
+  @IsOptional()
+  @IsIn(['date', 'price'])
+  sort_by?: 'date' | 'price';
+
+  @ApiPropertyOptional({ enum: ['asc', 'desc'] })
+  @IsOptional()
+  @IsIn(['asc', 'desc'])
+  sort_order?: 'asc' | 'desc';
 }

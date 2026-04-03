@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 import Header from '../../components/Header/header';
 import {
     addCompanyMember,
     getCompanyMembers,
+    getCompanyBySlug,
     getMyCompany,
     removeMember,
     type Company,
@@ -20,12 +22,17 @@ import {
 } from '../../assets/icons';
 
 const MAPS_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string | undefined;
+
+const toHref = (url: string) => /^https?:\/\//i.test(url) ? url : `https://${url}`;
 import '../../styles/company-page.css';
 import '../../styles/company-register.css';
 import { getUserEvents, type UserEvent } from '../../services/user';
 import { deleteEvent } from '../../services/events';
 
 export const CompanyPage: React.FC = () => {
+    const { slug } = useParams<{ slug?: string }>();
+    const { user } = useAuth();
+    const navigate = useNavigate();
     const [company, setCompany] = useState<Company | null>(null);
     const [members, setMembers] = useState<CompanyMember[]>([]);
     const [events, setEvents] = useState<UserEvent[]>([]);
@@ -36,8 +43,13 @@ export const CompanyPage: React.FC = () => {
 
     useEffect(() => {
         setLoading(true);
-        getMyCompany()
+        const loader = slug ? getCompanyBySlug(slug) : getMyCompany();
+        loader
             .then(async (c) => {
+                if (!slug) {
+                    navigate(`/company/${c.slug}`, { replace: true });
+                    return;
+                }
                 setCompany(c);
                 const list = await getCompanyMembers(c.id);
                 setMembers(list);
@@ -58,7 +70,9 @@ export const CompanyPage: React.FC = () => {
             })
             .catch(() => setCompany(null))
             .finally(() => setLoading(false));
-    }, []);
+    }, [slug]);
+
+    const isOwner = Boolean(user?.id && company?.owner?.id && user.id === company.owner.id);
 
     const hasContact = useMemo(() => {
         if (!company) return false;
@@ -151,14 +165,16 @@ export const CompanyPage: React.FC = () => {
                         </div>
                     </div>
 
-                    <div className="cp-identity-actions">
-                        <Link to="/events/create" className="cp-create-btn">
-                            Create Event
-                        </Link>
-                        <Link to="/company/edit" className="cp-edit-btn">
-                            Edit Profile
-                        </Link>
-                    </div>
+                    {isOwner && (
+                        <div className="cp-identity-actions">
+                            <Link to="/events/create" className="cp-create-btn">
+                                Create Event
+                            </Link>
+                            <Link to="/company/edit" className="cp-edit-btn">
+                                Edit Profile
+                            </Link>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -191,12 +207,6 @@ export const CompanyPage: React.FC = () => {
 
                         {hasContact && (
                             <div className="cp-contact-rows">
-                                {company.website && (
-                                    <a className="cp-contact-row" href={company.website} target="_blank" rel="noopener noreferrer">
-                                        <span className="cp-contact-icon"><IconGlobe size={14} /></span>
-                                        <span className="cp-contact-text">{company.website.replace(/^https?:\/\//, '')}</span>
-                                    </a>
-                                )}
                                 {company.address && (
                                     <div className="cp-contact-row">
                                         <span className="cp-contact-icon"><IconMapPin size={14} /></span>
@@ -261,42 +271,42 @@ export const CompanyPage: React.FC = () => {
                                                 </span>
                                             </div>
                                             <div className="event-card-footer">
-                                                <Link
-                                                    to={`/events/${event.id}/edit`}
-                                                    className="event-card-btn"
-                                                >
-                                                    Manage
-                                                </Link>
-                                                <button
-                                                    className="event-card-btn"
-                                                    type="button"
-                                                    style={{
-                                                        background: 'transparent',
-                                                        border:
-                                                            '1px solid rgba(255,107,0,0.4)',
-                                                        color: '#ff6b00',
-                                                    }}
-                                                    onClick={async (e) => {
-                                                        e.preventDefault();
-                                                        e.stopPropagation();
-                                                        const ok = window.confirm('Delete this event? This cannot be undone.');
-                                                        if (!ok) return;
-                                                        try {
-                                                            await deleteEvent(event.id);
-                                                            setEvents((prev) =>
-                                                                prev.filter(
-                                                                    (x) =>
-                                                                        x.id !== event.id,
-                                                                ),
-                                                            );
-                                                            toast.success('Event deleted');
-                                                        } catch {
-                                                            toast.error('Failed to delete event');
-                                                        }
-                                                    }}
-                                                >
-                                                    Delete
-                                                </button>
+                                                {isOwner && (
+                                                    <Link
+                                                        to={`/events/${event.id}/edit`}
+                                                        className="event-card-btn"
+                                                    >
+                                                        Manage
+                                                    </Link>
+                                                )}
+                                                {isOwner && (
+                                                    <button
+                                                        className="event-card-btn"
+                                                        type="button"
+                                                        style={{
+                                                            background: 'transparent',
+                                                            border: '1px solid rgba(255,107,0,0.4)',
+                                                            color: '#ff6b00',
+                                                        }}
+                                                        onClick={async (e) => {
+                                                            e.preventDefault();
+                                                            e.stopPropagation();
+                                                            const ok = window.confirm('Delete this event? This cannot be undone.');
+                                                            if (!ok) return;
+                                                            try {
+                                                                await deleteEvent(event.id);
+                                                                setEvents((prev) =>
+                                                                    prev.filter((x) => x.id !== event.id),
+                                                                );
+                                                                toast.success('Event deleted');
+                                                            } catch {
+                                                                toast.error('Failed to delete event');
+                                                            }
+                                                        }}
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
@@ -305,41 +315,43 @@ export const CompanyPage: React.FC = () => {
                         )}
                     </section>
 
-                    <section className="cp-section">
-                        <div className="cp-members-header">
-                            <h2 className="cp-section-title" style={{ marginBottom: 0 }}>
-                                Members
-                            </h2>
-                        </div>
+                    {isOwner && (
+                        <section className="cp-section">
+                            <div className="cp-members-header">
+                                <h2 className="cp-section-title" style={{ marginBottom: 0 }}>
+                                    Members
+                                </h2>
+                            </div>
 
-                        <div className="cp-member-invite">
-                            <input
-                                className="cr-input"
-                                value={inviteEmail}
-                                placeholder="colleague@email.com"
-                                onChange={(e) => setInviteEmail(e.target.value)}
-                            />
-                            <button className="cr-btn cr-btn--primary" onClick={handleAddMember} disabled={inviteLoading}>
-                                Invite
-                            </button>
-                        </div>
+                            <div className="cp-member-invite">
+                                <input
+                                    className="cr-input"
+                                    value={inviteEmail}
+                                    placeholder="colleague@email.com"
+                                    onChange={(e) => setInviteEmail(e.target.value)}
+                                />
+                                <button className="cr-btn cr-btn--primary" onClick={handleAddMember} disabled={inviteLoading}>
+                                    Invite
+                                </button>
+                            </div>
 
-                        <div className="cp-member-list">
-                            {members.map((m) => (
-                                <div key={m.id} className="cp-member-row">
-                                    <div className="cp-member-avatar">{m.name?.charAt(0)?.toUpperCase()}</div>
-                                    <div className="cp-member-info">
-                                        <div className="cp-member-name">{m.name}</div>
-                                        <div className="cp-member-email">{m.email}</div>
+                            <div className="cp-member-list">
+                                {members.map((m) => (
+                                    <div key={m.id} className="cp-member-row">
+                                        <div className="cp-member-avatar">{m.name?.charAt(0)?.toUpperCase()}</div>
+                                        <div className="cp-member-info">
+                                            <div className="cp-member-name">{m.name}</div>
+                                            <div className="cp-member-email">{m.email}</div>
+                                        </div>
+                                        <button className="cp-member-remove" onClick={() => handleRemoveMember(m.id)}>
+                                            Remove
+                                        </button>
                                     </div>
-                                    <button className="cp-member-remove" onClick={() => handleRemoveMember(m.id)}>
-                                        Remove
-                                    </button>
-                                </div>
-                            ))}
-                            {members.length === 0 && <p>No members yet.</p>}
-                        </div>
-                    </section>
+                                ))}
+                                {members.length === 0 && <p>No members yet.</p>}
+                            </div>
+                        </section>
+                    )}
                 </main>
 
                 {(company.linkedin || company.instagram || company.tiktok || company.telegram || company.website) && (
@@ -348,25 +360,25 @@ export const CompanyPage: React.FC = () => {
                             <p className="cp-card-title">Find us on</p>
                             <div className="cp-social-links">
                                 {company.linkedin && (
-                                    <a className="cp-social-link cp-social-link--linkedin" href={company.linkedin} target="_blank" rel="noopener noreferrer">
+                                    <a className="cp-social-link cp-social-link--linkedin" href={toHref(company.linkedin)} target="_blank" rel="noopener noreferrer">
                                         <IconLinkedIn size={16} />
                                         <span>LinkedIn</span>
                                     </a>
                                 )}
                                 {company.instagram && (
-                                    <a className="cp-social-link cp-social-link--instagram" href={company.instagram} target="_blank" rel="noopener noreferrer">
+                                    <a className="cp-social-link cp-social-link--instagram" href={toHref(company.instagram)} target="_blank" rel="noopener noreferrer">
                                         <IconInstagram size={16} />
                                         <span>Instagram</span>
                                     </a>
                                 )}
                                 {company.tiktok && (
-                                    <a className="cp-social-link cp-social-link--tiktok" href={company.tiktok} target="_blank" rel="noopener noreferrer">
+                                    <a className="cp-social-link cp-social-link--tiktok" href={toHref(company.tiktok)} target="_blank" rel="noopener noreferrer">
                                         <IconTikTok size={16} />
                                         <span>TikTok</span>
                                     </a>
                                 )}
                                 {company.telegram && (
-                                    <a className="cp-social-link cp-social-link--telegram" href={company.telegram} target="_blank" rel="noopener noreferrer">
+                                    <a className="cp-social-link cp-social-link--telegram" href={toHref(company.telegram)} target="_blank" rel="noopener noreferrer">
                                         <IconTelegram size={16} />
                                         <span>Telegram</span>
                                     </a>
@@ -374,7 +386,7 @@ export const CompanyPage: React.FC = () => {
                                 {company.website && (
                                     <a className="cp-social-link cp-social-link--website" href={company.website} target="_blank" rel="noopener noreferrer">
                                         <IconGlobe size={16} />
-                                        <span>Website</span>
+                                        <span>Our website</span>
                                     </a>
                                 )}
                             </div>

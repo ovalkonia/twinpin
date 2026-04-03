@@ -6,6 +6,7 @@ export interface User {
     id: string
     name: string
     email: string
+    avatarUrl?: string
 }
 
 interface AuthContextType {
@@ -14,6 +15,7 @@ interface AuthContextType {
     loading: boolean
     login: (token: string, userData: User) => void
     logout: () => void
+    updateUser: (patch: Partial<User>) => void
 }
 
 interface AuthProviderProps {
@@ -53,8 +55,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setUser(null)
     }
 
+    const updateUser = (patch: Partial<User>) => {
+        setUser(prev => prev ? { ...prev, ...patch } : prev)
+    }
+
     return (
-        <AuthContext.Provider value={{ user, isAuth: !!user, loading, login, logout }}>
+        <AuthContext.Provider value={{ user, isAuth: !!user, loading, login, logout, updateUser }}>
             {children}
         </AuthContext.Provider>
     )

@@ -415,7 +415,7 @@ input[type="time"].cr-input {
 
 .ev-promo-row {
     display: grid;
-    grid-template-columns: 1fr 100px 32px;
+    grid-template-columns: 2fr 80px 100px 36px;
     gap: 8px;
     align-items: center;
 }
@@ -599,6 +599,7 @@ input[type="time"].cr-input {
     }
 
     .ev-promo-row {
-        grid-template-columns: 1fr 80px 32px;
+        grid-template-columns: 1fr 60px 80px 36px;
+        gap: 6px;
     }
 }

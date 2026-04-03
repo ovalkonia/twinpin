@@ -32,8 +32,8 @@ export const BurgerMenu = ({ isOpen, onClose }: BurgerMenuProps) => {
     const handleCompanyClick = async () => {
         setCompanyLoading(true);
         try {
-            await getMyCompany();
-            goTo('/company');
+            const company = await getMyCompany();
+            goTo(`/company/${company.slug}`);
         } catch {
             goTo('/company/register');
         } finally {
@@ -64,7 +64,9 @@ export const BurgerMenu = ({ isOpen, onClose }: BurgerMenuProps) => {
 
                 <div className="burger-user">
                     <div className="burger-avatar">
-                        {user?.name?.[0]?.toUpperCase() || 'U'}
+                        {user?.avatarUrl
+                            ? <img src={user.avatarUrl} alt="" className="burger-avatar-img" />
+                            : user?.name?.[0]?.toUpperCase() || 'U'}
                     </div>
                     <div className="burger-user-info">
                         <span className="burger-user-name">{user?.name}</span>

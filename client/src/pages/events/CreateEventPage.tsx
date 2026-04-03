@@ -15,6 +15,7 @@ import '../../styles/create-event.css';
 
 import { getMyCompany } from '../../services/company';
 import { createEvent } from '../../services/events';
+import { createPromoCode } from '../../services/promo-codes';
 import type { Company } from '../../services/company';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -28,6 +29,13 @@ interface TicketTierFormItem {
     name: string;
     price: number;
     capacity: number;
+}
+
+interface PromoCodeInput {
+    id: string;
+    code: string;
+    discount: number;
+    discountType: 'percentage' | 'fixed';
 }
 
 interface GalleryItem {
@@ -50,6 +58,7 @@ interface EventFormData {
     coverFile: File | null;
     galleryFiles: File[];
     tiers: TicketTierFormItem[];
+    promoCodes: PromoCodeInput[];
     redirectUrl: string;
     attendeeVisibility: 'everyone' | 'attendees';
     organizerNotifications: boolean;
@@ -119,6 +128,7 @@ export const CreateEventPage: React.FC = () => {
         coverFile: null,
         galleryFiles: [],
         tiers: [{ id: crypto.randomUUID(), name: 'General Admission', price: 0, capacity: 1 }],
+        promoCodes: [],
         redirectUrl: '',
         attendeeVisibility: 'everyone',
         organizerNotifications: true,
@@ -259,6 +269,28 @@ export const CreateEventPage: React.FC = () => {
         setErrors(prev => ({ ...prev, tiers: undefined }));
     }
 
+    // ── Promo code helpers ──────────────────────────────────────────────────
+
+    function addPromo() {
+        setForm(prev => ({
+            ...prev,
+            promoCodes: [...prev.promoCodes, { id: crypto.randomUUID(), code: '', discount: 10, discountType: 'percentage' }],
+        }));
+    }
+
+    function removePromo(promoId: string) {
+        setForm(prev => ({ ...prev, promoCodes: prev.promoCodes.filter(p => p.id !== promoId) }));
+    }
+
+    function updatePromo(promoId: string, field: keyof Omit<PromoCodeInput, 'id'>, value: string | number) {
+        setForm(prev => ({
+            ...prev,
+            promoCodes: prev.promoCodes.map(p =>
+                p.id !== promoId ? p : { ...p, [field]: field === 'discount' ? Number(value) : value }
+            ),
+        }));
+    }
+
     // ── Validation ──────────────────────────────────────────────────────────
 
     function validateStep(s: number): boolean {
@@ -334,6 +366,18 @@ export const CreateEventPage: React.FC = () => {
             };
 
             const created = await createEvent(payload);
+
+            // Fire-and-forget promo codes — don't block navigation on failure
+            for (const p of form.promoCodes) {
+                if (p.code.trim()) {
+                    createPromoCode(created.id, {
+                        code: p.code.trim(),
+                        discount: p.discount,
+                        discountType: p.discountType,
+                    }).catch(() => {/* silent */});
+                }
+            }
+
             toast.success('Event created successfully!');
             navigate(`/events/${created.id}/edit`);
         } catch (e: any) {
@@ -701,9 +745,55 @@ export const CreateEventPage: React.FC = () => {
                 </div>
                 {errors.tiers && <span className="cr-error" style={{ marginTop: 6, display: 'block' }}>{errors.tiers}</span>}
 
-                <button type="button" className="ev-add-promo-btn" onClick={addTier} style={{ marginTop: 12 }}>
+                <button type="button" className="cr-btn cr-btn--ghost" onClick={addTier} style={{ marginTop: 12, gap: 6, fontSize: 13 }}>
                     <IconPlus size={13} />
                     Add ticket type
+                </button>
+
+                {/* Promo codes */}
+                <div className="cr-section-divider" style={{ marginTop: 20 }}>Promo codes</div>
+                {form.promoCodes.length > 0 && (
+                    <div className="ev-promo-list">
+                        {form.promoCodes.map((promo) => (
+                            <div key={promo.id} className="ev-promo-row">
+                                <input
+                                    className="cr-input"
+                                    placeholder="Code (e.g. SAVE10)"
+                                    value={promo.code}
+                                    onChange={e => updatePromo(promo.id, 'code', e.target.value.toUpperCase())}
+                                />
+                                <input
+                                    type="number"
+                                    min={0}
+                                    step={1}
+                                    className="cr-input"
+                                    placeholder="0"
+                                    value={promo.discount || ''}
+                                    onChange={e => updatePromo(promo.id, 'discount', parseFloat(e.target.value) || 0)}
+                                />
+                                <select
+                                    className="ev-select"
+                                    value={promo.discountType}
+                                    onChange={e => updatePromo(promo.id, 'discountType', e.target.value as 'percentage' | 'fixed')}
+                                >
+                                    <option value="percentage">% off</option>
+                                    <option value="fixed">€ off</option>
+                                </select>
+                                <button
+                                    type="button"
+                                    className="ev-promo-remove"
+                                    onClick={() => removePromo(promo.id)}
+                                    aria-label="Remove promo code"
+                                >
+                                    <IconClose size={12} />
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                )}
+                <button type="button" className="ev-add-promo-btn" onClick={addPromo} style={{ marginTop: 8 }}>
+                    <IconPlus size={13} />
+                    Add promo code
                 </button>
 
                 {/* Redirect URL */}
@@ -909,6 +999,31 @@ export const CreateEventPage: React.FC = () => {
                         </div>
 
                     </div>
+
+                    {/* Promo codes */}
+                    {form.promoCodes.length > 0 && (
+                        <div className="cr-review-section">
+                            <p className="cr-review-section-title">Promo codes</p>
+                            <table className="ev-promo-table">
+                                <thead>
+                                    <tr>
+                                        <th>Code</th>
+                                        <th>Discount</th>
+                                        <th>Type</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {form.promoCodes.map(p => (
+                                        <tr key={p.id}>
+                                            <td>{p.code || '—'}</td>
+                                            <td>{p.discount}</td>
+                                            <td>{p.discountType === 'percentage' ? '%' : '€ fixed'}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
                 </div>
             </div>
         );

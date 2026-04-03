@@ -1,3 +1,4 @@
+import { Transform } from 'class-transformer';
 import { IsArray, IsOptional, IsString, MinLength } from 'class-validator';
 
 export class CreateCompanyDto {
@@ -12,6 +13,10 @@ export class CreateCompanyDto {
     description: string;
 
     @IsOptional()
+    @Transform(({ value }) => {
+        if (!Array.isArray(value)) return value;
+        return value.map((c: string) => (typeof c === 'string' ? c.trim().toLowerCase() : c));
+    })
     @IsArray()
     @IsString({ each: true })
     categories?: string[];

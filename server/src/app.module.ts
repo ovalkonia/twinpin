@@ -15,6 +15,8 @@ import { EventsModule } from './events/events.module';
 import { Notification } from './notifications/entities/notification.entity';
 import { OrganizerFollow } from './organizer-follows/entities/organizer-follow.entity';
 import { OrganizerFollowsModule } from './organizer-follows/organizer-follows.module';
+import { PromoCode } from './promo-codes/entities/promo-code.entity';
+import { PromoCodesModule } from './promo-codes/promo-codes.module';
 import { Ticket } from './tickets/entities/ticket.entity';
 import { User } from './users/entities/user.entity';
 import { UsersModule } from './users/users.module';
@@ -53,6 +55,7 @@ import { UsersModule } from './users/users.module';
             EventComment,
             OrganizerFollow,
             Notification,
+            PromoCode,
           ],
           synchronize: true,
         };
@@ -64,6 +67,7 @@ import { UsersModule } from './users/users.module';
     CompaniesModule,
     OrganizerFollowsModule,
     EventsModule,
+    PromoCodesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

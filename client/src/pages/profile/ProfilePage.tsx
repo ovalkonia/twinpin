@@ -12,7 +12,7 @@ const DEFAULT_COVER = 'linear-gradient(135deg, #1a1a2e, #0a0a1a)';
 
 export const ProfilePage = () => {
     const { userId: routeUserId } = useParams<{ userId?: string }>();
-    const { user: currentUser } = useAuth();
+    const { user: currentUser, updateUser } = useAuth();
 
     const resolvedUserId = routeUserId ?? currentUser?.id;
 
@@ -81,6 +81,7 @@ export const ProfilePage = () => {
             .then((updated) => {
                 setProfileUser(updated);
                 setAvatarObjectUrl(null);
+                if (isOwnProfile) updateUser({ avatarUrl: updated.avatarUrl });
                 toast.success('Avatar updated');
             })
             .catch(() => {
@@ -139,7 +140,7 @@ export const ProfilePage = () => {
                         </div>
                         <div className="profile-identity">
                             <h1 className="profile-name">{profileUser?.name}</h1>
-                            <p className="profile-email">{profileUser?.email}</p>
+                            {isOwnProfile && <p className="profile-email">{profileUser?.email}</p>}
                         </div>
                     </div>
 

@@ -22,6 +22,8 @@ export interface Event {
     photos?: string[];
     organizerId: string;
     organizerName: string;
+    organizerSlug?: string;
+    organizerLogoUrl?: string;
     status: 'draft' | 'published' | 'cancelled';
     isSubscribed?: boolean;
 }
@@ -62,6 +64,8 @@ export interface EventsFilter {
     priceMin?: number;
     priceMax?: number;
     search?: string;
+    sortBy?: 'date' | 'price';
+    sortOrder?: 'asc' | 'desc';
     page?: number;
     limit?: number;
 }
@@ -146,8 +150,10 @@ function toQueryString(filter: EventsFilter): string {
     if (filter.dateTo)   params.set('date_to', filter.dateTo);
     if (filter.priceMin !== undefined) params.set('price_min', String(filter.priceMin));
     if (filter.priceMax !== undefined) params.set('price_max', String(filter.priceMax));
-    if (filter.search)   params.set('search', filter.search);
-    if (filter.page)     params.set('page', String(filter.page));
+    if (filter.search)    params.set('search',     filter.search);
+    if (filter.sortBy)    params.set('sort_by',    filter.sortBy);
+    if (filter.sortOrder) params.set('sort_order', filter.sortOrder);
+    if (filter.page)      params.set('page', String(filter.page));
     if (filter.limit)    params.set('limit', String(filter.limit));
     if (filter.tags?.length) filter.tags.forEach(t => params.append('tags[]', t));
 

@@ -15,6 +15,7 @@ import EventShare from '../../components/Events/EventShare.tsx';
 import EventLightbox from '../../components/Events/EventLightbox.tsx';
 import EventSimilar from '../../components/Events/EventSimilar.tsx';
 import EventComments from '../../components/Events/EventComments.tsx';
+import { Link } from 'react-router-dom';
 import {
     getEventById,
     getEventAttendees,
@@ -38,6 +39,8 @@ interface EventData {
     time: string;
     location: { name: string; address: string; lat?: number; lng?: number };
     organizer: string;
+    organizerSlug?: string;
+    organizerLogoUrl?: string;
     price: number | 'free';
     category: string;
     tags: string[];
@@ -88,6 +91,8 @@ function mapEvent(event: Event, attendees: EventAttendee[]): Omit<EventData, 'ti
             lng: event.lng,
         },
         organizer: event.organizerName,
+        organizerSlug: event.organizerSlug,
+        organizerLogoUrl: event.organizerLogoUrl,
         price: event.price === 0 ? 'free' : event.price,
         category: event.category,
         tags: (event.tags ?? []).filter(t => t !== event.category),
@@ -196,6 +201,32 @@ export default function EventPage() {
                 </main>
 
                 <aside className="event-sidebar">
+                    {/* Organizer card */}
+                    {event.organizerSlug ? (
+                        <Link to={`/company/${event.organizerSlug}`} className="event-organizer-card">
+                            <div className="event-organizer-logo">
+                                {event.organizerLogoUrl
+                                    ? <img src={event.organizerLogoUrl} alt={event.organizer} />
+                                    : <span>{event.organizer[0]?.toUpperCase()}</span>}
+                            </div>
+                            <div className="event-organizer-info">
+                                <p className="event-organizer-label">Organised by</p>
+                                <p className="event-organizer-name">{event.organizer}</p>
+                            </div>
+                            <span className="event-organizer-arrow">›</span>
+                        </Link>
+                    ) : (
+                        <div className="event-organizer-card event-organizer-card--static">
+                            <div className="event-organizer-logo">
+                                <span>{event.organizer[0]?.toUpperCase()}</span>
+                            </div>
+                            <div className="event-organizer-info">
+                                <p className="event-organizer-label">Organised by</p>
+                                <p className="event-organizer-name">{event.organizer}</p>
+                            </div>
+                        </div>
+                    )}
+
                     <EventInfoCard
                         date={event.date}
                         time={event.time}

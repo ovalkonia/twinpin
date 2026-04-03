@@ -1,4 +1,5 @@
 import { Company } from '../../companies/entities/company.entity';
+import { PromoCode } from '../../promo-codes/entities/promo-code.entity';
 import { Ticket } from '../../tickets/entities/ticket.entity';
 import {
   Column,
@@ -59,6 +60,9 @@ export class Event {
 
   @OneToMany(() => Ticket, (ticket) => ticket.event)
   tickets: Ticket[];
+
+  @OneToMany(() => PromoCode, (p) => p.event)
+  promoCodes: PromoCode[];
 
   @Column({ type: 'varchar', length: 20 })
   status: EventStatus;

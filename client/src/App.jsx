@@ -89,6 +89,7 @@ function AppContent() {
                 <Route path="/company" element={<PrivateRoute><CompanyPage /></PrivateRoute>} />
                 <Route path="/company/register" element={<PrivateRoute><RegisterCompanyPage /></PrivateRoute>} />
                 <Route path="/company/edit" element={<PrivateRoute><EditCompanyPage /></PrivateRoute>} />
+                <Route path="/company/:slug" element={<CompanyPage />} />
                 <Route path="/checkout/:eventId" element={<PrivateRoute><CheckoutPage /></PrivateRoute>} />
                 <Route path="/events/create" element={<PrivateRoute><CreateEventPage /></PrivateRoute>} />
                 <Route path="/events/:id" element={<EventPage />} />

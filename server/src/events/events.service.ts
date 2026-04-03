@@ -88,6 +88,8 @@ export class EventsService {
       photos: photos?.length ? photos : undefined,
       organizerId: String(owner.id),
       organizerName: company.name,
+      organizerSlug: company.slug ?? undefined,
+      organizerLogoUrl: company.logoUrl ?? undefined,
       status: event.status as EventResponseDto['status'],
       ...(isSubscribed !== undefined ? { isSubscribed } : {}),
     };
@@ -163,7 +165,7 @@ export class EventsService {
       qb.andWhere('e.category = :category', { category: filter.category });
     }
     if (filter['tags[]']?.length) {
-      qb.andWhere('e.tags && :tags::varchar[]', {
+      qb.andWhere('e.tags && :tags::text[]', {
         tags: filter['tags[]'],
       });
     }
@@ -196,7 +198,11 @@ export class EventsService {
       );
     }
 
-    qb.orderBy('e.date', 'ASC');
+    const sortCol = filter.sort_by === 'price'
+      ? '(SELECT COALESCE(MIN(t.price), 0) FROM tickets t WHERE t."eventId" = e.id)'
+      : 'e.date';
+    const sortOrder = filter.sort_order?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
+    qb.orderBy(sortCol, sortOrder);
 
     const total = await qb.clone().getCount();
     const rows = await qb
@@ -453,7 +459,7 @@ export class EventsService {
         new Brackets((q) => {
           q.where('e.category = :cat', { cat: event.category });
           if (event.tags?.length) {
-            q.orWhere('e.tags && :tags::varchar[]', { tags: event.tags });
+            q.orWhere('e.tags && :tags::text[]', { tags: event.tags });
           }
         }),
       )
