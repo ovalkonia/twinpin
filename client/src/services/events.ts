@@ -73,7 +73,7 @@ export interface CreateEventInput {
     location?: string;
     lat?: number;
     lng?: number;
-    price: number;
+    price?: number;
     currency?: string;
     capacity?: number;
     cover?: File;

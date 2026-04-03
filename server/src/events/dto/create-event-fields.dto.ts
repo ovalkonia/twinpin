@@ -101,11 +101,12 @@ export class CreateEventFieldsDto {
   @IsNumber()
   lng?: number;
 
-  @ApiProperty()
+  @ApiPropertyOptional({ default: 0 })
+  @IsOptional()
   @Type(() => Number)
   @IsNumber()
   @Min(0)
-  price: number;
+  price?: number;
 
   @ApiPropertyOptional({ default: 'USD' })
   @IsOptional()

@@ -261,22 +261,79 @@ input[type="time"].cr-input {
 
 .ev-price-wrap {
     position: relative;
+    display: block;
 }
 
 .ev-price-prefix {
     position: absolute;
-    left: 13px;
+    left: 12px;
     top: 50%;
     transform: translateY(-50%);
-    color: #666;
-    font-size: 14px;
-    font-weight: 600;
+    color: #555;
+    font-size: 13px;
     pointer-events: none;
     user-select: none;
+    z-index: 1;
 }
 
 .ev-price-input {
-    padding-left: 28px;
+    padding-left: 26px !important;
+    width: 100%;
+}
+
+/* ── Google Maps Places autocomplete dropdown ─────────────── */
+
+.pac-container {
+    background: #1a1a1a;
+    border: 1px solid rgba(255, 107, 0, 0.25);
+    border-radius: 10px;
+    border-top: none;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    font-family: system-ui, -apple-system, sans-serif;
+    margin-top: -1px;
+    overflow: hidden;
+}
+
+.pac-container::after {
+    display: none;
+}
+
+.pac-item {
+    padding: 10px 14px;
+    color: #ccc;
+    font-size: 13px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.pac-item:first-child {
+    border-top: none;
+}
+
+.pac-item:hover,
+.pac-item-selected {
+    background: rgba(255, 107, 0, 0.08);
+    color: #e0e0e0;
+}
+
+.pac-item-query {
+    color: #e0e0e0;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.pac-icon {
+    display: none;
+}
+
+.pac-matched {
+    color: #ff6b00;
+    font-weight: 600;
 }
 
 /* ── Toggle switch ────────────────────────────────────────── */

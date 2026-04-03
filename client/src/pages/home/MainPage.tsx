@@ -24,7 +24,11 @@ export const MainPage = () => {
                 setEvents(res.data);
                 setTotal(res.total);
             })
-            .catch(() => setEvents([]))
+            .catch((err) => {
+                const msg = err?.response?.data?.message;
+                toast.error(typeof msg === 'string' ? msg : 'Failed to load events');
+                setEvents([]);
+            })
             .finally(() => setLoading(false));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -94,6 +98,11 @@ export const MainPage = () => {
                 </div>
 
                 <div className="events-grid">
+                    {!loading && events.length === 0 && (
+                        <p style={{ color: '#666', gridColumn: '1/-1', textAlign: 'center', padding: '48px 0' }}>
+                            No published events yet. Check back soon!
+                        </p>
+                    )}
                     {loading
                         ? null
                         : events.map((event) => (

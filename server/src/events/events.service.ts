@@ -268,7 +268,7 @@ export class EventsService {
       }
     }
 
-    const status = dto.status ?? EventStatus.DRAFT;
+    const status = dto.status ?? EventStatus.PUBLISHED;
     const row = this.eventRepo.create({
       title: dto.title,
       description: dto.description,
@@ -603,6 +603,7 @@ export class EventsService {
     });
     if (!event) throw new NotFoundException('Event not found');
     if (!this.isPubliclyVisible(event, this.now())) {
+        console.log("YEAH");
       throw new NotFoundException('Event not found');
     }
 

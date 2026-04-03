@@ -85,7 +85,7 @@ export class EventsController {
       'Event fields plus optional `cover` (file) and repeated `photos` files.',
     schema: {
       type: 'object',
-      required: ['title', 'description', 'format', 'category', 'date', 'price'],
+      required: ['title', 'description', 'format', 'category', 'date'],
       properties: {
         title: { type: 'string' },
         description: { type: 'string' },

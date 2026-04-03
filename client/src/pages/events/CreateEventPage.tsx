@@ -660,7 +660,7 @@ export const CreateEventPage: React.FC = () => {
 
                                 <div className="cr-field" style={{ margin: 0 }}>
                                     <label className="cr-label" style={{ display: 'block' }}>Price</label>
-                                    <div className="ev-price-wrap" style={{ position: 'relative' }}>
+                                    <div className="ev-price-wrap">
                                         <span className="ev-price-prefix">€</span>
                                         <input
                                             type="number"
@@ -707,8 +707,9 @@ export const CreateEventPage: React.FC = () => {
                 </button>
 
                 {/* Redirect URL */}
+                <div className="cr-section-divider" style={{ marginTop: 20 }}>After purchase</div>
                 <div className="cr-field">
-                    <label className="cr-label">Redirect after purchase</label>
+                    <label className="cr-label">Redirect URL</label>
                     <div className="cr-input-icon-wrap">
                         <span className="cr-input-icon"><IconGlobe size={15} /></span>
                         <input

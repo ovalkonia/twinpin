@@ -90,6 +90,7 @@ function AppContent() {
                 <Route path="/checkout/:eventId" element={<PrivateRoute><CheckoutPage /></PrivateRoute>} />
                 <Route path="/events/create" element={<PrivateRoute><CreateEventPage /></PrivateRoute>} />
                 <Route path="/events/:id" element={<EventPage />} />
+                <Route path="/event/:id" element={<EventPage />} />
                 <Route path="/events/:id/edit" element={<PrivateRoute><EditEventPage /></PrivateRoute>} />
 
                 {/* Compatibility routes referenced by header UI */}
