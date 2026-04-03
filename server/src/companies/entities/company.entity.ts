@@ -5,10 +5,12 @@ import {
     JoinTable,
     ManyToMany,
     ManyToOne,
+    OneToMany,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
+import { Event } from '../../events/entities/event.entity';
 
 @Entity('companies')
 export class Company {
@@ -60,6 +62,9 @@ export class Company {
     @ManyToMany(() => User, user => user.companies, { eager: false })
     @JoinTable({ name: 'company_members' })
     members: User[];
+
+    @OneToMany(() => Event, (event) => event.company)
+    events: Event[];
 
     @CreateDateColumn()
     created_at: Date;

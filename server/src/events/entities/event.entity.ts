@@ -1,9 +1,11 @@
 import { Company } from '../../companies/entities/company.entity';
+import { Ticket } from '../../tickets/entities/ticket.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -52,8 +54,11 @@ export class Event {
   @Column({ type: 'simple-array', nullable: true })
   photos: string[];
 
-  @ManyToOne(() => Company, { onDelete: 'CASCADE', eager: false })
+  @ManyToOne(() => Company, (company) => company.events, { onDelete: 'CASCADE', eager: false })
   company: Company;
+
+  @OneToMany(() => Ticket, (ticket) => ticket.event)
+  tickets: Ticket[];
 
   @Column({ type: 'varchar', length: 20 })
   status: EventStatus;

@@ -1,5 +1,6 @@
 import { Event } from '../../events/entities/event.entity';
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Booking } from '../../bookings/entities/booking.entity';
+import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 /** Admission tier / plan owned by an event (price & inventory cap). */
 @Entity('tickets')
@@ -7,7 +8,7 @@ export class Ticket {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => Event, { onDelete: 'CASCADE', eager: false })
+  @ManyToOne(() => Event, (event) => event.tickets, { onDelete: 'CASCADE', eager: false })
   event: Event;
 
   @Column({ type: 'varchar', length: 255 })
@@ -35,4 +36,7 @@ export class Ticket {
   /** Tier synced from the main event create/update form (single primary tier). */
   @Column({ default: false })
   isDefault: boolean;
+
+  @OneToMany(() => Booking, (booking) => booking.ticket)
+  bookings: Booking[];
 }

@@ -23,38 +23,36 @@ const STEPS = ['Event', 'Details', 'Media', 'Tickets', 'Review'];
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-interface PromoCode {
-    id: string;
-    code: string;
-    discount: number;
-}
-
-interface CustomTicketTierForm {
+interface TicketTierFormItem {
     id: string;
     name: string;
     price: number;
-    quantity: number;
+    capacity: number;
+}
+
+interface GalleryItem {
+    url: string;
+    isVideo: boolean;
 }
 
 interface EventFormData {
     name: string;
     tags: string[];
     description: string;
+    format: 'online' | 'offline';
     address: string;
+    lat: number | null;
+    lng: number | null;
     startDate: string;
     startTime: string;
     publishDate: string;
     publishTime: string;
     coverFile: File | null;
     galleryFiles: File[];
-    isFree: boolean;
-    ticketCount: number;
-    price: number;
-    customTiers: CustomTicketTierForm[];
+    tiers: TicketTierFormItem[];
     redirectUrl: string;
     attendeeVisibility: 'everyone' | 'attendees';
     organizerNotifications: boolean;
-    promoCodes: PromoCode[];
 }
 
 interface FormErrors {
@@ -63,9 +61,7 @@ interface FormErrors {
     description?: string;
     startDate?: string;
     startTime?: string;
-    ticketCount?: string;
-    price?: string;
-    customTiers?: string;
+    tiers?: string;
     redirectUrl?: string;
 }
 
@@ -112,38 +108,72 @@ export const CreateEventPage: React.FC = () => {
         name: '',
         tags: [],
         description: '',
+        format: 'offline',
         address: '',
+        lat: null,
+        lng: null,
         startDate: '',
         startTime: '',
         publishDate: '',
         publishTime: '',
         coverFile: null,
         galleryFiles: [],
-        isFree: true,
-        ticketCount: 1,
-        price: 0,
-        customTiers: [],
+        tiers: [{ id: crypto.randomUUID(), name: 'General Admission', price: 0, capacity: 1 }],
         redirectUrl: '',
         attendeeVisibility: 'everyone',
         organizerNotifications: true,
-        promoCodes: [],
     });
 
     // ── Media previews ──────────────────────────────────────────────────────
 
     const [coverPreview, setCoverPreview] = useState<string | null>(null);
-    const [galleryPreviews, setGalleryPreviews] = useState<string[]>([]);
+    const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
 
     const coverInputRef = useRef<HTMLInputElement>(null);
     const galleryInputRef = useRef<HTMLInputElement>(null);
+    const addressInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         return () => {
             if (coverPreview) URL.revokeObjectURL(coverPreview);
-            galleryPreviews.forEach(u => URL.revokeObjectURL(u));
+            galleryItems.forEach(g => URL.revokeObjectURL(g.url));
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    // ── Google Maps Places Autocomplete ────────────────────────────────────
+
+    useEffect(() => {
+        const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+        if (!apiKey || apiKey === 'your_google_maps_api_key') return;
+        if (document.getElementById('gm-places-script')) return;
+
+        const script = document.createElement('script');
+        script.id = 'gm-places-script';
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
+        script.async = true;
+        script.onload = initAutocomplete;
+        document.head.appendChild(script);
+
+        return () => {
+            // script persists across re-renders intentionally
+        };
+    }, []);
+
+    function initAutocomplete() {
+        if (!addressInputRef.current || !window.google) return;
+        const ac = new window.google.maps.places.Autocomplete(addressInputRef.current, {
+            types: ['geocode', 'establishment'],
+        });
+        ac.addListener('place_changed', () => {
+            const place = ac.getPlace();
+            const addr = place.formatted_address ?? place.name ?? '';
+            const lat = place.geometry?.location?.lat() ?? null;
+            const lng = place.geometry?.location?.lng() ?? null;
+            setForm(prev => ({ ...prev, address: addr, lat, lng }));
+            setErrors(prev => ({ ...prev, address: undefined }));
+        });
+    }
 
     useEffect(() => {
         getMyCompany()
@@ -163,19 +193,22 @@ export const CreateEventPage: React.FC = () => {
     function handleGalleryChange(e: React.ChangeEvent<HTMLInputElement>) {
         const files = Array.from(e.target.files ?? []);
         if (!files.length) return;
-        const newUrls = files.map(f => URL.createObjectURL(f));
+        const newItems: GalleryItem[] = files.map(f => ({
+            url: URL.createObjectURL(f),
+            isVideo: f.type.startsWith('video/'),
+        }));
         setForm(prev => ({ ...prev, galleryFiles: [...prev.galleryFiles, ...files] }));
-        setGalleryPreviews(prev => [...prev, ...newUrls]);
+        setGalleryItems(prev => [...prev, ...newItems]);
         e.target.value = '';
     }
 
     function removeGalleryItem(idx: number) {
-        URL.revokeObjectURL(galleryPreviews[idx]);
+        URL.revokeObjectURL(galleryItems[idx].url);
         setForm(prev => ({
             ...prev,
             galleryFiles: prev.galleryFiles.filter((_, i) => i !== idx),
         }));
-        setGalleryPreviews(prev => prev.filter((_, i) => i !== idx));
+        setGalleryItems(prev => prev.filter((_, i) => i !== idx));
     }
 
     // ── Field helpers ───────────────────────────────────────────────────────
@@ -199,72 +232,31 @@ export const CreateEventPage: React.FC = () => {
         setForm(prev => ({ ...prev, tags: prev.tags.filter(t => t !== tag) }));
     }
 
-    // ── Custom ticket tiers ─────────────────────────────────────────────
+    // ── Ticket tiers ────────────────────────────────────────────────────────
 
-    function addCustomTier() {
+    function addTier() {
         setForm(prev => ({
             ...prev,
-            customTiers: [
-                ...prev.customTiers,
-                {
-                    id: crypto.randomUUID(),
-                    name: 'VIP',
-                    price: prev.isFree ? 0 : prev.price,
-                    quantity: 1,
-                },
-            ],
+            tiers: [...prev.tiers, { id: crypto.randomUUID(), name: '', price: 0, capacity: 1 }],
         }));
-        setErrors(prev => ({ ...prev, customTiers: undefined }));
+        setErrors(prev => ({ ...prev, tiers: undefined }));
     }
 
-    function removeCustomTier(tierId: string) {
-        setForm(prev => ({
-            ...prev,
-            customTiers: prev.customTiers.filter(t => t.id !== tierId),
-        }));
+    function removeTier(tierId: string) {
+        setForm(prev => {
+            if (prev.tiers.length <= 1) return prev;
+            return { ...prev, tiers: prev.tiers.filter(t => t.id !== tierId) };
+        });
     }
 
-    function updateCustomTier(
-        tierId: string,
-        field: 'name' | 'price' | 'quantity',
-        value: string | number,
-    ) {
+    function updateTier(tierId: string, field: 'name' | 'price' | 'capacity', value: string | number) {
         setForm(prev => ({
             ...prev,
-            customTiers: prev.customTiers.map(t => {
-                if (t.id !== tierId) return t;
-                return {
-                    ...t,
-                    [field]: field === 'name' ? String(value) : Number(value),
-                };
-            }),
-        }));
-        setErrors(prev => ({ ...prev, customTiers: undefined }));
-    }
-
-    // ── Promo codes ─────────────────────────────────────────────────────────
-
-    function addPromo() {
-        setForm(prev => ({
-            ...prev,
-            promoCodes: [...prev.promoCodes, { id: crypto.randomUUID(), code: '', discount: 10 }],
-        }));
-    }
-
-    function updatePromo(id: string, field: 'code' | 'discount', value: string | number) {
-        setForm(prev => ({
-            ...prev,
-            promoCodes: prev.promoCodes.map(p =>
-                p.id === id ? { ...p, [field]: value } : p
+            tiers: prev.tiers.map(t =>
+                t.id !== tierId ? t : { ...t, [field]: field === 'name' ? String(value) : Number(value) }
             ),
         }));
-    }
-
-    function removePromo(id: string) {
-        setForm(prev => ({
-            ...prev,
-            promoCodes: prev.promoCodes.filter(p => p.id !== id),
-        }));
+        setErrors(prev => ({ ...prev, tiers: undefined }));
     }
 
     // ── Validation ──────────────────────────────────────────────────────────
@@ -284,18 +276,10 @@ export const CreateEventPage: React.FC = () => {
             if (!form.startTime) e.startTime = 'Start time is required.';
         }
         if (s === 3) {
-            if (form.ticketCount < 1) e.ticketCount = 'At least 1 ticket is required.';
-            if (!form.isFree && form.price <= 0) e.price = 'Enter a valid price.';
-
-            if (form.customTiers.length) {
-                const invalid = form.customTiers.some(t => {
-                    const nameOk = t.name.trim().length >= 1;
-                    const qtyOk = Number.isFinite(t.quantity) && t.quantity >= 1;
-                    const priceOk = Number.isFinite(t.price) && t.price >= 0;
-                    return !(nameOk && qtyOk && priceOk);
-                });
-                if (invalid) e.customTiers = 'Fix all custom ticket types (name, price, quantity).';
-            }
+            const invalid = form.tiers.some(
+                t => t.name.trim().length < 1 || t.capacity < 1 || t.price < 0
+            );
+            if (invalid) e.tiers = 'Each ticket type needs a name, a capacity ≥ 1, and a price ≥ 0.';
 
             if (form.redirectUrl && !isValidUrl(form.redirectUrl))
                 e.redirectUrl = 'Enter a valid URL (including https://).';
@@ -324,28 +308,19 @@ export const CreateEventPage: React.FC = () => {
             const payload: any = {
                 title: form.name,
                 description: form.description,
-                format: 'offline',
+                format: form.format,
                 category: form.tags[0] ?? 'General',
                 tags: form.tags,
                 date: start.toISOString(),
-                location: form.address,
-                price: form.isFree ? 0 : form.price,
-                currency: 'EUR',
-                capacity: form.ticketCount,
-                tickets: [
-                    {
-                        name: 'General admission',
-                        price: form.isFree ? 0 : form.price,
-                        currency: 'EUR',
-                        capacity: form.ticketCount,
-                    },
-                    ...form.customTiers.map(t => ({
-                        name: t.name,
-                        price: t.price,
-                        currency: 'EUR',
-                        capacity: t.quantity,
-                    })),
-                ],
+                location: form.address || undefined,
+                lat: form.lat ?? undefined,
+                lng: form.lng ?? undefined,
+                tickets: form.tiers.map(t => ({
+                    name: t.name,
+                    price: t.price,
+                    currency: 'EUR',
+                    capacity: t.capacity,
+                })),
                 cover: form.coverFile ?? undefined,
                 photos: form.galleryFiles.length ? form.galleryFiles : undefined,
                 // Always publish so the event shows up on the dashboard.
@@ -448,6 +423,26 @@ export const CreateEventPage: React.FC = () => {
                 <h2 className="cr-step-title">Details</h2>
 
                 <div className="cr-field">
+                    <label className="cr-label">Format</label>
+                    <div className="ev-segmented">
+                        <button
+                            type="button"
+                            className={`ev-segmented-btn${form.format === 'offline' ? ' ev-segmented-btn--active' : ''}`}
+                            onClick={() => set('format', 'offline')}
+                        >
+                            In-person
+                        </button>
+                        <button
+                            type="button"
+                            className={`ev-segmented-btn${form.format === 'online' ? ' ev-segmented-btn--active' : ''}`}
+                            onClick={() => set('format', 'online')}
+                        >
+                            Online
+                        </button>
+                    </div>
+                </div>
+
+                <div className="cr-field">
                     <label className="cr-label">
                         Description <span className="cr-required">*</span>
                     </label>
@@ -461,14 +456,25 @@ export const CreateEventPage: React.FC = () => {
                 </div>
 
                 <div className="cr-field">
-                    <label className="cr-label">Address / Location</label>
+                    <label className="cr-label">
+                        {form.format === 'online' ? 'Online link / URL' : 'Address / Location'}
+                    </label>
                     <div className="cr-input-icon-wrap">
                         <span className="cr-input-icon"><IconMapPin size={15} /></span>
                         <input
+                            ref={addressInputRef}
                             className="cr-input cr-input--with-icon"
-                            placeholder="Address or Google Maps link"
+                            placeholder={form.format === 'online' ? 'https://meet.google.com/…' : 'Start typing an address…'}
                             value={form.address}
-                            onChange={e => set('address', e.target.value)}
+                            onChange={e => {
+                                setForm(prev => ({ ...prev, address: e.target.value, lat: null, lng: null }));
+                                setErrors(prev => ({ ...prev, address: undefined }));
+                            }}
+                            onFocus={() => {
+                                if (form.format === 'offline' && window.google && addressInputRef.current) {
+                                    initAutocomplete();
+                                }
+                            }}
                         />
                     </div>
                 </div>
@@ -566,9 +572,20 @@ export const CreateEventPage: React.FC = () => {
                 <div className="cr-field">
                     <label className="cr-label">Gallery <span style={{ color: '#555', fontWeight: 400 }}>(photos & videos)</span></label>
                     <div className="ev-gallery-grid">
-                        {galleryPreviews.map((url, i) => (
-                            <div key={url} className="ev-gallery-item">
-                                <img className="ev-gallery-thumb" src={url} alt={`Gallery ${i + 1}`} />
+                        {galleryItems.map((item, i) => (
+                            <div key={item.url} className="ev-gallery-item">
+                                {item.isVideo ? (
+                                    <video
+                                        className="ev-gallery-thumb"
+                                        src={item.url}
+                                        muted
+                                        playsInline
+                                        onMouseEnter={e => (e.currentTarget as HTMLVideoElement).play()}
+                                        onMouseLeave={e => { const v = e.currentTarget as HTMLVideoElement; v.pause(); v.currentTime = 0; }}
+                                    />
+                                ) : (
+                                    <img className="ev-gallery-thumb" src={item.url} alt={`Gallery ${i + 1}`} />
+                                )}
                                 <button
                                     type="button"
                                     className="ev-gallery-remove"
@@ -608,153 +625,86 @@ export const CreateEventPage: React.FC = () => {
             <div className="cr-step-content" key="s3">
                 <h2 className="cr-step-title">Tickets & Settings</h2>
 
-                {/* Free / Paid */}
-                <div className="cr-field">
-                    <label className="cr-label">Pricing</label>
-                    <div className="ev-segmented">
-                        <button
-                            type="button"
-                            className={`ev-segmented-btn${form.isFree ? ' ev-segmented-btn--active' : ''}`}
-                            onClick={() => set('isFree', true)}
-                        >
-                            Free
-                        </button>
-                        <button
-                            type="button"
-                            className={`ev-segmented-btn${!form.isFree ? ' ev-segmented-btn--active' : ''}`}
-                            onClick={() => set('isFree', false)}
-                        >
-                            Paid
-                        </button>
-                    </div>
-                </div>
-
-                {/* Ticket count */}
-                <div className="cr-field">
-                    <label className="cr-label">Number of Tickets <span className="cr-required">*</span></label>
-                    <div className="ev-qty-control">
-                        <button
-                            type="button"
-                            className="ev-qty-btn"
-                            disabled={form.ticketCount <= 1}
-                            onClick={() => set('ticketCount', Math.max(1, form.ticketCount - 1))}
-                        >
-                            −
-                        </button>
-                        <input
-                            type="number"
-                            className="ev-qty-input"
-                            value={form.ticketCount}
-                            min={1}
-                            onChange={e => {
-                                const v = parseInt(e.target.value) || 1;
-                                set('ticketCount', Math.max(1, v));
-                            }}
-                        />
-                        <button
-                            type="button"
-                            className="ev-qty-btn"
-                            onClick={() => set('ticketCount', form.ticketCount + 1)}
-                        >
-                            +
-                        </button>
-                    </div>
-                    {errors.ticketCount && <span className="cr-error">{errors.ticketCount}</span>}
-                </div>
-
-                {/* Price */}
-                {!form.isFree && (
-                    <div className="cr-field">
-                        <label className="cr-label">Price <span className="cr-required">*</span></label>
-                        <div className="ev-price-wrap">
-                            <span className="ev-price-prefix">€</span>
-                            <input
-                                type="number"
-                                min={0}
-                                step={0.01}
-                                className={`cr-input ev-price-input${errors.price ? ' cr-input--error' : ''}`}
-                                placeholder="0.00"
-                                value={form.price || ''}
-                                onChange={e => set('price', parseFloat(e.target.value) || 0)}
-                            />
-                        </div>
-                        {errors.price && <span className="cr-error">{errors.price}</span>}
-                    </div>
-                )}
-
-                {/* Additional ticket types */}
+                {/* Ticket types */}
                 <div className="cr-section-divider">Ticket types</div>
-                {form.customTiers.length > 0 ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                        {form.customTiers.map(tier => (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    {form.tiers.map((tier, idx) => (
+                        <div
+                            key={tier.id}
+                            style={{
+                                background: '#111',
+                                border: '1px solid rgba(255,107,0,0.15)',
+                                borderRadius: 14,
+                                padding: 16,
+                            }}
+                        >
                             <div
-                                key={tier.id}
                                 style={{
                                     display: 'grid',
-                                    gridTemplateColumns: '1fr 140px 140px 42px',
+                                    gridTemplateColumns: '1fr 130px 110px 38px',
                                     gap: 10,
                                     alignItems: 'end',
                                 }}
                             >
                                 <div className="cr-field" style={{ margin: 0 }}>
                                     <label className="cr-label" style={{ display: 'block' }}>
-                                        Name
+                                        Name {idx === 0 && <span className="cr-required">*</span>}
                                     </label>
                                     <input
-                                        className={`cr-input${errors.customTiers ? ' cr-input--error' : ''}`}
+                                        className={`cr-input${errors.tiers && tier.name.trim().length < 1 ? ' cr-input--error' : ''}`}
+                                        placeholder={idx === 0 ? 'General Admission' : 'e.g. VIP'}
                                         value={tier.name}
-                                        onChange={e => updateCustomTier(tier.id, 'name', e.target.value)}
+                                        onChange={e => updateTier(tier.id, 'name', e.target.value)}
                                     />
                                 </div>
 
                                 <div className="cr-field" style={{ margin: 0 }}>
-                                    <label className="cr-label" style={{ display: 'block' }}>
-                                        Price
-                                    </label>
-                                    <input
-                                        type="number"
-                                        min={0}
-                                        step={0.01}
-                                        className="cr-input"
-                                        value={tier.price}
-                                        onChange={e => updateCustomTier(tier.id, 'price', parseFloat(e.target.value) || 0)}
-                                    />
+                                    <label className="cr-label" style={{ display: 'block' }}>Price</label>
+                                    <div className="ev-price-wrap" style={{ position: 'relative' }}>
+                                        <span className="ev-price-prefix">€</span>
+                                        <input
+                                            type="number"
+                                            min={0}
+                                            step={0.01}
+                                            className="cr-input ev-price-input"
+                                            placeholder="0.00"
+                                            value={tier.price || ''}
+                                            onChange={e => updateTier(tier.id, 'price', parseFloat(e.target.value) || 0)}
+                                        />
+                                    </div>
                                 </div>
 
                                 <div className="cr-field" style={{ margin: 0 }}>
-                                    <label className="cr-label" style={{ display: 'block' }}>
-                                        Quantity
-                                    </label>
+                                    <label className="cr-label" style={{ display: 'block' }}>Capacity</label>
                                     <input
                                         type="number"
                                         min={1}
-                                        className="cr-input"
-                                        value={tier.quantity}
-                                        onChange={e => updateCustomTier(tier.id, 'quantity', Math.max(1, parseInt(e.target.value) || 1))}
+                                        className={`cr-input${errors.tiers && tier.capacity < 1 ? ' cr-input--error' : ''}`}
+                                        value={tier.capacity}
+                                        onChange={e => updateTier(tier.id, 'capacity', Math.max(1, parseInt(e.target.value) || 1))}
                                     />
                                 </div>
 
                                 <button
                                     type="button"
                                     className="cr-btn cr-btn--ghost"
-                                    style={{ padding: 8, justifySelf: 'end' }}
-                                    onClick={() => removeCustomTier(tier.id)}
+                                    style={{ padding: 8, justifySelf: 'end', opacity: form.tiers.length <= 1 ? 0.3 : 1 }}
+                                    disabled={form.tiers.length <= 1}
+                                    onClick={() => removeTier(tier.id)}
                                     aria-label="Remove ticket type"
                                 >
                                     <IconClose size={14} />
                                 </button>
                             </div>
-                        ))}
-                    </div>
-                ) : (
-                    <p style={{ marginTop: -2, color: '#777' }}>No additional ticket types yet.</p>
-                )}
+                        </div>
+                    ))}
+                </div>
+                {errors.tiers && <span className="cr-error" style={{ marginTop: 6, display: 'block' }}>{errors.tiers}</span>}
 
-                <button type="button" className="ev-add-promo-btn" onClick={addCustomTier}>
+                <button type="button" className="ev-add-promo-btn" onClick={addTier} style={{ marginTop: 12 }}>
                     <IconPlus size={13} />
                     Add ticket type
                 </button>
-                {errors.customTiers && <span className="cr-error">{errors.customTiers}</span>}
 
                 {/* Redirect URL */}
                 <div className="cr-field">
@@ -817,50 +767,6 @@ export const CreateEventPage: React.FC = () => {
                         </label>
                     </div>
                 </div>
-
-                {/* Promo codes */}
-                <div className="cr-section-divider">Promo Codes</div>
-
-                {form.promoCodes.length > 0 && (
-                    <div className="ev-promo-list">
-                        {form.promoCodes.map(p => (
-                            <div key={p.id} className="ev-promo-row">
-                                <input
-                                    className="cr-input"
-                                    placeholder="CODE"
-                                    maxLength={20}
-                                    value={p.code}
-                                    onChange={e => updatePromo(p.id, 'code', e.target.value.toUpperCase())}
-                                />
-                                <div className="ev-discount-wrap">
-                                    <input
-                                        type="number"
-                                        className="cr-input ev-discount-input"
-                                        placeholder="10"
-                                        min={1}
-                                        max={100}
-                                        value={p.discount || ''}
-                                        onChange={e => updatePromo(p.id, 'discount', Math.min(100, Math.max(1, parseInt(e.target.value) || 0)))}
-                                    />
-                                    <span className="ev-discount-suffix">%</span>
-                                </div>
-                                <button
-                                    type="button"
-                                    className="ev-promo-remove"
-                                    onClick={() => removePromo(p.id)}
-                                    aria-label="Remove promo code"
-                                >
-                                    <IconClose size={13} />
-                                </button>
-                            </div>
-                        ))}
-                    </div>
-                )}
-
-                <button type="button" className="ev-add-promo-btn" onClick={addPromo}>
-                    <IconPlus size={13} />
-                    Add Promo Code
-                </button>
             </div>
         );
     }
@@ -911,6 +817,10 @@ export const CreateEventPage: React.FC = () => {
                     {/* Details */}
                     <div className="cr-review-section">
                         <p className="cr-review-section-title">Details</p>
+                        <div className="cr-review-row">
+                            <span className="cr-review-label">Format</span>
+                            <span className="cr-review-value">{form.format === 'online' ? 'Online' : 'In-person'}</span>
+                        </div>
                         {form.description && (
                             <div className="cr-review-row cr-review-row--block">
                                 <span className="cr-review-label">Description</span>
@@ -966,14 +876,10 @@ export const CreateEventPage: React.FC = () => {
                         <div className="cr-review-row">
                             <span className="cr-review-label">Type</span>
                             <span className="cr-review-value">
-                                {1 + form.customTiers.length} type{1 + form.customTiers.length === 1 ? '' : 's'} ·{' '}
+                                {form.tiers.length} type{form.tiers.length === 1 ? '' : 's'} ·{' '}
                                 min price:{' '}
                                 {(() => {
-                                    const prices = [
-                                        form.isFree ? 0 : form.price,
-                                        ...form.customTiers.map(t => t.price),
-                                    ];
-                                    const min = Math.min(...prices);
+                                    const min = Math.min(...form.tiers.map(t => t.price));
                                     return min === 0 ? 'Free' : `€${min.toFixed(2)}`;
                                 })()}
                             </span>
@@ -981,10 +887,7 @@ export const CreateEventPage: React.FC = () => {
                         <div className="cr-review-row">
                             <span className="cr-review-label">Count</span>
                             <span className="cr-review-value">
-                                {(
-                                    form.ticketCount +
-                                    form.customTiers.reduce((s, t) => s + t.quantity, 0)
-                                ).toLocaleString()}
+                                {form.tiers.reduce((s, t) => s + t.capacity, 0).toLocaleString()}
                             </span>
                         </div>
                         {form.redirectUrl && (
@@ -1004,27 +907,6 @@ export const CreateEventPage: React.FC = () => {
                             <span className="cr-review-value">{form.organizerNotifications ? 'On' : 'Off'}</span>
                         </div>
 
-                        {form.promoCodes.length > 0 && (
-                            <div className="cr-review-row cr-review-row--block" style={{ marginTop: 8 }}>
-                                <span className="cr-review-label">Promo Codes</span>
-                                <table className="ev-promo-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Code</th>
-                                            <th>Discount</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {form.promoCodes.map(p => (
-                                            <tr key={p.id}>
-                                                <td style={{ fontFamily: 'monospace' }}>{p.code || '—'}</td>
-                                                <td>{p.discount}%</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        )}
                     </div>
                 </div>
             </div>

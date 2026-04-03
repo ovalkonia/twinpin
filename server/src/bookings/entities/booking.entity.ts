@@ -19,7 +19,7 @@ export class Booking {
   @ManyToOne(() => User, { onDelete: 'CASCADE', eager: false })
   user: User;
 
-  @ManyToOne(() => Ticket, { onDelete: 'CASCADE', eager: false })
+  @ManyToOne(() => Ticket, (ticket) => ticket.bookings, { onDelete: 'CASCADE', eager: false })
   ticket: Ticket;
 
   @Column({ type: 'int', default: 1 })
