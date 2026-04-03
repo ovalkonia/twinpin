@@ -13,6 +13,7 @@ import EventInfoCard from '../../components/Events/EventInfoCard.tsx';
 import EventTicketSelector from '../../components/Events/EventTicketSelector.tsx';
 import EventShare from '../../components/Events/EventShare.tsx';
 import EventLightbox from '../../components/Events/EventLightbox.tsx';
+import EventSimilar from '../../components/Events/EventSimilar.tsx';
 import {
     getEventById,
     getEventAttendees,
@@ -38,6 +39,7 @@ interface EventData {
     organizer: string;
     price: number | 'free';
     category: string;
+    tags: string[];
     status: 'upcoming' | 'ongoing' | 'past';
     capacity: number;
     spotsLeft: number;
@@ -87,6 +89,7 @@ function mapEvent(event: Event, attendees: EventAttendee[]): Omit<EventData, 'ti
         organizer: event.organizerName,
         price: event.price === 0 ? 'free' : event.price,
         category: event.category,
+        tags: event.tags ?? [],
         status: deriveStatus(event.date, event.endDate),
         capacity: event.capacity ?? 0,
         spotsLeft: event.capacity ? event.capacity - event.attendeeCount : 0,
@@ -171,6 +174,7 @@ export default function EventPage() {
                     <EventHeaderBlock
                         name={event.name}
                         category={event.category}
+                        tags={event.tags}
                         status={event.status}
                         date={event.date}
                         time={event.time}
@@ -186,6 +190,7 @@ export default function EventPage() {
                     <EventMap location={event.location} />
                     <EventFaq faq={event.faq} />
                     <EventGoing attendees={event.attendees} />
+                    <EventSimilar eventId={event.id} />
                 </main>
 
                 <aside className="event-sidebar">

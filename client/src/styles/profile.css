@@ -538,3 +538,25 @@
         gap: 4px;
     }
 }
+/* ─── Profile Card Actions ───────────────────────────────── */
+
+.profile-card-actions {
+    margin-top: 12px;
+}
+
+.profile-edit-btn {
+    display: inline-block;
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #ff6b00;
+    border: 1px solid rgba(255,107,0,0.4);
+    text-decoration: none;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.profile-edit-btn:hover {
+    background: rgba(255,107,0,0.1);
+    border-color: rgba(255,107,0,0.7);
+}

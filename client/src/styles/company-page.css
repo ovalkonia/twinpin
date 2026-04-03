@@ -575,3 +575,88 @@
         grid-template-columns: 1fr 1fr;
     }
 }
+/* ─── Contact rows ───────────────────────────────────────── */
+
+.cp-contact-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-top: 20px;
+}
+
+.cp-contact-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    color: #bbb;
+    text-decoration: none;
+    font-size: 13px;
+    transition: color 0.15s;
+}
+
+.cp-contact-row:last-child {
+    border-bottom: none;
+}
+
+a.cp-contact-row:hover {
+    color: #ff6b00;
+}
+
+.cp-contact-icon {
+    color: #666;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.cp-contact-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ─── Social links sidebar card ──────────────────────────── */
+
+.cp-social-links {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.cp-social-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+    transition: opacity 0.15s, transform 0.15s;
+    color: #fff;
+}
+
+.cp-social-link:hover {
+    opacity: 0.85;
+    transform: translateX(2px);
+}
+
+.cp-social-link--linkedin  { background: #0A66C2; }
+.cp-social-link--instagram { background: linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); }
+.cp-social-link--tiktok    { background: #010101; border: 1px solid rgba(255,255,255,0.1); }
+.cp-social-link--telegram  { background: #229ED9; }
+.cp-social-link--website   { background: rgba(255,107,0,0.15); color: #ff6b00; border: 1px solid rgba(255,107,0,0.3); }
+
+/* ─── Company map ────────────────────────────────────────── */
+
+.cp-map {
+    width: 100%;
+    height: 240px;
+    border: none;
+    border-radius: 12px;
+    margin-top: 20px;
+    display: block;
+    background: #111;
+}

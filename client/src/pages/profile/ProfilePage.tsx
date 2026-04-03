@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import Header from '../../components/Header/header';
 import { useAuth } from '../../context/AuthContext';
-import { getUserById, getUserEvents, getUserTickets, updateUser, updateUserAvatar, type UserProfile, UserEvent, type UserTicket } from '../../services/user';
+import { getUserById, getUserEvents, getUserTickets, updateUserAvatar, type UserProfile, UserEvent, type UserTicket } from '../../services/user';
 import { deleteEvent } from '../../services/events';
 import { IconCamera } from '../../assets/icons';
 import '../../styles/profile.css';
@@ -26,16 +26,7 @@ export const ProfilePage = () => {
     const [ticketHistory, setTicketHistory]   = useState<UserTicket[]>([]);
     const [ticketsLoading, setTicketsLoading] = useState(true);
 
-    const [activeTab, setActiveTab]             = useState<'events' | 'tickets'>('events');
-    const [bio, setBio]                         = useState('');
-    const [bioEditing, setBioEditing]           = useState(false);
-    const [nameInput, setNameInput]             = useState('');
-    const [currentPassword, setCurrentPassword] = useState('');
-    const [newPassword, setNewPassword]         = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
-
-    const [savingProfile, setSavingProfile] = useState(false);
-    const [savingPassword, setSavingPassword] = useState(false);
+    const [activeTab, setActiveTab] = useState<'events' | 'tickets'>('events');
 
     const isOwnProfile = Boolean(currentUser?.id && resolvedUserId && currentUser.id === resolvedUserId);
 
@@ -56,7 +47,6 @@ export const ProfilePage = () => {
         getUserById(resolvedUserId)
             .then(data => {
                 setProfileUser(data);
-                setNameInput(data.name);
                 setAvatarObjectUrl(null);
             })
             .catch(() => setProfileError(true))
@@ -100,45 +90,6 @@ export const ProfilePage = () => {
             .finally(() => setSavingAvatar(false));
     };
 
-    const handleSaveProfile = async () => {
-        if (!resolvedUserId) return;
-        setSavingProfile(true);
-        try {
-            const updated = await updateUser(resolvedUserId, { name: nameInput });
-            setProfileUser(updated);
-            toast.success('Profile updated');
-        } catch {
-            toast.error('Failed to update profile');
-        } finally {
-            setSavingProfile(false);
-        }
-    };
-
-    const handleUpdatePassword = async () => {
-        if (!resolvedUserId) return;
-        if (!newPassword || !confirmPassword) {
-            toast.error('Please enter a new password');
-            return;
-        }
-        if (newPassword !== confirmPassword) {
-            toast.error('Passwords do not match');
-            return;
-        }
-        setSavingPassword(true);
-        try {
-            await updateUser(resolvedUserId, { password: newPassword });
-            toast.success('Password updated');
-            setNewPassword('');
-            setConfirmPassword('');
-            setCurrentPassword('');
-        } catch {
-            toast.error('Failed to update password');
-        } finally {
-            setSavingPassword(false);
-        }
-    };
-
-    const isGoogleConnected = false;
     const initial = profileUser?.name?.[0]?.toUpperCase() || '?';
     const totalTickets = ticketHistory.reduce((sum, t) => sum + t.ticketCount, 0);
 
@@ -193,10 +144,8 @@ export const ProfilePage = () => {
                     </div>
 
                     {isOwnProfile && (
-                        <div className="profile-bio-wrap">
-                            <p className="profile-bio" style={{ color: '#555' }}>
-                                Bio editing is not available yet.
-                            </p>
+                        <div className="profile-card-actions">
+                            <Link to="/profile/edit" className="profile-edit-btn">Edit Profile</Link>
                         </div>
                     )}
 
@@ -277,7 +226,6 @@ export const ProfilePage = () => {
                                                 </span>
                                             </div>
                                             <div className="event-card-footer">
-                                                <span className="event-card-price">{event.price}</span>
                                                 <Link to={`/events/${event.id}/edit`} className="event-card-btn">Manage</Link>
                                                 {isOwnProfile && (
                                                     <button
@@ -354,127 +302,6 @@ export const ProfilePage = () => {
                     )}
                 </section>
 
-                {/* ── Settings & Security (own profile only) ─────────── */}
-                {isOwnProfile && (
-                <section className="profile-section" style={{ animationDelay: '0.16s' }}>
-                    <h2 className="profile-section-title">Settings & Security</h2>
-
-                    <div className="settings-grid">
-
-                        {/* Edit Profile */}
-                        <div className="settings-card">
-                            <h3 className="settings-card-title">Edit Profile</h3>
-                            <form
-                                onSubmit={(e) => {
-                                    e.preventDefault();
-                                    handleSaveProfile();
-                                }}
-                                className="settings-form"
-                            >
-                                <label className="settings-label">Display name</label>
-                                <input
-                                    className="settings-input"
-                                    type="text"
-                                    value={nameInput}
-                                    onChange={e => setNameInput(e.target.value)}
-                                    placeholder="Your name"
-                                />
-                                <label className="settings-label">Email</label>
-                                <input
-                                    className="settings-input"
-                                    type="email"
-                                    value={profileUser?.email || ''}
-                                    readOnly
-                                    disabled
-                                />
-                                <button
-                                    type="submit"
-                                    className="settings-btn"
-                                    disabled={savingProfile}
-                                >
-                                    {savingProfile ? 'Saving…' : 'Save changes'}
-                                </button>
-                            </form>
-                        </div>
-
-                        {/* Change Password */}
-                        <div className="settings-card">
-                            <h3 className="settings-card-title">Change Password</h3>
-                            <form
-                                onSubmit={(e) => {
-                                    e.preventDefault();
-                                    handleUpdatePassword();
-                                }}
-                                className="settings-form"
-                            >
-                                <label className="settings-label">Current password</label>
-                                <input
-                                    className="settings-input"
-                                    type="password"
-                                    value={currentPassword}
-                                    onChange={e => setCurrentPassword(e.target.value)}
-                                    placeholder="••••••••"
-                                />
-                                <label className="settings-label">New password</label>
-                                <input
-                                    className="settings-input"
-                                    type="password"
-                                    value={newPassword}
-                                    onChange={e => setNewPassword(e.target.value)}
-                                    placeholder="••••••••"
-                                />
-                                <label className="settings-label">Confirm new password</label>
-                                <input
-                                    className="settings-input"
-                                    type="password"
-                                    value={confirmPassword}
-                                    onChange={e => setConfirmPassword(e.target.value)}
-                                    placeholder="••••••••"
-                                />
-                                <button
-                                    type="submit"
-                                    className="settings-btn"
-                                    disabled={savingPassword}
-                                >
-                                    {savingPassword ? 'Updating…' : 'Update password'}
-                                </button>
-                            </form>
-                        </div>
-
-                        {/* Integrations */}
-                        <div className="settings-card settings-card--full">
-                            <h3 className="settings-card-title">Integrations</h3>
-                            <div className="integration-row">
-                                <div className="integration-info">
-                                    <svg className="integration-icon" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
-                                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" />
-                                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84z" />
-                                    </svg>
-                                    <div>
-                                        <div className="integration-name">Google Account</div>
-                                        <div className="integration-desc">
-                                            {isGoogleConnected
-                                                ? 'Your Google account is linked. You can sign in with Google.'
-                                                : 'Connect your Google account to enable one-click sign-in.'}
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="integration-right">
-                                    <span className={`integration-badge ${isGoogleConnected ? 'connected' : 'disconnected'}`}>
-                                        {isGoogleConnected ? 'Connected' : 'Not connected'}
-                                    </span>
-                                    <button className="settings-btn settings-btn--outline">
-                                        {isGoogleConnected ? 'Disconnect' : 'Connect'}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-                </section>
-                )}
 
                 </>
                 )}

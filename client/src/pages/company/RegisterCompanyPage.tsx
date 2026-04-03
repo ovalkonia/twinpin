@@ -78,8 +78,10 @@ export const RegisterCompanyPage: React.FC = () => {
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [submitting, setSubmitting] = useState(false);
 
-    const logoInputRef = useRef<HTMLInputElement>(null);
-    const coverInputRef = useRef<HTMLInputElement>(null);
+    const logoInputRef    = useRef<HTMLInputElement>(null);
+    const coverInputRef   = useRef<HTMLInputElement>(null);
+    const addressInputRef = useRef<HTMLInputElement>(null);
+
     // Revoke object URLs on unmount
     useEffect(() => {
         return () => {
@@ -88,6 +90,36 @@ export const RegisterCompanyPage: React.FC = () => {
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    // Google Maps Places autocomplete for address
+    useEffect(() => {
+        const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string | undefined;
+        if (!apiKey || apiKey === 'your_google_maps_api_key') return;
+        if (document.getElementById('gm-places-script')) {
+            initAddressAutocomplete();
+            return;
+        }
+        const script = document.createElement('script');
+        script.id = 'gm-places-script';
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
+        script.async = true;
+        script.onload = initAddressAutocomplete;
+        document.head.appendChild(script);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    function initAddressAutocomplete() {
+        if (!addressInputRef.current || !(window as any).google) return;
+        const ac = new (window as any).google.maps.places.Autocomplete(addressInputRef.current, {
+            types: ['geocode', 'establishment'],
+        });
+        ac.addListener('place_changed', () => {
+            const place = ac.getPlace();
+            const addr = place.formatted_address ?? place.name ?? '';
+            setForm(f => ({ ...f, address: addr }));
+            setErrors(prev => ({ ...prev, address: '' }));
+        });
+    }
 
     // ── Field handlers ──────────────────────────────────────────────────────
 
@@ -419,11 +451,13 @@ export const RegisterCompanyPage: React.FC = () => {
                 <div className="cr-input-icon-wrap">
                     <span className="cr-input-icon"><IconMapPin size={15} /></span>
                     <input
+                        ref={addressInputRef}
                         className="cr-input cr-input--with-icon"
                         type="text"
                         value={form.address}
                         onChange={e => setForm(f => ({ ...f, address: e.target.value }))}
-                        placeholder="123 Main St, City, Country"
+                        placeholder="Start typing an address…"
+                        autoComplete="off"
                     />
                 </div>
             </div>

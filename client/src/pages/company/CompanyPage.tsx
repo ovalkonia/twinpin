@@ -10,6 +10,16 @@ import {
     type Company,
     type CompanyMember,
 } from '../../services/company';
+import {
+    IconGlobe,
+    IconInstagram,
+    IconLinkedIn,
+    IconMapPin,
+    IconTelegram,
+    IconTikTok,
+} from '../../assets/icons';
+
+const MAPS_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string | undefined;
 import '../../styles/company-page.css';
 import '../../styles/company-register.css';
 import { getUserEvents, type UserEvent } from '../../services/user';
@@ -161,22 +171,47 @@ export const CompanyPage: React.FC = () => {
                         ) : (
                             <p className="cp-description cp-description--empty">No description provided yet.</p>
                         )}
+                        {company.address && (() => {
+                            const q = encodeURIComponent(company.address);
+                            const hasKey = MAPS_KEY && MAPS_KEY !== 'your_google_maps_api_key';
+                            const src = hasKey
+                                ? `https://www.google.com/maps/embed/v1/place?key=${MAPS_KEY}&q=${q}&zoom=15`
+                                : `https://maps.google.com/maps?q=${q}&z=15&output=embed`;
+                            return (
+                                <iframe
+                                    className="cp-map"
+                                    src={src}
+                                    loading="lazy"
+                                    allowFullScreen
+                                    referrerPolicy="no-referrer-when-downgrade"
+                                    title="Company location"
+                                />
+                            );
+                        })()}
+
                         {hasContact && (
-                            <div className="cp-contact">
+                            <div className="cp-contact-rows">
                                 {company.website && (
-                                    <p>
-                                        <strong>Website:</strong> {company.website}
-                                    </p>
+                                    <a className="cp-contact-row" href={company.website} target="_blank" rel="noopener noreferrer">
+                                        <span className="cp-contact-icon"><IconGlobe size={14} /></span>
+                                        <span className="cp-contact-text">{company.website.replace(/^https?:\/\//, '')}</span>
+                                    </a>
                                 )}
                                 {company.address && (
-                                    <p>
-                                        <strong>Address:</strong> {company.address}
-                                    </p>
+                                    <div className="cp-contact-row">
+                                        <span className="cp-contact-icon"><IconMapPin size={14} /></span>
+                                        <span className="cp-contact-text">{company.address}</span>
+                                    </div>
                                 )}
                                 {company.email && (
-                                    <p>
-                                        <strong>Email:</strong> {company.email}
-                                    </p>
+                                    <a className="cp-contact-row" href={`mailto:${company.email}`}>
+                                        <span className="cp-contact-icon">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                <rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+                                            </svg>
+                                        </span>
+                                        <span className="cp-contact-text">{company.email}</span>
+                                    </a>
                                 )}
                             </div>
                         )}
@@ -226,9 +261,6 @@ export const CompanyPage: React.FC = () => {
                                                 </span>
                                             </div>
                                             <div className="event-card-footer">
-                                                <span className="event-card-price">
-                                                    {event.price}
-                                                </span>
                                                 <Link
                                                     to={`/events/${event.id}/edit`}
                                                     className="event-card-btn"
@@ -310,22 +342,45 @@ export const CompanyPage: React.FC = () => {
                     </section>
                 </main>
 
-                <aside className="cp-sidebar">
-                    <div className="cp-sidebar-card">
-                        <p className="cp-card-title">Stats</p>
-                        <div className="cp-stats-row">
-                            <div className="cp-stat">
-                                <span className="cp-stat-value">{company.stats?.eventsCreated ?? 0}</span>
-                                <span className="cp-stat-label">Events</span>
-                            </div>
-                            <div className="cp-stat-divider" />
-                            <div className="cp-stat">
-                                <span className="cp-stat-value">{company.stats?.totalAttendees ?? 0}</span>
-                                <span className="cp-stat-label">Attendees</span>
+                {(company.linkedin || company.instagram || company.tiktok || company.telegram || company.website) && (
+                    <aside className="cp-sidebar">
+                        <div className="cp-sidebar-card">
+                            <p className="cp-card-title">Find us on</p>
+                            <div className="cp-social-links">
+                                {company.linkedin && (
+                                    <a className="cp-social-link cp-social-link--linkedin" href={company.linkedin} target="_blank" rel="noopener noreferrer">
+                                        <IconLinkedIn size={16} />
+                                        <span>LinkedIn</span>
+                                    </a>
+                                )}
+                                {company.instagram && (
+                                    <a className="cp-social-link cp-social-link--instagram" href={company.instagram} target="_blank" rel="noopener noreferrer">
+                                        <IconInstagram size={16} />
+                                        <span>Instagram</span>
+                                    </a>
+                                )}
+                                {company.tiktok && (
+                                    <a className="cp-social-link cp-social-link--tiktok" href={company.tiktok} target="_blank" rel="noopener noreferrer">
+                                        <IconTikTok size={16} />
+                                        <span>TikTok</span>
+                                    </a>
+                                )}
+                                {company.telegram && (
+                                    <a className="cp-social-link cp-social-link--telegram" href={company.telegram} target="_blank" rel="noopener noreferrer">
+                                        <IconTelegram size={16} />
+                                        <span>Telegram</span>
+                                    </a>
+                                )}
+                                {company.website && (
+                                    <a className="cp-social-link cp-social-link--website" href={company.website} target="_blank" rel="noopener noreferrer">
+                                        <IconGlobe size={16} />
+                                        <span>Website</span>
+                                    </a>
+                                )}
                             </div>
                         </div>
-                    </div>
-                </aside>
+                    </aside>
+                )}
             </div>
         </div>
     );
