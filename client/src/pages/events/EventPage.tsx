@@ -120,7 +120,7 @@ export default function EventPage() {
 
         Promise.all([
             getEventById(resolvedId),
-            getEventAttendees(resolvedId),
+            getEventAttendees(resolvedId).catch(() => [] as EventAttendee[]),
             getEventTickets(resolvedId),
         ])
             .then(([evt, attendees, tickets]) => {
