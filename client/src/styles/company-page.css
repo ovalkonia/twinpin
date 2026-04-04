@@ -736,3 +736,39 @@ a.cp-contact-row:hover {
     display: block;
     background: #111;
 }
+
+/* ── Follow button ───────────────────────────────────────────── */
+.cp-follow-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 9px 20px;
+    border-radius: 50px;
+    background: transparent;
+    border: 1px solid rgba(255, 107, 0, 0.4);
+    color: #ff6b00;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s, color 0.2s;
+    white-space: nowrap;
+}
+
+.cp-follow-btn:hover:not(:disabled) {
+    background: rgba(255, 107, 0, 0.1);
+    border-color: #ff6b00;
+}
+
+.cp-follow-btn--active {
+    background: #ff6b00;
+    border-color: #ff6b00;
+    color: #fff;
+}
+
+.cp-follow-btn--active:hover:not(:disabled) {
+    background: #e05a00;
+}
+
+.cp-follow-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}

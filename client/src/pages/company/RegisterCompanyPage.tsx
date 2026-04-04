@@ -109,34 +109,17 @@ export const RegisterCompanyPage: React.FC = () => {
     useEffect(() => {
         const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string | undefined;
         if (!apiKey || apiKey === 'your_google_maps_api_key') return;
-        const existing = document.getElementById('gm-places-script') as HTMLScriptElement | null;
-        if (existing) {
-            if ((window as any).google) {
-                initAddressAutocomplete();
-            } else {
-                existing.addEventListener('load', initAddressAutocomplete);
-            }
-            return;
-        }
+        if (document.getElementById('gm-places-script')) return;
+
         const script = document.createElement('script');
         script.id = 'gm-places-script';
         script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
         script.async = true;
-        script.onload = initAddressAutocomplete;
+        script.onload = initAutocomplete;
         document.head.appendChild(script);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // Re-init autocomplete when user reaches the address step (ref is null until step 2 renders)
-    useEffect(() => {
-        if (step !== 2) return;
-        if ((window as any).google && addressInputRef.current) {
-            initAddressAutocomplete();
-        }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [step]);
-
-    function initAddressAutocomplete() {
+    function initAutocomplete() {
         if (!addressInputRef.current || !(window as any).google) return;
         const ac = new (window as any).google.maps.places.Autocomplete(addressInputRef.current, {
             types: ['geocode', 'establishment'],
@@ -502,7 +485,15 @@ export const RegisterCompanyPage: React.FC = () => {
                         className="cr-input cr-input--with-icon"
                         type="text"
                         value={form.address}
-                        onChange={e => setForm(f => ({ ...f, address: e.target.value }))}
+                        onChange={e => {
+                            setForm(f => ({ ...f, address: e.target.value }));
+                            setErrors(prev => ({ ...prev, address: '' }));
+                        }}
+                        onFocus={() => {
+                            if ((window as any).google && addressInputRef.current) {
+                                initAutocomplete();
+                            }
+                        }}
                         placeholder="Start typing an address…"
                         autoComplete="off"
                     />

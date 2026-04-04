@@ -81,6 +81,9 @@ export class EventResponseDto {
   @ApiProperty({ description: 'Company owner user id as string (organizer).' })
   organizerId: string;
 
+  @ApiProperty({ description: 'Company id as string.' })
+  organizerCompanyId: string;
+
   @ApiProperty()
   organizerName: string;
 

@@ -29,6 +29,7 @@ export interface UserTicket {
     price?: string;
     currency?: string;
     coverUrl?: string;
+    hidden: boolean;
 }
 
 export const getUserById = async (id: string): Promise<UserProfile> => {
@@ -52,6 +53,14 @@ export const updateUser = async (
 ): Promise<UserProfile> => {
     const response = await api.patch<UserProfile>(`/users/${userId}`, input);
     return response.data;
+};
+
+export const setTicketHidden = async (
+    userId: string,
+    eventId: string,
+    hidden: boolean,
+): Promise<void> => {
+    await api.patch(`/users/me/tickets/${eventId}`, { hidden });
 };
 
 export const updateUserAvatar = async (

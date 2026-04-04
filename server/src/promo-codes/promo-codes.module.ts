@@ -9,5 +9,6 @@ import { PromoCodesService } from './promo-codes.service';
   imports: [TypeOrmModule.forFeature([PromoCode, Event])],
   controllers: [PromoCodesController],
   providers: [PromoCodesService],
+  exports: [PromoCodesService],
 })
 export class PromoCodesModule {}

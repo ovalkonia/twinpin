@@ -5,7 +5,7 @@ import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import Header from '../../components/Header/header';
 import { IconCheck, IconShield } from '../../assets/icons';
-import { getEventById, getEventTickets, subscribeToEvent, type Event, type TicketTier } from '../../services/events';
+import { getEventById, getEventTickets, subscribeToEvent, validatePromoCode, type Event, type TicketTier, type PromoCodeResult } from '../../services/events';
 import '../../styles/checkout.css';
 
 // ─── Stripe setup ─────────────────────────────────────────────────────────────
@@ -32,23 +32,52 @@ interface FormProps {
     tier: TicketTier;
     qty: number;
     onSuccess: (total: number) => void;
+    promo: PromoCodeResult | null;
+    onPromoChange: (promo: PromoCodeResult | null) => void;
 }
 
-function CheckoutForm({ event, tier, qty, onSuccess }: FormProps) {
+function CheckoutForm({ event, tier, qty, onSuccess, promo, onPromoChange }: FormProps) {
     const stripe   = useStripe();
     const elements = useElements();
-    const [name, setName]         = useState('');
-    const [cardFocus, setCardFocus] = useState(false);
+    const [name, setName]             = useState('');
+    const [cardFocus, setCardFocus]   = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [cardError, setCardError]   = useState<string | null>(null);
+    const [hidden, setHidden]         = useState(false);
+    const [promoInput, setPromoInput] = useState('');
+    const [promoLoading, setPromoLoading] = useState(false);
+    const [promoError, setPromoError]     = useState<string | null>(null);
 
     const unitPrice = tier.price;
     const subtotal  = unitPrice * qty;
-    const fee       = Math.round(subtotal * 0.05 * 100) / 100;
-    const total     = subtotal + fee;
+    const discount  = promo
+        ? promo.discountType === 'percentage'
+            ? Math.min(subtotal, subtotal * (Number(promo.discount) / 100))
+            : Math.min(subtotal, Number(promo.discount))
+        : 0;
+    const discountedSubtotal = subtotal - discount;
+    const fee       = Math.round(discountedSubtotal * 0.05 * 100) / 100;
+    const total     = discountedSubtotal + fee;
     const isFree    = unitPrice === 0;
     const currency  = tier.currency;
     const fmt = (n: number) => `${currency} ${n.toFixed(2)}`;
+
+    const handleApplyPromo = async () => {
+        const code = promoInput.trim();
+        if (!code) return;
+        setPromoLoading(true);
+        setPromoError(null);
+        onPromoChange(null);
+        try {
+            const result = await validatePromoCode(event.id, code);
+            onPromoChange(result);
+        } catch (err: any) {
+            const msg = err?.response?.data?.message;
+            setPromoError(typeof msg === 'string' ? msg : 'Invalid promo code');
+        } finally {
+            setPromoLoading(false);
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -73,7 +102,7 @@ function CheckoutForm({ event, tier, qty, onSuccess }: FormProps) {
                 }
             }
 
-            await subscribeToEvent(event.id, qty, tier.id);
+            await subscribeToEvent(event.id, qty, tier.id, hidden, promo?.code);
             onSuccess(total);
         } catch (err: any) {
             const msg = err?.response?.data?.message;
@@ -126,6 +155,43 @@ function CheckoutForm({ event, tier, qty, onSuccess }: FormProps) {
                     </p>
                 )}
 
+                {/* ── Promo code ── */}
+                <div className="co-promo">
+                    <div className="co-promo-row">
+                        <input
+                            className="co-input co-promo-input"
+                            placeholder="Promo code"
+                            value={promoInput}
+                            onChange={e => { setPromoInput(e.target.value); setPromoError(null); if (promo) onPromoChange(null); }}
+                            onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleApplyPromo())}
+                            disabled={!!promo}
+                        />
+                        {promo ? (
+                            <button type="button" className="co-promo-clear" onClick={() => { onPromoChange(null); setPromoInput(''); }}>Remove</button>
+                        ) : (
+                            <button type="button" className="co-promo-apply" onClick={handleApplyPromo} disabled={promoLoading || !promoInput.trim()}>
+                                {promoLoading ? '…' : 'Apply'}
+                            </button>
+                        )}
+                    </div>
+                    {promoError && <p className="co-promo-error">{promoError}</p>}
+                    {promo && (
+                        <p className="co-promo-success">
+                            ✓ {promo.code} — {promo.discountType === 'percentage' ? `${promo.discount}% off` : `${fmt(Number(promo.discount))} off`}
+                        </p>
+                    )}
+                </div>
+
+                <label className="co-hidden-label">
+                    <input
+                        type="checkbox"
+                        className="co-hidden-checkbox"
+                        checked={hidden}
+                        onChange={e => setHidden(e.target.checked)}
+                    />
+                    Hide me from the attendee list
+                </label>
+
                 <button
                     type="submit"
                     className="co-pay-btn"
@@ -162,6 +228,7 @@ export const CheckoutPage: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [succeeded, setSucceeded] = useState(false);
     const [paidTotal, setPaidTotal] = useState(0);
+    const [promo, setPromo] = useState<PromoCodeResult | null>(null);
 
     useEffect(() => {
         if (!eventId) return;
@@ -243,8 +310,14 @@ export const CheckoutPage: React.FC = () => {
 
     const unitPrice = tier.price;
     const subtotal  = unitPrice * qty;
-    const fee       = Math.round(subtotal * 0.05 * 100) / 100;
-    const total     = subtotal + fee;
+    const discount  = promo
+        ? promo.discountType === 'percentage'
+            ? Math.min(subtotal, subtotal * (Number(promo.discount) / 100))
+            : Math.min(subtotal, Number(promo.discount))
+        : 0;
+    const discountedSubtotal = subtotal - discount;
+    const fee       = Math.round(discountedSubtotal * 0.05 * 100) / 100;
+    const total     = discountedSubtotal + fee;
     const currency  = tier.currency;
     const fmt = (n: number) => `${currency} ${n.toFixed(2)}`;
 
@@ -269,6 +342,8 @@ export const CheckoutPage: React.FC = () => {
                                 tier={tier}
                                 qty={qty}
                                 onSuccess={(t) => { setPaidTotal(t); setSucceeded(true); }}
+                                promo={promo}
+                                onPromoChange={setPromo}
                             />
                         </Elements>
                     ) : (
@@ -278,6 +353,8 @@ export const CheckoutPage: React.FC = () => {
                             tier={tier}
                             qty={qty}
                             onSuccess={(t) => { setPaidTotal(t); setSucceeded(true); }}
+                            promo={promo}
+                            onPromoChange={setPromo}
                         />
                     )}
 
@@ -317,6 +394,12 @@ export const CheckoutPage: React.FC = () => {
                                 <span>{qty} × {unitPrice === 0 ? 'Free' : fmt(unitPrice)}</span>
                                 <span>{fmt(subtotal)}</span>
                             </div>
+                            {discount > 0 && (
+                                <div className="co-price-row co-price-row--discount">
+                                    <span>Promo ({promo!.code})</span>
+                                    <span>−{fmt(discount)}</span>
+                                </div>
+                            )}
                             {unitPrice > 0 && (
                                 <div className="co-price-row">
                                     <span>Service fee (5%)</span>
@@ -338,21 +421,49 @@ export const CheckoutPage: React.FC = () => {
 
 // ─── Fallback form (no Stripe key) ────────────────────────────────────────────
 
-function FallbackForm({ event, tier, qty, onSuccess }: FormProps) {
+function FallbackForm({ event, tier, qty, onSuccess, promo, onPromoChange }: FormProps) {
     const [submitting, setSubmitting] = useState(false);
+    const [hidden, setHidden]         = useState(false);
+    const [promoInput, setPromoInput] = useState('');
+    const [promoLoading, setPromoLoading] = useState(false);
+    const [promoError, setPromoError]     = useState<string | null>(null);
+
     const unitPrice = tier.price;
     const subtotal  = unitPrice * qty;
-    const fee       = Math.round(subtotal * 0.05 * 100) / 100;
-    const total     = subtotal + fee;
+    const discount  = promo
+        ? promo.discountType === 'percentage'
+            ? Math.min(subtotal, subtotal * (Number(promo.discount) / 100))
+            : Math.min(subtotal, Number(promo.discount))
+        : 0;
+    const discountedSubtotal = subtotal - discount;
+    const fee       = Math.round(discountedSubtotal * 0.05 * 100) / 100;
+    const total     = discountedSubtotal + fee;
     const isFree    = unitPrice === 0;
     const currency  = tier.currency;
     const fmt = (n: number) => `${currency} ${n.toFixed(2)}`;
+
+    const handleApplyPromo = async () => {
+        const code = promoInput.trim();
+        if (!code) return;
+        setPromoLoading(true);
+        setPromoError(null);
+        onPromoChange(null);
+        try {
+            const result = await validatePromoCode(event.id, code);
+            onPromoChange(result);
+        } catch (err: any) {
+            const msg = err?.response?.data?.message;
+            setPromoError(typeof msg === 'string' ? msg : 'Invalid promo code');
+        } finally {
+            setPromoLoading(false);
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setSubmitting(true);
         try {
-            await subscribeToEvent(event.id, qty, tier.id);
+            await subscribeToEvent(event.id, qty, tier.id, hidden, promo?.code);
             onSuccess(total);
         } catch (err: any) {
             const msg = err?.response?.data?.message;
@@ -390,6 +501,43 @@ function FallbackForm({ event, tier, qty, onSuccess }: FormProps) {
                         </div>
                     </>
                 )}
+                {/* ── Promo code ── */}
+                <div className="co-promo">
+                    <div className="co-promo-row">
+                        <input
+                            className="co-input co-promo-input"
+                            placeholder="Promo code"
+                            value={promoInput}
+                            onChange={e => { setPromoInput(e.target.value); setPromoError(null); if (promo) onPromoChange(null); }}
+                            onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleApplyPromo())}
+                            disabled={!!promo}
+                        />
+                        {promo ? (
+                            <button type="button" className="co-promo-clear" onClick={() => { onPromoChange(null); setPromoInput(''); }}>Remove</button>
+                        ) : (
+                            <button type="button" className="co-promo-apply" onClick={handleApplyPromo} disabled={promoLoading || !promoInput.trim()}>
+                                {promoLoading ? '…' : 'Apply'}
+                            </button>
+                        )}
+                    </div>
+                    {promoError && <p className="co-promo-error">{promoError}</p>}
+                    {promo && (
+                        <p className="co-promo-success">
+                            ✓ {promo.code} — {promo.discountType === 'percentage' ? `${promo.discount}% off` : `${fmt(Number(promo.discount))} off`}
+                        </p>
+                    )}
+                </div>
+
+                <label className="co-hidden-label">
+                    <input
+                        type="checkbox"
+                        className="co-hidden-checkbox"
+                        checked={hidden}
+                        onChange={e => setHidden(e.target.checked)}
+                    />
+                    Hide me from the attendee list
+                </label>
+
                 <button type="submit" className="co-pay-btn" disabled={submitting}>
                     {submitting
                         ? <><span className="co-pay-btn-spinner" /> Processing…</>

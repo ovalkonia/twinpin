@@ -137,14 +137,14 @@ export default function EventTicketSelector({
 
             {selected && (
                 <>
-                    <div className="ev-ticket-qty-row">
-                        <span className="ev-ticket-qty-label">Quantity</span>
-                        <div className="ev-ticket-qty-ctrl">
-                            <button type="button" onClick={() => setQty(q => Math.max(1, q - 1))} disabled={qty <= 1}>−</button>
-                            <span>{qty}</span>
-                            <button type="button" onClick={() => setQty(q => Math.min(maxQty, q + 1))} disabled={qty >= maxQty}>+</button>
-                        </div>
-                    </div>
+                    {/*<div className="ev-ticket-qty-row">*/}
+                    {/*    <span className="ev-ticket-qty-label">Quantity</span>*/}
+                    {/*    <div className="ev-ticket-qty-ctrl">*/}
+                    {/*        <button type="button" onClick={() => setQty(q => Math.max(1, q - 1))} disabled={qty <= 1}>−</button>*/}
+                    {/*        <span>{qty}</span>*/}
+                    {/*        <button type="button" onClick={() => setQty(q => Math.min(maxQty, q + 1))} disabled={qty >= maxQty}>+</button>*/}
+                    {/*    </div>*/}
+                    {/*</div>*/}
 
                     {unitPrice > 0 && (
                         <div className="ev-ticket-price-summary">

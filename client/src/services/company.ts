@@ -120,3 +120,21 @@ export const addCompanyMember = async (
 export const removeMember = async (companyId: string, memberId: string): Promise<void> => {
     await api.delete(`/companies/${companyId}/members/${memberId}`);
 };
+
+// ─── Company follows ──────────────────────────────────────────────────────────
+
+/** Follow a company to get notified about new events. */
+export const followCompany = async (companyId: string): Promise<void> => {
+    await api.post(`/companies/${companyId}/follow`);
+};
+
+/** Unfollow a company. */
+export const unfollowCompany = async (companyId: string): Promise<void> => {
+    await api.delete(`/companies/${companyId}/follow`);
+};
+
+/** Check whether the current user follows a company. */
+export const getCompanyFollowStatus = async (companyId: string): Promise<boolean> => {
+    const response = await api.get<{ following: boolean }>(`/companies/${companyId}/follow`);
+    return response.data.following;
+};

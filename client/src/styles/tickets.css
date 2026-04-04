@@ -404,6 +404,27 @@
     border-color: #ff6b00;
 }
 
+.tkt-btn--hidden {
+    color: #666;
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.tkt-btn--hidden:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: #999;
+}
+
+.tkt-btn--hidden-active {
+    color: #ff6b00;
+    border-color: rgba(255, 107, 0, 0.3);
+}
+
+.tkt-btn--hidden-active:hover {
+    background: rgba(255, 107, 0, 0.08);
+    border-color: #ff6b00;
+}
+
 /* ── QR Modal ───────────────────────────────────────────────── */
 .tkt-modal-overlay {
     position: fixed;

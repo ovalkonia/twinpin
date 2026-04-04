@@ -1522,3 +1522,42 @@ a.event-organizer-card:hover {
     white-space: pre-wrap;
     word-break: break-word;
 }
+
+/* ── Watch / Follow buttons ──────────────────────────────────── */
+.event-watch-btn,
+.event-follow-btn {
+    width: 100%;
+    padding: 11px 0;
+    border-radius: 50px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s, color 0.2s;
+    border: 1px solid rgba(255, 107, 0, 0.4);
+    background: transparent;
+    color: #ff6b00;
+}
+
+.event-watch-btn:hover:not(:disabled),
+.event-follow-btn:hover:not(:disabled) {
+    background: rgba(255, 107, 0, 0.1);
+    border-color: #ff6b00;
+}
+
+.event-watch-btn--active,
+.event-follow-btn--active {
+    background: #ff6b00;
+    border-color: #ff6b00;
+    color: #fff;
+}
+
+.event-watch-btn--active:hover:not(:disabled),
+.event-follow-btn--active:hover:not(:disabled) {
+    background: #e05a00;
+}
+
+.event-watch-btn:disabled,
+.event-follow-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}

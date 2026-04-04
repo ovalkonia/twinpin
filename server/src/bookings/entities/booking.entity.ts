@@ -31,6 +31,9 @@ export class Booking {
   @Column({ type: 'varchar', length: 32, default: 'completed' })
   paymentStatus: string;
 
+  @Column({ default: false })
+  hidden: boolean;
+
   @CreateDateColumn()
   createdAt: Date;
 }

@@ -72,13 +72,15 @@ export class BookingsService {
     event: Event;
     tier: Ticket;
     quantity: number;
+    hidden?: boolean;
+    finalAmount?: number;
   }): Promise<void> {
-    const { userId, event, tier, quantity } = params;
+    const { userId, event, tier, quantity, hidden = false, finalAmount } = params;
     const unitPrice = Number(tier.price);
     const pay = await this.payments.chargeForEvent({
       userId,
       eventId: event.id,
-      amount: unitPrice * quantity,
+      amount: finalAmount ?? unitPrice * quantity,
       currency: tier.currency,
     });
     if (pay.status !== 'succeeded') {
@@ -91,6 +93,7 @@ export class BookingsService {
       quantity,
       stripePaymentIntentId: pay.paymentIntentId,
       paymentStatus: pay.status,
+      hidden,
     });
     await this.bookingRepo.save(booking);
 
@@ -120,9 +123,23 @@ export class BookingsService {
 
   findForAttendeeList(eventId: string): Promise<Booking[]> {
     return this.bookingRepo.find({
-      where: { ticket: { event: { id: eventId } } },
+      where: { ticket: { event: { id: eventId } }, hidden: false },
       relations: ['user'],
       order: { createdAt: 'ASC' },
     });
+  }
+
+  async setHiddenForUserEvent(
+    userId: number,
+    eventId: string,
+    hidden: boolean,
+  ): Promise<void> {
+    const bookings = await this.bookingRepo.find({
+      where: { user: { id: userId }, ticket: { event: { id: eventId } } },
+    });
+    for (const b of bookings) {
+      b.hidden = hidden;
+    }
+    await this.bookingRepo.save(bookings);
   }
 }

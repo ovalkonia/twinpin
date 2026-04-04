@@ -21,10 +21,18 @@ import {
     getEventAttendees,
     getEventTickets,
     unsubscribeFromEvent,
+    watchEvent,
+    unwatchEvent,
+    getEventWatchStatus,
     type Event,
     type EventAttendee,
     type TicketTier,
 } from '../../services/events';
+import {
+    followCompany,
+    unfollowCompany,
+    getCompanyFollowStatus,
+} from '../../services/company';
 import '../../styles/event-page.css';
 
 // ─── Local shape ──────────────────────────────────────────────────────────────
@@ -111,31 +119,46 @@ function mapEvent(event: Event, attendees: EventAttendee[]): Omit<EventData, 'ti
 export default function EventPage() {
     const { id, eventId } = useParams<{ id?: string; eventId?: string }>();
     const navigate = useNavigate();
-    const { isAuth } = useAuth();
+    const { isAuth, user } = useAuth();
 
     const [event, setEvent]               = useState<EventData | null>(null);
+    const [rawEvent, setRawEvent]         = useState<Event | null>(null);
     const [loading, setLoading]           = useState(true);
     const [isBooked, setIsBooked]         = useState(false);
     const [cancelLoading, setCancelLoading] = useState(false);
     const [lightboxMedia, setLightboxMedia] = useState<string | null>(null);
+    const [isWatching, setIsWatching]     = useState(false);
+    const [watchLoading, setWatchLoading] = useState(false);
+    const [isFollowing, setIsFollowing]   = useState(false);
+    const [followLoading, setFollowLoading] = useState(false);
 
     useEffect(() => {
         const resolvedId = id ?? eventId;
         if (!resolvedId) return;
         setLoading(true);
 
+        const watchStatusP = user ? getEventWatchStatus(resolvedId).catch(() => false) : Promise.resolve(false);
+
         Promise.all([
             getEventById(resolvedId),
             getEventAttendees(resolvedId).catch(() => [] as EventAttendee[]),
             getEventTickets(resolvedId),
+            watchStatusP,
         ])
-            .then(([evt, attendees, tickets]) => {
+            .then(([evt, attendees, tickets, watching]) => {
                 setEvent({ ...mapEvent(evt, attendees), tickets });
+                setRawEvent(evt);
                 setIsBooked(evt.isSubscribed ?? false);
+                setIsWatching(watching);
+                if (user && evt.organizerCompanyId) {
+                    getCompanyFollowStatus(evt.organizerCompanyId)
+                        .then(setIsFollowing)
+                        .catch(() => {});
+                }
             })
             .catch(() => toast.error('Failed to load event'))
             .finally(() => setLoading(false));
-    }, [id, eventId]);
+    }, [id, eventId, user]);
 
     const handleCancel = async () => {
         if (!event) return;
@@ -154,6 +177,48 @@ export default function EventPage() {
     const handleCheckout = (ticketId: string, qty: number) => {
         if (!event) return;
         navigate(`/checkout/${event.id}?ticketId=${ticketId}&qty=${qty}`);
+    };
+
+    const handleWatch = async () => {
+        if (!event) return;
+        if (!isAuth) { navigate('/auth/sign-in'); return; }
+        setWatchLoading(true);
+        try {
+            if (isWatching) {
+                await unwatchEvent(event.id);
+                setIsWatching(false);
+                toast.success('Unsubscribed from notifications');
+            } else {
+                await watchEvent(event.id);
+                setIsWatching(true);
+                toast.success('Subscribed to event notifications');
+            }
+        } catch {
+            toast.error('Failed to update subscription');
+        } finally {
+            setWatchLoading(false);
+        }
+    };
+
+    const handleFollow = async () => {
+        if (!rawEvent?.organizerCompanyId) return;
+        if (!isAuth) { navigate('/auth/sign-in'); return; }
+        setFollowLoading(true);
+        try {
+            if (isFollowing) {
+                await unfollowCompany(rawEvent.organizerCompanyId);
+                setIsFollowing(false);
+                toast.success('Unfollowed organizer');
+            } else {
+                await followCompany(rawEvent.organizerCompanyId);
+                setIsFollowing(true);
+                toast.success('Following organizer');
+            }
+        } catch {
+            toast.error('Failed to update follow');
+        } finally {
+            setFollowLoading(false);
+        }
     };
 
     if (loading) {
@@ -194,7 +259,7 @@ export default function EventPage() {
                     )}
 
                     <EventMap location={event.location} />
-                    <EventFaq faq={event.faq} />
+                    {/*<EventFaq faq={event.faq} />*/}
                     <EventGoing attendees={event.attendees} />
                     <EventSimilar eventId={event.id} />
                     <EventComments eventId={event.id} />
@@ -226,6 +291,24 @@ export default function EventPage() {
                             </div>
                         </div>
                     )}
+
+                    {/* Follow organizer */}
+                    <button
+                        className={`event-follow-btn${isFollowing ? ' event-follow-btn--active' : ''}`}
+                        onClick={handleFollow}
+                        disabled={followLoading}
+                    >
+                        {isFollowing ? 'Following' : 'Follow organizer'}
+                    </button>
+
+                    {/* Watch event */}
+                    <button
+                        className={`event-watch-btn${isWatching ? ' event-watch-btn--active' : ''}`}
+                        onClick={handleWatch}
+                        disabled={watchLoading}
+                    >
+                        {isWatching ? 'Unfollow' : 'Follow event'}
+                    </button>
 
                     <EventInfoCard
                         date={event.date}

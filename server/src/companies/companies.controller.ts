@@ -12,11 +12,14 @@ import {
     UseGuards,
     UseInterceptors,
 } from '@nestjs/common';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { User } from '../users/entities/user.entity';
 import { AuthGuard } from '@nestjs/passport';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { CompaniesService } from './companies.service';
+import { CompanyFollowsService } from '../company-follows/company-follows.service';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
 
@@ -30,6 +33,7 @@ export class CompaniesController {
     constructor(
         private readonly companiesService: CompaniesService,
         private readonly cloudinaryService: CloudinaryService,
+        private readonly companyFollows: CompanyFollowsService,
     ) {}
 
     @Post()
@@ -104,5 +108,33 @@ export class CompaniesController {
         @Req() req: any,
     ) {
         return this.companiesService.removeMember(companyId, memberId, req.user.id);
+    }
+
+    @Post(':id/follow')
+    @UseGuards(AuthGuard('jwt'))
+    followCompany(
+        @Param('id', ParseIntPipe) id: number,
+        @CurrentUser() user: User,
+    ): Promise<void> {
+        return this.companyFollows.follow(user.id, id);
+    }
+
+    @Delete(':id/follow')
+    @UseGuards(AuthGuard('jwt'))
+    unfollowCompany(
+        @Param('id', ParseIntPipe) id: number,
+        @CurrentUser() user: User,
+    ): Promise<void> {
+        return this.companyFollows.unfollow(user.id, id);
+    }
+
+    @Get(':id/follow')
+    @UseGuards(AuthGuard('jwt'))
+    async isFollowing(
+        @Param('id', ParseIntPipe) id: number,
+        @CurrentUser() user: User,
+    ): Promise<{ following: boolean }> {
+        const following = await this.companyFollows.isFollowing(user.id, id);
+        return { following };
     }
 }

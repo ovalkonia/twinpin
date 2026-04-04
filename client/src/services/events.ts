@@ -21,6 +21,7 @@ export interface Event {
     coverUrl?: string;
     photos?: string[];
     organizerId: string;
+    organizerCompanyId?: string;
     organizerName: string;
     organizerSlug?: string;
     organizerLogoUrl?: string;
@@ -234,15 +235,38 @@ export const getSimilarEvents = async (id: string, limit = 4): Promise<Event[]> 
 
 // ─── Attendance ───────────────────────────────────────────────────────────────
 
+export interface PromoCodeResult {
+    id: string;
+    code: string;
+    discount: number;
+    discountType: 'percentage' | 'fixed';
+}
+
+/** Validate a promo code for an event without consuming it. */
+export const validatePromoCode = async (
+    eventId: string,
+    code: string,
+): Promise<PromoCodeResult> => {
+    const response = await api.post<PromoCodeResult>(
+        `/events/${eventId}/promo-codes/validate`,
+        { code },
+    );
+    return response.data;
+};
+
 /** Subscribe the current user to an event (book a spot). */
 export const subscribeToEvent = async (
     id: string,
     quantity = 1,
     ticketId?: string,
+    hidden = false,
+    promoCode?: string,
 ): Promise<void> => {
     const params = new URLSearchParams();
     params.set('quantity', String(quantity));
     if (ticketId) params.set('ticketId', ticketId);
+    if (hidden) params.set('hidden', 'true');
+    if (promoCode) params.set('promoCode', promoCode);
     await api.post(`/events/${id}/subscribe?${params.toString()}`);
 };
 
@@ -278,6 +302,24 @@ export const addEventComment = async (id: string, body: string): Promise<EventCo
 /** Delete a comment (author or organizer only). */
 export const deleteEventComment = async (eventId: string, commentId: string): Promise<void> => {
     await api.delete(`/events/${eventId}/comments/${commentId}`);
+};
+
+// ─── Event watch (notification subscriptions) ─────────────────────────────────
+
+/** Subscribe to notifications for an event (new comments, updates, cancellation). */
+export const watchEvent = async (id: string): Promise<void> => {
+    await api.post(`/events/${id}/watch`);
+};
+
+/** Unsubscribe from event notifications. */
+export const unwatchEvent = async (id: string): Promise<void> => {
+    await api.delete(`/events/${id}/watch`);
+};
+
+/** Check whether the current user is watching an event. */
+export const getEventWatchStatus = async (id: string): Promise<boolean> => {
+    const response = await api.get<{ watching: boolean }>(`/events/${id}/watch`);
+    return response.data.watching;
 };
 
 // ─── Organizer follow ─────────────────────────────────────────────────────────

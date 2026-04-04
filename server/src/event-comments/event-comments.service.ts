@@ -11,6 +11,8 @@ import { AddEventCommentDto } from '../events/dto/add-event-comment.dto';
 import { EventCommentResponseDto } from '../events/dto/api-response.dto';
 import { EventStatus } from '../events/enums/event-status.enum';
 import { EventComment } from './entities/event-comment.entity';
+import { EventSubscriptionsService } from '../event-subscriptions/event-subscriptions.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 const EVENT_RELATIONS = ['company', 'company.owner'] as const;
 
@@ -21,6 +23,8 @@ export class EventCommentsService {
     private readonly commentRepo: Repository<EventComment>,
     @InjectRepository(Event)
     private readonly eventRepo: Repository<Event>,
+    private readonly eventSubscriptions: EventSubscriptionsService,
+    private readonly notifications: NotificationsService,
   ) {}
 
   private now(): Date {
@@ -87,8 +91,24 @@ export class EventCommentsService {
     const saved = await this.commentRepo.save(row);
     const full = await this.commentRepo.findOneOrFail({
       where: { id: saved.id },
-      relations: ['author'],
+      relations: ['author', 'event'],
     });
+
+    const subscriberIds = await this.eventSubscriptions.getSubscriberIds(eventId);
+    const snippet = dto.body.length > 60 ? dto.body.slice(0, 60) + '…' : dto.body;
+    const eventTitle = full.event?.title ?? 'an event';
+    await Promise.all(
+      subscriberIds
+        .filter((sid) => sid !== userId)
+        .map((sid) =>
+          this.notifications.notifyUser(
+            sid,
+            'event_comment',
+            `New comment on "${eventTitle}": "${snippet}"`,
+          ),
+        ),
+    );
+
     return {
       id: full.id,
       authorId: String(full.author.id),

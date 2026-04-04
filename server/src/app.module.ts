@@ -15,6 +15,10 @@ import { EventsModule } from './events/events.module';
 import { Notification } from './notifications/entities/notification.entity';
 import { OrganizerFollow } from './organizer-follows/entities/organizer-follow.entity';
 import { OrganizerFollowsModule } from './organizer-follows/organizer-follows.module';
+import { EventSubscription } from './event-subscriptions/entities/event-subscription.entity';
+import { EventSubscriptionsModule } from './event-subscriptions/event-subscriptions.module';
+import { CompanyFollow } from './company-follows/entities/company-follow.entity';
+import { CompanyFollowsModule } from './company-follows/company-follows.module';
 import { PromoCode } from './promo-codes/entities/promo-code.entity';
 import { PromoCodesModule } from './promo-codes/promo-codes.module';
 import { Ticket } from './tickets/entities/ticket.entity';
@@ -56,6 +60,8 @@ import { UsersModule } from './users/users.module';
             OrganizerFollow,
             Notification,
             PromoCode,
+            EventSubscription,
+            CompanyFollow,
           ],
           synchronize: true,
         };
@@ -66,6 +72,8 @@ import { UsersModule } from './users/users.module';
     CloudinaryModule,
     CompaniesModule,
     OrganizerFollowsModule,
+    EventSubscriptionsModule,
+    CompanyFollowsModule,
     EventsModule,
     PromoCodesModule,
   ],

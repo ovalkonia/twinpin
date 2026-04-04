@@ -10,6 +10,10 @@ import { Brackets, Repository } from 'typeorm';
 import { BookingsService } from '../bookings/bookings.service';
 import { CompaniesService } from '../companies/companies.service';
 import { TicketsService } from '../tickets/tickets.service';
+import { EventSubscriptionsService } from '../event-subscriptions/event-subscriptions.service';
+import { CompanyFollowsService } from '../company-follows/company-follows.service';
+import { NotificationsService } from '../notifications/notifications.service';
+import { PromoCodesService } from '../promo-codes/promo-codes.service';
 import { User } from '../users/entities/user.entity';
 import {
   EventAttendeeResponseDto,
@@ -42,6 +46,10 @@ export class EventsService {
     private readonly ticketsService: TicketsService,
     private readonly bookingsService: BookingsService,
     private readonly companiesService: CompaniesService,
+    private readonly eventSubscriptions: EventSubscriptionsService,
+    private readonly companyFollows: CompanyFollowsService,
+    private readonly notifications: NotificationsService,
+    private readonly promoCodes: PromoCodesService,
   ) {}
 
   private now(): Date {
@@ -87,6 +95,7 @@ export class EventsService {
       coverUrl: event.coverUrl ?? undefined,
       photos: photos?.length ? photos : undefined,
       organizerId: String(owner.id),
+      organizerCompanyId: String(company.id),
       organizerName: company.name,
       organizerSlug: company.slug ?? undefined,
       organizerLogoUrl: company.logoUrl ?? undefined,
@@ -311,6 +320,19 @@ export class EventsService {
 
     const saved = await this.eventRepo.save(row);
 
+    if (status === EventStatus.PUBLISHED) {
+      const followerIds = await this.companyFollows.getFollowerIds(company.id);
+      await Promise.all(
+        followerIds.map((fid) =>
+          this.notifications.notifyUser(
+            fid,
+            'company_new_event',
+            `${company.name} published a new event: "${dto.title}"`,
+          ),
+        ),
+      );
+    }
+
     const defaultCurrency = dto.currency ?? 'USD';
     const ticketTiers =
       dto.tickets?.length
@@ -358,6 +380,11 @@ export class EventsService {
     if (!event) throw new NotFoundException('Event not found');
     this.assertUserOwnsEventCompany(userId, event);
 
+    const prevStatus = event.status;
+    const prevTitle = event.title;
+    const prevDate = event.date?.toISOString();
+    const prevLocation = event.location;
+
     if (dto.title !== undefined) event.title = dto.title;
     if (dto.description !== undefined) event.description = dto.description;
     if (dto.format !== undefined) event.format = dto.format;
@@ -404,6 +431,53 @@ export class EventsService {
     }
 
     await this.eventRepo.save(event);
+
+    const subscriberIds = await this.eventSubscriptions.getSubscriberIds(eventId);
+    if (subscriberIds.length) {
+      const newStatus = event.status;
+      if (newStatus === EventStatus.CANCELLED && prevStatus !== EventStatus.CANCELLED) {
+        await Promise.all(
+          subscriberIds.map((sid) =>
+            this.notifications.notifyUser(
+              sid,
+              'event_cancelled',
+              `The event "${event.title}" has been cancelled.`,
+            ),
+          ),
+        );
+      } else if (newStatus !== EventStatus.CANCELLED) {
+        const dateChanged = dto.date !== undefined && event.date.toISOString() !== prevDate;
+        const locationChanged = dto.location !== undefined && event.location !== prevLocation;
+        const titleChanged = dto.title !== undefined && event.title !== prevTitle;
+        if (dateChanged || locationChanged || titleChanged) {
+          await Promise.all(
+            subscriberIds.map((sid) =>
+              this.notifications.notifyUser(
+                sid,
+                'event_update',
+                `The event "${event.title}" has been updated.`,
+              ),
+            ),
+          );
+        }
+      }
+    }
+
+    if (
+      prevStatus !== EventStatus.PUBLISHED &&
+      event.status === EventStatus.PUBLISHED
+    ) {
+      const followerIds = await this.companyFollows.getFollowerIds(event.company.id);
+      await Promise.all(
+        followerIds.map((fid) =>
+          this.notifications.notifyUser(
+            fid,
+            'company_new_event',
+            `${event.company.name} published a new event: "${event.title}"`,
+          ),
+        ),
+      );
+    }
 
     const defaultTier = await this.ticketsService.findDefaultByEventId(eventId);
 
@@ -567,6 +641,8 @@ export class EventsService {
     eventId: string,
     ticketId?: string,
     quantity = 1,
+    hidden = false,
+    promoCode?: string,
   ): Promise<void> {
     if (quantity < 1) {
       throw new BadRequestException('quantity must be at least 1');
@@ -651,12 +727,29 @@ export class EventsService {
       throw new ConflictException('Event is full');
     }
 
+    let finalAmount: number | undefined;
+    let promoId: string | undefined;
+    if (promoCode) {
+      const promo = await this.promoCodes.validate(eventId, promoCode);
+      const base = Number(tier.price) * quantity;
+      finalAmount = promo.discountType === 'percentage'
+        ? Math.max(0, base * (1 - Number(promo.discount) / 100))
+        : Math.max(0, base - Number(promo.discount));
+      promoId = promo.id;
+    }
+
     await this.bookingsService.recordPurchase({
       userId,
       event,
       tier,
       quantity,
+      hidden,
+      finalAmount,
     });
+
+    if (promoId) {
+      await this.promoCodes.redeem(promoId);
+    }
   }
 
   private async pickCheapestTierThatFits(

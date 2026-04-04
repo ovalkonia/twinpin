@@ -37,6 +37,7 @@ export type UserTicketRow = {
   price: string;
   currency: string;
   coverUrl: string | null;
+  hidden: boolean;
 };
 
 @Injectable()
@@ -153,6 +154,20 @@ export class UsersService {
     return user;
   }
 
+  async setTicketHidden(
+    userId: number,
+    eventId: string,
+    hidden: boolean,
+  ): Promise<void> {
+    const bookings = await this.bookingRepo.find({
+      where: { user: { id: userId }, ticket: { event: { id: eventId } } },
+    });
+    for (const b of bookings) {
+      b.hidden = hidden;
+    }
+    await this.bookingRepo.save(bookings);
+  }
+
   private async minTicketPriceByEventIds(
     eventIds: string[],
   ): Promise<Map<string, string>> {
@@ -221,10 +236,15 @@ export class UsersService {
     }));
   }
 
-  /** Bookings for this user, grouped by event. */
-  async listTicketsForUser(userId: number): Promise<UserTicketRow[]> {
+  /** Bookings for this user, grouped by event.
+   *  When `requesterId` differs from `userId`, hidden bookings are excluded. */
+  async listTicketsForUser(userId: number, requesterId?: number): Promise<UserTicketRow[]> {
+    const isOwner = requesterId === userId;
     const bookings = await this.bookingRepo.find({
-      where: { user: { id: userId } },
+      where: {
+        user: { id: userId },
+        ...(isOwner ? {} : { hidden: false }),
+      },
       relations: ['ticket', 'ticket.event'],
       order: { createdAt: 'DESC' },
     });
@@ -236,6 +256,7 @@ export class UsersService {
         count: number;
         minPrice: number;
         currency: string;
+        hidden: boolean;
       }
     >();
 
@@ -257,11 +278,12 @@ export class UsersService {
           count: add,
           minPrice: price,
           currency,
+          hidden: b.hidden,
         });
       }
     }
 
-    return [...byEvent.values()].map(({ event: e, count, minPrice, currency }) => ({
+    return [...byEvent.values()].map(({ event: e, count, minPrice, currency, hidden }) => ({
       id: e.id,
       title: e.title,
       category: e.category,
@@ -271,6 +293,7 @@ export class UsersService {
       price: String(minPrice),
       currency,
       coverUrl: e.coverUrl ?? null,
+      hidden,
     }));
   }
 }

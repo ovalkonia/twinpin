@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   ForbiddenException,
   Injectable,
@@ -71,5 +72,25 @@ export class PromoCodesService {
       throw new ForbiddenException('You can only delete your own promo codes');
     }
     await this.promoRepo.delete(id);
+  }
+
+  /** Validate a promo code for an event without consuming it. */
+  async validate(eventId: string, code: string): Promise<PromoCode> {
+    const promo = await this.promoRepo.findOne({
+      where: { code, event: { id: eventId }, isActive: true },
+    });
+    if (!promo) throw new NotFoundException('Invalid promo code');
+    if (promo.validUntil && promo.validUntil < new Date()) {
+      throw new BadRequestException('Promo code has expired');
+    }
+    if (promo.usedCount >= promo.maxUses) {
+      throw new BadRequestException('Promo code has reached its usage limit');
+    }
+    return promo;
+  }
+
+  /** Increment usedCount after a successful booking. */
+  async redeem(id: string): Promise<void> {
+    await this.promoRepo.increment({ id }, 'usedCount', 1);
   }
 }

@@ -7,6 +7,7 @@ import {
   Get,
   Param,
   ParseIntPipe,
+  ParseUUIDPipe,
   Patch,
   Post,
   Req,
@@ -55,8 +56,11 @@ export class UsersController {
 
   @Get(':id/tickets')
   @UseGuards(AuthGuard('jwt'))
-  getUserTickets(@Param('id', ParseIntPipe) id: number) {
-    return this.usersService.listTicketsForUser(id);
+  getUserTickets(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() requester: User,
+  ) {
+    return this.usersService.listTicketsForUser(id, requester.id);
   }
 
   @Get(':id')
@@ -67,6 +71,16 @@ export class UsersController {
   @Post()
   create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
+  }
+
+  @Patch('me/tickets/:eventId')
+  @UseGuards(AuthGuard('jwt'))
+  async updateTicketVisibility(
+    @Param('eventId', new ParseUUIDPipe({ version: '4' })) eventId: string,
+    @CurrentUser() user: User,
+    @Body() body: { hidden: boolean },
+  ): Promise<void> {
+    await this.usersService.setTicketHidden(user.id, eventId, body.hidden);
   }
 
   @Patch(':id')

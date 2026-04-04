@@ -32,6 +32,7 @@ import { validateSync } from 'class-validator';
 import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { EventCommentsService } from '../event-comments/event-comments.service';
+import { EventSubscriptionsService } from '../event-subscriptions/event-subscriptions.service';
 import { User } from '../users/entities/user.entity';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { AddEventCommentDto } from './dto/add-event-comment.dto';
@@ -63,6 +64,7 @@ export class EventsController {
     private readonly eventsService: EventsService,
     private readonly eventComments: EventCommentsService,
     private readonly cloudinary: CloudinaryService,
+    private readonly eventSubscriptions: EventSubscriptionsService,
   ) {}
 
   private upload = (file: Express.Multer.File, folder: string) =>
@@ -226,11 +228,23 @@ export class EventsController {
     required: false,
     description: 'Number of seats (default 1); cannot exceed tier availability',
   })
+  @ApiQuery({
+    name: 'hidden',
+    required: false,
+    description: 'Hide the booking from attendee list and profile (default false)',
+  })
+  @ApiQuery({
+    name: 'promoCode',
+    required: false,
+    description: 'Promo code to apply a discount',
+  })
   async subscribe(
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
     @Query('ticketId', new ParseUUIDPipe({ version: '4', optional: true }))
     ticketId: string | undefined,
     @Query('quantity', new ParseIntPipe({ optional: true })) quantity: number | undefined,
+    @Query('hidden') hiddenRaw: string | undefined,
+    @Query('promoCode') promoCode: string | undefined,
     @CurrentUser() user: User,
   ): Promise<void> {
     return this.eventsService.subscribe(
@@ -238,6 +252,8 @@ export class EventsController {
       id,
       ticketId,
       quantity ?? 1,
+      hiddenRaw === 'true',
+      promoCode,
     );
   }
 
@@ -332,6 +348,40 @@ export class EventsController {
     @CurrentUser() user: User,
   ): Promise<TicketTierResponseDto> {
     return this.eventsService.updateTier(id, tierId, user.id, body);
+  }
+
+  @Post(':id/watch')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Subscribe to event notifications (comments, updates, cancellation)' })
+  async watchEvent(
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+    @CurrentUser() user: User,
+  ): Promise<void> {
+    return this.eventSubscriptions.subscribe(user.id, id);
+  }
+
+  @Delete(':id/watch')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Unsubscribe from event notifications' })
+  async unwatchEvent(
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+    @CurrentUser() user: User,
+  ): Promise<void> {
+    return this.eventSubscriptions.unsubscribe(user.id, id);
+  }
+
+  @Get(':id/watch')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Check if current user is watching this event' })
+  async isWatching(
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+    @CurrentUser() user: User,
+  ): Promise<{ watching: boolean }> {
+    const watching = await this.eventSubscriptions.isSubscribed(user.id, id);
+    return { watching };
   }
 
   @Get(':id')

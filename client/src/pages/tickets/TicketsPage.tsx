@@ -3,7 +3,7 @@ import toast from 'react-hot-toast';
 import Header from '../../components/Header/header';
 import { TicketCard, type Ticket } from '../../components/TicketCard';
 import { useAuth } from '../../context/AuthContext';
-import { getUserTickets, type UserTicket } from '../../services/user';
+import { getUserTickets, setTicketHidden, type UserTicket } from '../../services/user';
 import '../../styles/tickets.css';
 
 export const TicketsPage = () => {
@@ -30,6 +30,16 @@ export const TicketsPage = () => {
     const formatTime = (iso: string) =>
         new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
 
+    const handleHiddenChange = async (eventId: string, hidden: boolean) => {
+        if (!user?.id) return;
+        try {
+            await setTicketHidden(user.id, eventId, hidden);
+            setRaw(prev => prev.map(t => t.id === eventId ? { ...t, hidden } : t));
+        } catch {
+            toast.error('Failed to update visibility');
+        }
+    };
+
     const toTicketCard = (t: UserTicket): Ticket => {
         const d = new Date(t.date);
         const status: Ticket['status'] = d >= now ? 'active' : 'used';
@@ -47,7 +57,8 @@ export const TicketsPage = () => {
             ticketCode: `TKT-${t.id.slice(0, 8).toUpperCase()}`,
             status,
             price: priceLabel,
-            showInAttendees: true,
+            showInAttendees: !t.hidden,
+            hidden: t.hidden,
         };
     };
 
@@ -102,6 +113,7 @@ export const TicketsPage = () => {
                                 key={ticket.id}
                                 ticket={ticket}
                                 isPast={activeTab === 'past'}
+                                onHiddenChange={(hidden) => handleHiddenChange(ticket.id, hidden)}
                             />
                         ))}
                     </div>

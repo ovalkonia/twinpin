@@ -10,6 +10,9 @@ import {
     getMyCompany,
     removeMember,
     updateCompany,
+    followCompany,
+    unfollowCompany,
+    getCompanyFollowStatus,
     type Company,
     type CompanyMember,
 } from '../../services/company';
@@ -53,6 +56,8 @@ export const CompanyPage: React.FC = () => {
     const [inviteEmail, setInviteEmail] = useState('');
     const [inviteLoading, setInviteLoading] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [isFollowing, setIsFollowing] = useState(false);
+    const [followLoading, setFollowLoading] = useState(false);
     const [logoUploading, setLogoUploading] = useState(false);
     const [coverUploading, setCoverUploading] = useState(false);
     const logoInputRef = useRef<HTMLInputElement>(null);
@@ -68,8 +73,13 @@ export const CompanyPage: React.FC = () => {
                     return;
                 }
                 setCompany(c);
-                const list = await getCompanyMembers(c.id);
-                setMembers(list);
+                if (user) {
+                    const list = await getCompanyMembers(c.id);
+                    setMembers(list);
+                    getCompanyFollowStatus(c.id)
+                        .then(setIsFollowing)
+                        .catch(() => {});
+                }
                 if (c.owner?.id) {
                     setEventsLoading(true);
                     try {
@@ -87,7 +97,7 @@ export const CompanyPage: React.FC = () => {
             })
             .catch(() => setCompany(null))
             .finally(() => setLoading(false));
-    }, [slug]);
+    }, [slug, user]);
 
     const isOwner = Boolean(user?.id && company?.owner?.id && user.id === company.owner.id);
 
@@ -152,6 +162,26 @@ export const CompanyPage: React.FC = () => {
         } finally {
             setCoverUploading(false);
             e.target.value = '';
+        }
+    };
+
+    const handleFollow = async () => {
+        if (!company) return;
+        setFollowLoading(true);
+        try {
+            if (isFollowing) {
+                await unfollowCompany(company.id);
+                setIsFollowing(false);
+                toast.success('Unfollowed');
+            } else {
+                await followCompany(company.id);
+                setIsFollowing(true);
+                toast.success('Following');
+            }
+        } catch {
+            toast.error('Failed to update follow');
+        } finally {
+            setFollowLoading(false);
         }
     };
 
@@ -249,7 +279,7 @@ export const CompanyPage: React.FC = () => {
                         </div>
                     </div>
 
-                    {isOwner && (
+                    {isOwner ? (
                         <div className="cp-identity-actions">
                             <Link to="/events/create" className="cp-create-btn">
                                 Create Event
@@ -257,6 +287,16 @@ export const CompanyPage: React.FC = () => {
                             <Link to="/company/edit" className="cp-edit-btn">
                                 Edit Company
                             </Link>
+                        </div>
+                    ) : user && (
+                        <div className="cp-identity-actions">
+                            <button
+                                className={`cp-follow-btn${isFollowing ? ' cp-follow-btn--active' : ''}`}
+                                onClick={handleFollow}
+                                disabled={followLoading}
+                            >
+                                {isFollowing ? 'Following' : 'Follow'}
+                            </button>
                         </div>
                     )}
                 </div>
