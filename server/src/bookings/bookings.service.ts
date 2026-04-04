@@ -6,6 +6,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Event } from '../events/entities/event.entity';
 import { NotificationsService } from '../notifications/notifications.service';
+import { MailService } from '../mail/mail.service';
 import { User } from '../users/entities/user.entity';
 import { Ticket } from '../tickets/entities/ticket.entity';
 import { Booking } from './entities/booking.entity';
@@ -18,6 +19,7 @@ export class BookingsService {
     private readonly bookingRepo: Repository<Booking>,
     private readonly payments: StripePaymentSimulationService,
     private readonly notifications: NotificationsService,
+    private readonly mail: MailService,
   ) {}
 
   async sumQuantityForTicket(ticketId: string): Promise<number> {
@@ -74,8 +76,10 @@ export class BookingsService {
     quantity: number;
     hidden?: boolean;
     finalAmount?: number;
+    userEmail?: string;
+    userName?: string;
   }): Promise<void> {
-    const { userId, event, tier, quantity, hidden = false, finalAmount } = params;
+    const { userId, event, tier, quantity, hidden = false, finalAmount, userEmail, userName } = params;
     const unitPrice = Number(tier.price);
     const pay = await this.payments.chargeForEvent({
       userId,
@@ -102,6 +106,17 @@ export class BookingsService {
       'event_booking',
       `Your booking for "${event.title}" (${tier.name}) is confirmed.`,
     );
+
+    if (userEmail) {
+      const ticketCode = `TKT-${String(userId).slice(0, 6)}${event.id.slice(0, 6)}`.toUpperCase();
+      void this.mail.sendBookingConfirmation(
+        userEmail,
+        userName ?? 'there',
+        event.title,
+        event.date.toISOString(),
+        ticketCode,
+      );
+    }
 
     if (event.notifyOnNewVisitor) {
       await this.notifications.notifyUser(

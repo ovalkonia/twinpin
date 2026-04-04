@@ -24,6 +24,7 @@ import { PromoCodesModule } from './promo-codes/promo-codes.module';
 import { Ticket } from './tickets/entities/ticket.entity';
 import { User } from './users/entities/user.entity';
 import { UsersModule } from './users/users.module';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -76,6 +77,7 @@ import { UsersModule } from './users/users.module';
     CompanyFollowsModule,
     EventsModule,
     PromoCodesModule,
+    MailModule,
   ],
   controllers: [AppController],
   providers: [AppService],

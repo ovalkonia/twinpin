@@ -38,6 +38,7 @@ export type UserTicketRow = {
   currency: string;
   coverUrl: string | null;
   hidden: boolean;
+  ticketCode: string;
 };
 
 @Injectable()
@@ -294,6 +295,7 @@ export class UsersService {
       currency,
       coverUrl: e.coverUrl ?? null,
       hidden,
+      ticketCode: `TKT-${String(userId).slice(0, 6)}${e.id.slice(0, 6)}`.toUpperCase(),
     }));
   }
 }

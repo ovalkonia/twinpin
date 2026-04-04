@@ -54,7 +54,7 @@ export const TicketsPage = () => {
             location: t.location,
             address: t.location,
             tickets: t.ticketCount,
-            ticketCode: `TKT-${t.id.slice(0, 8).toUpperCase()}`,
+            ticketCode: t.ticketCode,
             status,
             price: priceLabel,
             showInAttendees: !t.hidden,

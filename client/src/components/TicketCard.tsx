@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import QRCode from 'react-qr-code';
 
 export interface Ticket {
     id: string;
@@ -22,39 +23,6 @@ const STATUS_LABELS: Record<Ticket['status'], string> = {
     cancelled: 'Cancelled',
 };
 
-/* ── Decorative QR graphic (visual only) ─────────────────────── */
-const QrGraphic = ({ code, size = 80 }: { code: string; size?: number }) => {
-    const seed = code.split('').reduce((a   , c) => ((a * 31 + c.charCodeAt(0)) >>> 0), 7);
-    const N = 9;
-    const cells = Array.from({ length: N }, (_, r) =>
-        Array.from({ length: N }, (_, c) => {
-            if (r < 3 && c < 3) return true;
-            if (r < 3 && c > N - 4) return true;
-            if (r > N - 4 && c < 3) return true;
-            return (((seed ^ (r * 17 + c * 31)) * 2654435769) >>> 0) % 3 !== 0;
-        })
-    );
-    const cell = size / N;
-    return (
-        <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-            {cells.map((row, r) =>
-                row.map((on, c) =>
-                    on ? (
-                        <rect
-                            key={`${r}-${c}`}
-                            x={c * cell + 0.5}
-                            y={r * cell + 0.5}
-                            width={cell - 1}
-                            height={cell - 1}
-                            fill="#ff6b00"
-                            rx="1"
-                        />
-                    ) : null
-                )
-            )}
-        </svg>
-    );
-};
 
 interface TicketCardProps {
     ticket: Ticket;
@@ -123,7 +91,7 @@ export const TicketCard = ({ ticket, isPast = false, onHiddenChange }: TicketCar
                     <span className="tkt-code">{ticket.ticketCode}</span>
 
                     <div className="tkt-qr-wrap">
-                        <QrGraphic code={ticket.ticketCode} size={72} />
+                        <QRCode value={ticket.ticketCode} size={72} fgColor="#ff6b00" bgColor="transparent" />
                     </div>
 
                     <div className="tkt-stub-actions">
@@ -194,7 +162,7 @@ export const TicketCard = ({ ticket, isPast = false, onHiddenChange }: TicketCar
                         <p className="tkt-modal-sub">{ticket.date} · {ticket.time}</p>
 
                         <div className="tkt-modal-graphic">
-                            <QrGraphic code={ticket.ticketCode} size={180} />
+                            <QRCode value={ticket.ticketCode} size={180} fgColor="#ff6b00" bgColor="#1a1a1a" />
                         </div>
 
                         <p className="tkt-modal-code">{ticket.ticketCode}</p>

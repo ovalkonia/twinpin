@@ -10,6 +10,7 @@ import { Brackets, Repository } from 'typeorm';
 import { BookingsService } from '../bookings/bookings.service';
 import { CompaniesService } from '../companies/companies.service';
 import { TicketsService } from '../tickets/tickets.service';
+import { UsersService } from '../users/users.service';
 import { EventSubscriptionsService } from '../event-subscriptions/event-subscriptions.service';
 import { CompanyFollowsService } from '../company-follows/company-follows.service';
 import { NotificationsService } from '../notifications/notifications.service';
@@ -50,6 +51,7 @@ export class EventsService {
     private readonly companyFollows: CompanyFollowsService,
     private readonly notifications: NotificationsService,
     private readonly promoCodes: PromoCodesService,
+    private readonly usersService: UsersService,
   ) {}
 
   private now(): Date {
@@ -738,6 +740,7 @@ export class EventsService {
       promoId = promo.id;
     }
 
+    const user = await this.usersService.findOne(userId).catch(() => null);
     await this.bookingsService.recordPurchase({
       userId,
       event,
@@ -745,6 +748,8 @@ export class EventsService {
       quantity,
       hidden,
       finalAmount,
+      userEmail: user?.email,
+      userName: user?.name,
     });
 
     if (promoId) {
