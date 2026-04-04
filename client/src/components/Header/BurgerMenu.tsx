@@ -89,7 +89,7 @@ export const BurgerMenu = ({ isOpen, onClose }: BurgerMenuProps) => {
                     </button>
                     <button className="burger-item" onClick={handleCompanyClick} disabled={companyLoading}>
                         <span className="burger-item-icon"><IconBuilding /></span>
-                        Company Profile
+                        Company
                         <span className="burger-item-arrow"><IconChevron /></span>
                     </button>
                     <button className="burger-item" onClick={() => goTo('/notifications')}>

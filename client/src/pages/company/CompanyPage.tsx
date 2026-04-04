@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
@@ -9,10 +9,13 @@ import {
     getCompanyBySlug,
     getMyCompany,
     removeMember,
+    updateCompany,
     type Company,
     type CompanyMember,
 } from '../../services/company';
 import {
+    IconCalendar,
+    IconCamera,
     IconGlobe,
     IconInstagram,
     IconLinkedIn,
@@ -24,6 +27,16 @@ import {
 const MAPS_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string | undefined;
 
 const toHref = (url: string) => /^https?:\/\//i.test(url) ? url : `https://${url}`;
+
+function formatEventDate(iso: string): string {
+    try {
+        return new Date(iso).toLocaleDateString('en-US', {
+            month: 'short', day: 'numeric', year: 'numeric',
+        });
+    } catch {
+        return iso;
+    }
+}
 import '../../styles/company-page.css';
 import '../../styles/company-register.css';
 import { getUserEvents, type UserEvent } from '../../services/user';
@@ -40,6 +53,10 @@ export const CompanyPage: React.FC = () => {
     const [inviteEmail, setInviteEmail] = useState('');
     const [inviteLoading, setInviteLoading] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [logoUploading, setLogoUploading] = useState(false);
+    const [coverUploading, setCoverUploading] = useState(false);
+    const logoInputRef = useRef<HTMLInputElement>(null);
+    const coverInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         setLoading(true);
@@ -106,6 +123,38 @@ export const CompanyPage: React.FC = () => {
         }
     };
 
+    const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !company) return;
+        setLogoUploading(true);
+        try {
+            const updated = await updateCompany(company.id, { logo: file });
+            setCompany(prev => prev ? { ...prev, logoUrl: updated.logoUrl } : prev);
+            toast.success('Logo updated');
+        } catch {
+            toast.error('Failed to update logo');
+        } finally {
+            setLogoUploading(false);
+            e.target.value = '';
+        }
+    };
+
+    const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !company) return;
+        setCoverUploading(true);
+        try {
+            const updated = await updateCompany(company.id, { cover: file });
+            setCompany(prev => prev ? { ...prev, coverUrl: updated.coverUrl } : prev);
+            toast.success('Cover updated');
+        } catch {
+            toast.error('Failed to update cover');
+        } finally {
+            setCoverUploading(false);
+            e.target.value = '';
+        }
+    };
+
     if (loading) {
         return (
             <div className="cp-page">
@@ -142,16 +191,51 @@ export const CompanyPage: React.FC = () => {
 
             <div className="cp-cover" style={company.coverUrl ? { backgroundImage: `url(${company.coverUrl})` } : undefined}>
                 <div className="cp-cover-overlay" />
+                {isOwner && (
+                    <button
+                        className={`cp-cover-upload-btn${coverUploading ? ' cp-cover-upload-btn--loading' : ''}`}
+                        onClick={() => coverInputRef.current?.click()}
+                        disabled={coverUploading}
+                        aria-label="Change cover photo"
+                    >
+                        <IconCamera size={16} />
+                        <span>{coverUploading ? 'Uploading…' : 'Change cover'}</span>
+                    </button>
+                )}
+                <input
+                    ref={coverInputRef}
+                    type="file"
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                    onChange={handleCoverUpload}
+                />
             </div>
 
             <div className="cp-identity-strip">
                 <div className="cp-identity-inner">
-                    <div className="cp-logo-wrap">
+                    <div
+                        className={`cp-logo-wrap${isOwner ? ' cp-logo-wrap--editable' : ''}`}
+                        onClick={isOwner ? () => logoInputRef.current?.click() : undefined}
+                        role={isOwner ? 'button' : undefined}
+                        aria-label={isOwner ? 'Change logo' : undefined}
+                    >
                         {company.logoUrl ? (
                             <img className="cp-logo" src={company.logoUrl} alt={`${company.name} logo`} />
                         ) : (
                             <div className="cp-logo-placeholder" />
                         )}
+                        {isOwner && (
+                            <div className={`cp-logo-upload-overlay${logoUploading ? ' cp-logo-upload-overlay--loading' : ''}`}>
+                                <IconCamera size={16} />
+                            </div>
+                        )}
+                        <input
+                            ref={logoInputRef}
+                            type="file"
+                            accept="image/*"
+                            style={{ display: 'none' }}
+                            onChange={handleLogoUpload}
+                        />
                     </div>
 
                     <div className="cp-identity-info">
@@ -171,7 +255,7 @@ export const CompanyPage: React.FC = () => {
                                 Create Event
                             </Link>
                             <Link to="/company/edit" className="cp-edit-btn">
-                                Edit Profile
+                                Edit Company
                             </Link>
                         </div>
                     )}
@@ -241,7 +325,12 @@ export const CompanyPage: React.FC = () => {
                         ) : (
                             <div className="events-grid">
                                 {events.map((event) => (
-                                    <div key={event.id} className="event-card">
+                                    <div key={event.id} className="event-card" style={{ position: 'relative' }}>
+                                        <Link
+                                            to={`/events/${event.id}`}
+                                            style={{ position: 'absolute', inset: 0, zIndex: 1, borderRadius: 'inherit' }}
+                                            aria-label={event.title}
+                                        />
                                         <div
                                             className="event-card-image"
                                             style={
@@ -257,6 +346,9 @@ export const CompanyPage: React.FC = () => {
                                             <span className="event-card-category">
                                                 {event.category}
                                             </span>
+                                            {event.capacity != null && event.attendeeCount != null && event.attendeeCount >= event.capacity && (
+                                                <span className="event-card-soldout">Sold Out</span>
+                                            )}
                                         </div>
                                         <div className="event-card-body">
                                             <div className="event-card-title">
@@ -264,13 +356,15 @@ export const CompanyPage: React.FC = () => {
                                             </div>
                                             <div className="event-card-meta">
                                                 <span className="event-card-meta-row">
-                                                    {event.date}
+                                                    <IconCalendar size={12} />
+                                                    {formatEventDate(event.date)}
                                                 </span>
                                                 <span className="event-card-meta-row">
+                                                    <IconMapPin size={12} />
                                                     {event.location}
                                                 </span>
                                             </div>
-                                            <div className="event-card-footer">
+                                            <div className="event-card-footer" style={{ position: 'relative', zIndex: 2 }}>
                                                 {isOwner && (
                                                     <Link
                                                         to={`/events/${event.id}/edit`}

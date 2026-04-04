@@ -15,6 +15,8 @@ export interface UserEvent {
     location: string;
     price: string;
     coverUrl?: string;
+    attendeeCount?: number;
+    capacity?: number | null;
 }
 
 export interface UserTicket {
@@ -26,6 +28,7 @@ export interface UserTicket {
     ticketCount: number;
     price?: string;
     currency?: string;
+    coverUrl?: string;
 }
 
 export const getUserById = async (id: string): Promise<UserProfile> => {

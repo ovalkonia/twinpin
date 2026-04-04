@@ -53,10 +53,38 @@ export default function EventTicketSelector({
         );
     }
 
+    const allSoldOut = tickets.length > 0 && tickets.every(t => t.availableSpots === 0);
+
     if (tickets.length === 0) {
         return (
             <div className="ev-ticket-selector">
                 <p className="ev-ticket-empty">No tickets available</p>
+            </div>
+        );
+    }
+
+    if (allSoldOut) {
+        return (
+            <div className="ev-ticket-selector">
+                <div className="ev-ticket-all-soldout">
+                    <div className="ev-ticket-all-soldout-icon">🎟</div>
+                    <div className="ev-ticket-all-soldout-title">Sold Out</div>
+                    <div className="ev-ticket-all-soldout-sub">All tickets for this event have been claimed.</div>
+                </div>
+                <div className="ev-ticket-tiers ev-ticket-tiers--faded">
+                    {tickets.map(t => (
+                        <div key={t.id} className="ev-ticket-tier ev-ticket-tier--soldout">
+                            <div className="ev-ticket-tier-left">
+                                <span className="ev-ticket-tier-radio" />
+                                <div className="ev-ticket-tier-info">
+                                    <span className="ev-ticket-tier-name">{t.name}</span>
+                                    <span className="ev-ticket-tier-avail">No spots left</span>
+                                </div>
+                            </div>
+                            <span className="ev-ticket-soldout-badge">Sold out</span>
+                        </div>
+                    ))}
+                </div>
             </div>
         );
     }
@@ -89,16 +117,19 @@ export default function EventTicketSelector({
                                     <span className="ev-ticket-tier-name">{t.name}</span>
                                     <span className="ev-ticket-tier-avail">
                                         {soldOut
-                                            ? 'Sold out'
+                                            ? 'No spots left'
                                             : t.availableSpots == null
                                             ? 'Unlimited spots'
                                             : `${t.availableSpots} spot${t.availableSpots !== 1 ? 's' : ''} left`}
                                     </span>
                                 </div>
                             </div>
-                            <span className="ev-ticket-tier-price">
-                                {t.price === 0 ? 'Free' : `${t.currency} ${t.price.toFixed(2)}`}
-                            </span>
+                            {soldOut
+                                ? <span className="ev-ticket-soldout-badge">Sold out</span>
+                                : <span className="ev-ticket-tier-price">
+                                    {t.price === 0 ? 'Free' : `${t.currency} ${t.price.toFixed(2)}`}
+                                  </span>
+                            }
                         </button>
                     );
                 })}

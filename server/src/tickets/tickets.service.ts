@@ -84,6 +84,19 @@ export class TicketsService {
     return this.ticketRepo.save(tier);
   }
 
+  findById(id: string): Promise<Ticket | null> {
+    return this.ticketRepo.findOne({ where: { id }, relations: ['event'] });
+  }
+
+  async patchTier(
+    tier: Ticket,
+    dto: { name?: string; capacity?: number | null },
+  ): Promise<Ticket> {
+    if (dto.name !== undefined) tier.name = dto.name;
+    if ('capacity' in dto) tier.quantityAvailable = dto.capacity ?? null;
+    return this.ticketRepo.save(tier);
+  }
+
   async getTierMetricRows(eventIds: string[]): Promise<TicketMetricRow[]> {
     if (!eventIds.length) return [];
     return this.ticketRepo

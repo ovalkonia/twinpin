@@ -292,51 +292,59 @@ export const MainPage = () => {
                                 onClick={() => navigate(`/events/${event.id}`)}
                                 style={{ cursor: 'pointer' }}
                             >
-                                <div
-                                    className="event-card-image"
-                                    style={
-                                        event.coverUrl
-                                            ? {
-                                                backgroundImage: `url(${event.coverUrl})`,
-                                                backgroundSize: 'cover',
-                                                backgroundPosition: 'center',
+                                {(() => {
+                                    const soldOut = event.capacity != null && event.attendeeCount >= event.capacity;
+                                    return (<>
+                                        <div
+                                            className="event-card-image"
+                                            style={
+                                                event.coverUrl
+                                                    ? {
+                                                        backgroundImage: `url(${event.coverUrl})`,
+                                                        backgroundSize: 'cover',
+                                                        backgroundPosition: 'center',
+                                                    }
+                                                    : { background: gradientFor(event.category) }
                                             }
-                                            : { background: gradientFor(event.category) }
-                                    }
-                                >
-                                    <span className="event-card-category">
-                                        {event.category}
-                                    </span>
-                                </div>
-                                <div className="event-card-body">
-                                    <div className="event-card-title">
-                                        {event.title}
-                                    </div>
-                                    <div className="event-card-meta">
-                                        <span className="event-card-meta-row">
-                                            <IconCalendar size={12} />
-                                            {formatDate(event.date)}
-                                        </span>
-                                        <span className="event-card-meta-row">
-                                            <IconMapPin size={12} />
-                                            {event.location ?? ''}
-                                        </span>
-                                    </div>
-                                    <div className="event-card-footer">
-                                        <span className="event-card-price">
-                                            {priceLabel(event.price)}
-                                        </span>
-                                        <button
-                                            className="event-card-btn"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                navigate(`/events/${event.id}`);
-                                            }}
                                         >
-                                            Get Ticket
-                                        </button>
-                                    </div>
-                                </div>
+                                            <span className="event-card-category">
+                                                {event.category}
+                                            </span>
+                                            {soldOut && (
+                                                <span className="event-card-soldout">Sold Out</span>
+                                            )}
+                                        </div>
+                                        <div className="event-card-body">
+                                            <div className="event-card-title">
+                                                {event.title}
+                                            </div>
+                                            <div className="event-card-meta">
+                                                <span className="event-card-meta-row">
+                                                    <IconCalendar size={12} />
+                                                    {formatDate(event.date)}
+                                                </span>
+                                                <span className="event-card-meta-row">
+                                                    <IconMapPin size={12} />
+                                                    {event.location ?? ''}
+                                                </span>
+                                            </div>
+                                            <div className="event-card-footer">
+                                                <span className="event-card-price">
+                                                    {soldOut ? '' : priceLabel(event.price)}
+                                                </span>
+                                                <button
+                                                    className={`event-card-btn${soldOut ? ' event-card-btn--soldout' : ''}`}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        navigate(`/events/${event.id}`);
+                                                    }}
+                                                >
+                                                    {soldOut ? 'Sold Out' : 'Get Ticket'}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </>);
+                                })()}
                             </div>
                         ))}
                 </div>

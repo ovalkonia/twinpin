@@ -23,6 +23,8 @@ export type UserEventRow = {
   location: string;
   price: string;
   coverUrl?: string;
+  attendeeCount: number;
+  capacity: number | null;
 };
 
 export type UserTicketRow = {
@@ -34,6 +36,7 @@ export type UserTicketRow = {
   ticketCount: number;
   price: string;
   currency: string;
+  coverUrl: string | null;
 };
 
 @Injectable()
@@ -181,6 +184,30 @@ export class UsersService {
     const ids = events.map((e) => e.id);
     const prices = await this.minTicketPriceByEventIds(ids);
 
+    // Attendee counts per event (sum of booking quantities)
+    const attendeeRows: { eventId: string; total: string }[] = ids.length
+      ? await this.bookingRepo
+          .createQueryBuilder('b')
+          .innerJoin('b.ticket', 't')
+          .select('t.eventId', 'eventId')
+          .addSelect('SUM(b.quantity)', 'total')
+          .where('t.eventId IN (:...ids)', { ids })
+          .groupBy('t.eventId')
+          .getRawMany()
+      : [];
+    const attendeeMap = new Map(attendeeRows.map((r) => [r.eventId, Number(r.total)]));
+
+    // Default ticket capacity per event
+    const defaultTickets = ids.length
+      ? await this.ticketRepo.find({
+          where: ids.map((id) => ({ event: { id }, isDefault: true as const })),
+          relations: ['event'],
+        })
+      : [];
+    const capacityMap = new Map(
+      defaultTickets.map((t) => [t.event.id, t.quantityAvailable]),
+    );
+
     return events.map((e) => ({
       id: e.id,
       title: e.title,
@@ -189,6 +216,8 @@ export class UsersService {
       location: e.location ?? '',
       price: prices.get(e.id) ?? '0',
       coverUrl: e.coverUrl ?? undefined,
+      attendeeCount: attendeeMap.get(e.id) ?? 0,
+      capacity: capacityMap.get(e.id) ?? null,
     }));
   }
 
@@ -241,6 +270,7 @@ export class UsersService {
       ticketCount: count,
       price: String(minPrice),
       currency,
+      coverUrl: e.coverUrl ?? null,
     }));
   }
 }

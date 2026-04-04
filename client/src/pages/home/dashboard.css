@@ -413,6 +413,13 @@
     color: white;
 }
 
+.event-card-btn--soldout {
+    border-color: rgba(255, 50, 50, 0.35);
+    color: #ff4d4d;
+    cursor: default;
+    pointer-events: none;
+}
+
 /* ── Animation ─────────────────────────────────────────────── */
 @keyframes fadeInUp {
     from { opacity: 0; transform: translateY(16px); }

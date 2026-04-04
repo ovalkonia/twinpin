@@ -427,6 +427,86 @@ export class EventsService {
     return this.toEventDto(full, metrics.get(eventId) ?? bootstrapMetrics());
   }
 
+  async updateTier(
+    eventId: string,
+    tierId: string,
+    userId: number,
+    dto: { name?: string; capacity?: number | null },
+  ): Promise<TicketTierResponseDto> {
+    const event = await this.eventRepo.findOne({
+      where: { id: eventId },
+      relations: [...EVENT_RELATIONS],
+    });
+    if (!event) throw new NotFoundException('Event not found');
+    this.assertUserOwnsEventCompany(userId, event);
+
+    const tier = await this.ticketsService.findById(tierId);
+    if (!tier || tier.event.id !== eventId) throw new NotFoundException('Tier not found');
+
+    if (dto.capacity != null) {
+      const sold = await this.bookingsService.sumQuantityForTicket(tierId);
+      if (sold > dto.capacity) {
+        throw new BadRequestException('Capacity cannot be less than seats already booked');
+      }
+    }
+
+    const saved = await this.ticketsService.patchTier(tier, dto);
+    const sold = await this.bookingsService.sumQuantityForTicket(tierId);
+    const available =
+      saved.quantityAvailable != null
+        ? Math.max(0, saved.quantityAvailable - sold)
+        : null;
+
+    return {
+      id: saved.id,
+      name: saved.name,
+      description: saved.description ?? undefined,
+      price: Number(saved.price),
+      currency: saved.currency,
+      capacity: saved.quantityAvailable,
+      availableSpots: available,
+      isDefault: saved.isDefault,
+      sortOrder: saved.sortOrder,
+    };
+  }
+
+  async addTier(
+    eventId: string,
+    userId: number,
+    dto: { name: string; price: number; currency?: string; capacity?: number | null },
+  ): Promise<TicketTierResponseDto> {
+    const event = await this.eventRepo.findOne({
+      where: { id: eventId },
+      relations: [...EVENT_RELATIONS],
+    });
+    if (!event) throw new NotFoundException('Event not found');
+    this.assertUserOwnsEventCompany(userId, event);
+
+    const existing = await this.ticketsService.findAllForEvent(eventId);
+    const maxOrder = existing.reduce((m, t) => Math.max(m, t.sortOrder), -1);
+
+    const tier = await this.ticketsService.createTier(event, {
+      name: dto.name,
+      price: dto.price,
+      currency: dto.currency ?? 'USD',
+      capacity: dto.capacity ?? null,
+      sortOrder: maxOrder + 1,
+      isDefault: false,
+    });
+
+    return {
+      id: tier.id,
+      name: tier.name,
+      description: tier.description ?? undefined,
+      price: Number(tier.price),
+      currency: tier.currency,
+      capacity: tier.quantityAvailable,
+      availableSpots: tier.quantityAvailable,
+      isDefault: tier.isDefault,
+      sortOrder: tier.sortOrder,
+    };
+  }
+
   async remove(eventId: string, userId: number): Promise<void> {
     const event = await this.eventRepo.findOne({
       where: { id: eventId },
@@ -670,6 +750,7 @@ export class EventsService {
           description: t.description ?? undefined,
           price: Number(t.price),
           currency: t.currency,
+          capacity: t.quantityAvailable,
           availableSpots: available,
           isDefault: t.isDefault,
           sortOrder: t.sortOrder,

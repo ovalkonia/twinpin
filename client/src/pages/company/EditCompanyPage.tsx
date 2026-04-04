@@ -93,8 +93,13 @@ export const EditCompanyPage: React.FC = () => {
     useEffect(() => {
         const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string | undefined;
         if (!apiKey || apiKey === 'your_google_maps_api_key') return;
-        if (document.getElementById('gm-places-script')) {
-            initAddressAutocomplete();
+        const existing = document.getElementById('gm-places-script') as HTMLScriptElement | null;
+        if (existing) {
+            if ((window as any).google) {
+                initAddressAutocomplete();
+            } else {
+                existing.addEventListener('load', initAddressAutocomplete);
+            }
             return;
         }
         const script = document.createElement('script');
@@ -234,10 +239,11 @@ export const EditCompanyPage: React.FC = () => {
             <Header />
             <div className="ce-container">
                 <div className="ce-header">
-                    <h1 className="ce-heading">Edit Company Profile</h1>
+                    <h1 className="ce-heading">Edit Company</h1>
                 </div>
 
-                <div className="cr-card">
+                <div className="ce-card">
+                    <div className="cr-section-divider">Identity</div>
                     <div className="cr-field">
                         <label className="cr-label">Company Name <span className="cr-required">*</span></label>
                         <input
@@ -266,6 +272,7 @@ export const EditCompanyPage: React.FC = () => {
                         {errors.slug && <span className="cr-error">{errors.slug}</span>}
                     </div>
 
+                    <div className="cr-section-divider">About</div>
                     <div className="cr-field">
                         <label className="cr-label">Description</label>
                         <textarea
@@ -318,6 +325,7 @@ export const EditCompanyPage: React.FC = () => {
                         {errors.categories && <span className="cr-error">{errors.categories}</span>}
                     </div>
 
+                    <div className="cr-section-divider">Contact</div>
                     <div className="cr-field">
                         <label className="cr-label">Website</label>
                         <div className="cr-input-icon-wrap">
@@ -379,6 +387,7 @@ export const EditCompanyPage: React.FC = () => {
                         ))}
                     </div>
 
+                    <div className="cr-section-divider">Media</div>
                     <div className="cr-field">
                         <label className="cr-label">Logo</label>
                         <div
@@ -446,7 +455,7 @@ export const EditCompanyPage: React.FC = () => {
                         />
                     </div>
 
-                    <div className="cr-actions">
+                    <div className="ce-actions">
                         <button
                             className="cr-btn cr-btn--primary"
                             onClick={handleSave}

@@ -307,6 +307,33 @@ export class EventsController {
     return this.eventsService.getTicketsForEvent(id);
   }
 
+  @Post(':id/tickets')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Add a new ticket tier (owner only)' })
+  @ApiOkResponse({ type: TicketTierResponseDto })
+  async createTier(
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+    @Body() body: { name: string; price: number; currency?: string; capacity?: number | null },
+    @CurrentUser() user: User,
+  ): Promise<TicketTierResponseDto> {
+    return this.eventsService.addTier(id, user.id, body);
+  }
+
+  @Patch(':id/tickets/:tierId')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update ticket tier name and/or capacity (owner only)' })
+  @ApiOkResponse({ type: TicketTierResponseDto })
+  async patchTier(
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+    @Param('tierId', new ParseUUIDPipe({ version: '4' })) tierId: string,
+    @Body() body: { name?: string; capacity?: number | null },
+    @CurrentUser() user: User,
+  ): Promise<TicketTierResponseDto> {
+    return this.eventsService.updateTier(id, tierId, user.id, body);
+  }
+
   @Get(':id')
   @UseGuards(OptionalJwtAuthGuard)
   @ApiOperation({ summary: 'Get one event (optional auth for isSubscribed)' })

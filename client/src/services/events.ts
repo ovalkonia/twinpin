@@ -34,6 +34,7 @@ export interface TicketTier {
     description?: string;
     price: number;
     currency: string;
+    capacity: number | null;
     availableSpots: number | null;
     isDefault: boolean;
     sortOrder: number;
@@ -194,6 +195,25 @@ export const updateEvent = async (id: string, input: UpdateEventInput): Promise<
 /** Fetch ticket tiers for an event with live availability. */
 export const getEventTickets = async (id: string): Promise<TicketTier[]> => {
     const response = await api.get<TicketTier[]>(`/events/${id}/tickets`);
+    return response.data;
+};
+
+/** Update a ticket tier's name and/or capacity (owner only). */
+export const updateTicketTier = async (
+    eventId: string,
+    tierId: string,
+    input: { name?: string; capacity?: number | null },
+): Promise<TicketTier> => {
+    const response = await api.patch<TicketTier>(`/events/${eventId}/tickets/${tierId}`, input);
+    return response.data;
+};
+
+/** Add a new ticket tier to an event (owner only). */
+export const createTicketTier = async (
+    eventId: string,
+    input: { name: string; price: number; currency?: string; capacity?: number | null },
+): Promise<TicketTier> => {
+    const response = await api.post<TicketTier>(`/events/${eventId}/tickets`, input);
     return response.data;
 };
 

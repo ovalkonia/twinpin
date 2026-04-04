@@ -26,6 +26,71 @@
     background-position: center;
 }
 
+/* ── Cover upload button (owner only) ────────────────────── */
+
+.cp-cover-upload-btn {
+    position: absolute;
+    bottom: 14px;
+    right: 16px;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 14px;
+    background: rgba(10, 10, 10, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 50px;
+    color: #e0e0e0;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    backdrop-filter: blur(6px);
+    transition: background 0.15s, border-color 0.15s, opacity 0.15s;
+    opacity: 0;
+}
+
+.cp-cover:hover .cp-cover-upload-btn {
+    opacity: 1;
+}
+
+.cp-cover-upload-btn:hover {
+    background: rgba(30, 30, 30, 0.9);
+    border-color: rgba(255, 107, 0, 0.5);
+    color: #ff6b00;
+}
+
+.cp-cover-upload-btn--loading {
+    opacity: 1;
+    cursor: default;
+}
+
+/* ── Logo upload overlay (owner only) ────────────────────── */
+
+.cp-logo-wrap--editable {
+    cursor: pointer;
+}
+
+.cp-logo-upload-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.55);
+    color: #fff;
+    border-radius: inherit;
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+.cp-logo-wrap--editable:hover .cp-logo-upload-overlay {
+    opacity: 1;
+}
+
+.cp-logo-upload-overlay--loading {
+    opacity: 1;
+}
+
 .cp-cover-overlay {
     position: absolute;
     inset: 0;
@@ -622,32 +687,43 @@ a.cp-contact-row:hover {
 .cp-social-links {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
 }
 
 .cp-social-link {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 10px 14px;
-    border-radius: 10px;
+    padding: 9px 12px;
+    border-radius: 9px;
     text-decoration: none;
     font-size: 13px;
-    font-weight: 600;
-    transition: opacity 0.15s, transform 0.15s;
-    color: #fff;
+    font-weight: 500;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    color: #ccc;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
 
 .cp-social-link:hover {
-    opacity: 0.85;
-    transform: translateX(2px);
+    background: rgba(255, 255, 255, 0.08);
+    color: #e0e0e0;
 }
 
-.cp-social-link--linkedin  { background: #0A66C2; }
-.cp-social-link--instagram { background: linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); }
-.cp-social-link--tiktok    { background: #010101; border: 1px solid rgba(255,255,255,0.1); }
-.cp-social-link--telegram  { background: #229ED9; }
-.cp-social-link--website   { background: rgba(255,107,0,0.15); color: #ff6b00; border: 1px solid rgba(255,107,0,0.3); }
+.cp-social-link svg { flex-shrink: 0; }
+
+/* Platform-colored icons on hover via individual class */
+.cp-social-link--linkedin  svg { color: #0A66C2; }
+.cp-social-link--instagram svg { color: #e1306c; }
+.cp-social-link--tiktok    svg { color: #ccc; }
+.cp-social-link--telegram  svg { color: #229ED9; }
+.cp-social-link--website   svg { color: #ff6b00; }
+
+.cp-social-link--linkedin:hover  { border-color: rgba(10,102,194,0.4); }
+.cp-social-link--instagram:hover { border-color: rgba(225,48,108,0.4); }
+.cp-social-link--tiktok:hover    { border-color: rgba(255,255,255,0.15); }
+.cp-social-link--telegram:hover  { border-color: rgba(34,158,217,0.4); }
+.cp-social-link--website:hover   { border-color: rgba(255,107,0,0.4); color: #ff6b00; }
 
 /* ─── Company map ────────────────────────────────────────── */
 

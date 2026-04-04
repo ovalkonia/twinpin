@@ -10,6 +10,16 @@ import '../../styles/profile.css';
 
 const DEFAULT_COVER = 'linear-gradient(135deg, #1a1a2e, #0a0a1a)';
 
+function formatEventDate(iso: string): string {
+    try {
+        return new Date(iso).toLocaleDateString('en-US', {
+            month: 'short', day: 'numeric', year: 'numeric',
+        });
+    } catch {
+        return iso;
+    }
+}
+
 export const ProfilePage = () => {
     const { userId: routeUserId } = useParams<{ userId?: string }>();
     const { user: currentUser, updateUser } = useAuth();
@@ -201,7 +211,12 @@ export const ProfilePage = () => {
                         ) : (
                             <div className="events-grid">
                                 {createdEvents.map(event => (
-                                    <div key={event.id} className="event-card">
+                                    <div key={event.id} className="event-card" style={{ position: 'relative' }}>
+                                        <Link
+                                            to={`/events/${event.id}`}
+                                            style={{ position: 'absolute', inset: 0, zIndex: 1, borderRadius: 'inherit' }}
+                                            aria-label={event.title}
+                                        />
                                         <div
                                             className="event-card-image"
                                             style={event.coverUrl
@@ -209,6 +224,9 @@ export const ProfilePage = () => {
                                                 : { background: DEFAULT_COVER }}
                                         >
                                             <span className="event-card-category">{event.category}</span>
+                                            {event.capacity != null && event.attendeeCount != null && event.attendeeCount >= event.capacity && (
+                                                <span className="event-card-soldout">Sold Out</span>
+                                            )}
                                         </div>
                                         <div className="event-card-body">
                                             <div className="event-card-title">{event.title}</div>
@@ -217,7 +235,7 @@ export const ProfilePage = () => {
                                                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                                         <rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
                                                     </svg>
-                                                    {event.date}
+                                                    {formatEventDate(event.date)}
                                                 </span>
                                                 <span className="event-card-meta-row">
                                                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -226,7 +244,7 @@ export const ProfilePage = () => {
                                                     {event.location}
                                                 </span>
                                             </div>
-                                            <div className="event-card-footer">
+                                            <div className="event-card-footer" style={{ position: 'relative', zIndex: 2 }}>
                                                 <Link to={`/events/${event.id}/edit`} className="event-card-btn">Manage</Link>
                                                 {isOwnProfile && (
                                                     <button
@@ -269,7 +287,9 @@ export const ProfilePage = () => {
                                     <div key={entry.id} className="ticket-item">
                                         <div
                                             className="ticket-item-thumb"
-                                            style={{ background: DEFAULT_COVER }}
+                                            style={entry.coverUrl
+                                                ? { backgroundImage: `url(${entry.coverUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+                                                : { background: DEFAULT_COVER }}
                                         >
                                             <span className="ticket-item-category">{entry.category}</span>
                                         </div>
@@ -280,7 +300,7 @@ export const ProfilePage = () => {
                                                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                                         <rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
                                                     </svg>
-                                                    {entry.date}
+                                                    {formatEventDate(entry.date)}
                                                 </span>
                                                 <span className="event-card-meta-row">
                                                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

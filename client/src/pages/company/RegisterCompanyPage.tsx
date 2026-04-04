@@ -109,8 +109,13 @@ export const RegisterCompanyPage: React.FC = () => {
     useEffect(() => {
         const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string | undefined;
         if (!apiKey || apiKey === 'your_google_maps_api_key') return;
-        if (document.getElementById('gm-places-script')) {
-            initAddressAutocomplete();
+        const existing = document.getElementById('gm-places-script') as HTMLScriptElement | null;
+        if (existing) {
+            if ((window as any).google) {
+                initAddressAutocomplete();
+            } else {
+                existing.addEventListener('load', initAddressAutocomplete);
+            }
             return;
         }
         const script = document.createElement('script');
@@ -121,6 +126,15 @@ export const RegisterCompanyPage: React.FC = () => {
         document.head.appendChild(script);
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    // Re-init autocomplete when user reaches the address step (ref is null until step 2 renders)
+    useEffect(() => {
+        if (step !== 2) return;
+        if ((window as any).google && addressInputRef.current) {
+            initAddressAutocomplete();
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [step]);
 
     function initAddressAutocomplete() {
         if (!addressInputRef.current || !(window as any).google) return;
@@ -322,6 +336,7 @@ export const RegisterCompanyPage: React.FC = () => {
                 {errors.slug && <span className="cr-error">{errors.slug}</span>}
             </div>
 
+            <div className="cr-section-divider">Media</div>
             <div className="cr-upload-row">
                 <div className="cr-field cr-field--logo">
                     <label className="cr-label">Logo</label>
@@ -399,6 +414,7 @@ export const RegisterCompanyPage: React.FC = () => {
                 />
             </div>
 
+            <div className="cr-section-divider">Tags</div>
             <div className="cr-field">
                 <label className="cr-label">Activity Categories <span className="cr-required">*</span></label>
                 {form.categories.length > 0 && (

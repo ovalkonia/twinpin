@@ -792,8 +792,53 @@ a.event-organizer-card:hover {
 }
 
 .ev-ticket-tier--soldout {
-    opacity: 0.4;
+    opacity: 0.45;
     cursor: not-allowed;
+    border-color: rgba(255, 255, 255, 0.04);
+}
+
+.ev-ticket-soldout-badge {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: #ff5555;
+    background: rgba(255, 50, 50, 0.1);
+    border: 1px solid rgba(255, 50, 50, 0.22);
+    padding: 3px 9px;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+.ev-ticket-tiers--faded {
+    margin-top: 12px;
+    opacity: 0.55;
+    pointer-events: none;
+}
+
+.ev-ticket-all-soldout {
+    text-align: center;
+    padding: 20px 0 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    margin-bottom: 4px;
+}
+
+.ev-ticket-all-soldout-icon {
+    font-size: 28px;
+    margin-bottom: 10px;
+}
+
+.ev-ticket-all-soldout-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: #ff5555;
+    letter-spacing: 0.01em;
+}
+
+.ev-ticket-all-soldout-sub {
+    font-size: 12px;
+    color: #555;
+    margin-top: 5px;
 }
 
 .ev-ticket-tier-left {

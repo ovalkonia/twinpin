@@ -6,6 +6,7 @@ export class TicketTierResponseDto {
   @ApiPropertyOptional() description?: string;
   @ApiProperty() price: number;
   @ApiProperty() currency: string;
+  @ApiPropertyOptional({ nullable: true }) capacity: number | null;
   @ApiPropertyOptional({ nullable: true }) availableSpots: number | null;
   @ApiProperty() isDefault: boolean;
   @ApiProperty() sortOrder: number;

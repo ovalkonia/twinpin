@@ -379,7 +379,7 @@ export const CreateEventPage: React.FC = () => {
             }
 
             toast.success('Event created successfully!');
-            navigate(`/events/${created.id}/edit`);
+            navigate(`/events/${created.id}`);
         } catch (e: any) {
             const msg = e?.response?.data?.message;
             toast.error(typeof msg === 'string' ? msg : 'Failed to create event');
@@ -523,6 +523,7 @@ export const CreateEventPage: React.FC = () => {
                     </div>
                 </div>
 
+                <div className="cr-section-divider">Schedule</div>
                 <div className="ev-datetime-row">
                     <div className="cr-field" style={{ margin: 0 }}>
                         <label className="cr-label">
@@ -613,6 +614,7 @@ export const CreateEventPage: React.FC = () => {
                 </div>
 
                 {/* Gallery */}
+                <div className="cr-section-divider">Gallery</div>
                 <div className="cr-field">
                     <label className="cr-label">Gallery <span style={{ color: '#555', fontWeight: 400 }}>(photos & videos)</span></label>
                     <div className="ev-gallery-grid">
