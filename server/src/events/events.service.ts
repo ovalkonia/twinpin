@@ -197,12 +197,21 @@ export class EventsService {
         }),
       );
     }
+    if (filter.location?.trim()) {
+      qb.andWhere('LOWER(e.location) LIKE :loc', {
+        loc: `%${filter.location.trim().toLowerCase()}%`,
+      });
+    }
 
-    const sortCol = filter.sort_by === 'price'
-      ? '(SELECT COALESCE(MIN(t.price), 0) FROM tickets t WHERE t."eventId" = e.id)'
-      : 'e.date';
     const sortOrder = filter.sort_order?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
-    qb.orderBy(sortCol, sortOrder);
+    if (filter.sort_by === 'price') {
+      qb.addSelect(
+        '(SELECT COALESCE(MIN(t.price), 0) FROM tickets t WHERE t."eventId" = e.id)',
+        'min_price',
+      ).orderBy('min_price', sortOrder);
+    } else {
+      qb.orderBy('e.date', sortOrder);
+    }
 
     const total = await qb.clone().getCount();
     const rows = await qb

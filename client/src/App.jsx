@@ -62,7 +62,7 @@ function AppContent() {
                 }}
             />
             <Routes>
-                <Route path="/" element={<PageBeforeSignUp />} />
+                <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
                 <Route path="/auth/callback" element={<GoogleCallback />} />
 

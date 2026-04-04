@@ -65,6 +65,7 @@ export interface EventsFilter {
     priceMin?: number;
     priceMax?: number;
     search?: string;
+    location?: string;
     sortBy?: 'date' | 'price';
     sortOrder?: 'asc' | 'desc';
     page?: number;
@@ -152,6 +153,7 @@ function toQueryString(filter: EventsFilter): string {
     if (filter.priceMin !== undefined) params.set('price_min', String(filter.priceMin));
     if (filter.priceMax !== undefined) params.set('price_max', String(filter.priceMax));
     if (filter.search)    params.set('search',     filter.search);
+    if (filter.location)  params.set('location',   filter.location);
     if (filter.sortBy)    params.set('sort_by',    filter.sortBy);
     if (filter.sortOrder) params.set('sort_order', filter.sortOrder);
     if (filter.page)      params.set('page', String(filter.page));

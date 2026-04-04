@@ -160,8 +160,9 @@
     color: #555;
 }
 
-.dash-filter-search   { width: 200px; }
-.dash-filter-category { width: 140px; }
+.dash-filter-search   { width: 190px; }
+.dash-filter-category { width: 120px; }
+.dash-filter-location { width: 130px; }
 
 .dash-filter-select {
     cursor: pointer;

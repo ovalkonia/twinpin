@@ -1144,6 +1144,66 @@ a.event-organizer-card:hover {
     margin-bottom: 16px;
 }
 
+.ev-similar-arrows {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.ev-similar-arrow {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.04);
+    color: #888;
+    font-size: 18px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.ev-similar-arrow:hover:not(:disabled) {
+    border-color: #ff6b00;
+    color: #ff6b00;
+    background: rgba(255, 107, 0, 0.08);
+}
+
+.ev-similar-arrow:disabled {
+    opacity: 0.2;
+    cursor: default;
+}
+
+.ev-similar-grid {
+    display: flex;
+    gap: 14px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    padding-right: 4px;
+    scrollbar-width: none;
+    scroll-snap-type: x mandatory;
+}
+
+.ev-similar-grid::-webkit-scrollbar {
+    display: none;
+}
+
+.ev-similar-grid .event-card {
+    flex: 0 0 calc((100% - 2 * 14px) / 3);
+    min-width: 0;
+    scroll-snap-align: start;
+}
+
+.ev-similar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
 .ev-similar-title {
     font-size: 1rem;
     font-weight: 700;

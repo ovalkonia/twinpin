@@ -34,6 +34,7 @@ export const MainPage = () => {
     // Sync URL ?q param → filters when it changes (e.g. header search)
     useEffect(() => {
         setFilters(prev => ({ ...prev, search: qParam }));
+        setSearchDraft(qParam ?? '');
         setPage(1);
     }, [qParam]);
     const [page, setPage] = useState(1);
@@ -44,6 +45,8 @@ export const MainPage = () => {
     const [loading, setLoading] = useState(true);
 
     // ── Draft inputs (not yet applied) ──────────────────────────────────────
+    const [searchDraft, setSearchDraft]     = useState(qParam ?? '');
+    const [locationDraft, setLocationDraft] = useState('');
     const [categoryDraft, setCategoryDraft] = useState('');
     const [moreOpen, setMoreOpen]         = useState(false);
     const [dateFrom, setDateFrom]         = useState('');
@@ -94,6 +97,14 @@ export const MainPage = () => {
         setPage(1);
     };
 
+    const applySearch = () => {
+        applyFilter({ search: searchDraft.trim() || undefined });
+    };
+
+    const applyLocation = () => {
+        applyFilter({ location: locationDraft.trim() || undefined });
+    };
+
     const applyCategory = () => {
         applyFilter({ category: categoryDraft.trim() || undefined });
     };
@@ -109,6 +120,8 @@ export const MainPage = () => {
     };
 
     const clearAll = () => {
+        setSearchDraft('');
+        setLocationDraft('');
         setCategoryDraft('');
         setDateFrom('');
         setDateTo('');
@@ -128,7 +141,8 @@ export const MainPage = () => {
     const sortValue = `${filters.sortBy ?? 'date'}-${filters.sortOrder ?? 'desc'}`;
 
     const hasAnyFilter = Boolean(
-        qParam || filters.category || filters.format ||
+        qParam || filters.search || filters.location ||
+        filters.category || filters.format ||
         filters.dateFrom || filters.dateTo ||
         filters.priceMin !== undefined || filters.priceMax !== undefined,
     );
@@ -177,6 +191,17 @@ export const MainPage = () => {
 
                 {/* ── Filter bar ─────────────────────────────────────────── */}
                 <div className="dash-filters">
+                    {/* Search */}
+                    <input
+                        className="dash-filter-input dash-filter-search"
+                        type="text"
+                        placeholder="Search events…"
+                        value={searchDraft}
+                        onChange={e => setSearchDraft(e.target.value)}
+                        onKeyDown={e => e.key === 'Enter' && applySearch()}
+                        onBlur={applySearch}
+                    />
+
                     {/* Category */}
                     <input
                         className="dash-filter-input dash-filter-category"
@@ -186,6 +211,17 @@ export const MainPage = () => {
                         onChange={e => setCategoryDraft(e.target.value)}
                         onKeyDown={e => e.key === 'Enter' && applyCategory()}
                         onBlur={applyCategory}
+                    />
+
+                    {/* Location */}
+                    <input
+                        className="dash-filter-input dash-filter-location"
+                        type="text"
+                        placeholder="Location…"
+                        value={locationDraft}
+                        onChange={e => setLocationDraft(e.target.value)}
+                        onKeyDown={e => e.key === 'Enter' && applyLocation()}
+                        onBlur={applyLocation}
                     />
 
                     {/* Format */}

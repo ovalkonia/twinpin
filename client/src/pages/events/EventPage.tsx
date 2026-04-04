@@ -196,8 +196,8 @@ export default function EventPage() {
                     <EventMap location={event.location} />
                     <EventFaq faq={event.faq} />
                     <EventGoing attendees={event.attendees} />
-                    <EventComments eventId={event.id} />
                     <EventSimilar eventId={event.id} />
+                    <EventComments eventId={event.id} />
                 </main>
 
                 <aside className="event-sidebar">
