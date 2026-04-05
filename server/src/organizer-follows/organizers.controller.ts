@@ -1,6 +1,13 @@
-import { Controller, Delete, Param, ParseIntPipe, Post, UseGuards } from '@nestjs/common';
+import { Controller, Delete, HttpCode, HttpStatus, Param, ParseIntPipe, Post, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiNoContentResponse,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { User } from '../users/entities/user.entity';
 import { OrganizerFollowsService } from './organizer-follows.service';
@@ -12,8 +19,15 @@ export class OrganizersController {
 
   @Post(':organizerId/follow')
   @UseGuards(AuthGuard('jwt'))
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Follow an organizer (user id)' })
+  @ApiBearerAuth('bearer')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({
+    summary: 'Follow an organizer user',
+    description: 'Follows a user by their user ID. Note: company follows use `/companies/:id/follow`.',
+  })
+  @ApiParam({ name: 'organizerId', description: 'User ID of the organizer to follow', example: 5 })
+  @ApiNoContentResponse({ description: 'Now following' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid JWT' })
   async follow(
     @Param('organizerId', ParseIntPipe) organizerId: number,
     @CurrentUser() user: User,
@@ -23,7 +37,12 @@ export class OrganizersController {
 
   @Delete(':organizerId/follow')
   @UseGuards(AuthGuard('jwt'))
-  @ApiBearerAuth()
+  @ApiBearerAuth('bearer')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Unfollow an organizer user' })
+  @ApiParam({ name: 'organizerId', description: 'User ID of the organizer to unfollow', example: 5 })
+  @ApiNoContentResponse({ description: 'Unfollowed' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid JWT' })
   async unfollow(
     @Param('organizerId', ParseIntPipe) organizerId: number,
     @CurrentUser() user: User,

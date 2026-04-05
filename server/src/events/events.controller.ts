@@ -20,10 +20,14 @@ import {
   ApiBearerAuth,
   ApiBody,
   ApiConsumes,
+  ApiNoContentResponse,
+  ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiParam,
   ApiQuery,
   ApiTags,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
@@ -81,7 +85,8 @@ export class EventsController {
 
   @Post()
   @UseGuards(AuthGuard('jwt'))
-  @ApiBearerAuth()
+  @ApiBearerAuth('bearer')
+  @ApiOperation({ summary: 'Create a new event (company owner)' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     description:
@@ -137,7 +142,9 @@ export class EventsController {
 
   @Patch(':id')
   @UseGuards(AuthGuard('jwt'))
-  @ApiBearerAuth()
+  @ApiBearerAuth('bearer')
+  @ApiOperation({ summary: 'Update an event (company owner)' })
+  @ApiParam({ name: 'id', description: 'Event UUID', example: 'a1b2c3d4-e5f6-4789-8012-abcdef012345' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     description: 'Partial event fields; only sent keys are updated.',
@@ -193,8 +200,12 @@ export class EventsController {
 
   @Delete(':id')
   @UseGuards(AuthGuard('jwt'))
-  @ApiBearerAuth()
+  @ApiBearerAuth('bearer')
   @ApiOperation({ summary: 'Delete event (company owner only)' })
+  @ApiParam({ name: 'id', description: 'Event UUID', example: 'a1b2c3d4-e5f6-4789-8012-abcdef012345' })
+  @ApiNoContentResponse({ description: 'Event deleted' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid JWT' })
+  @ApiNotFoundResponse({ description: 'Event not found' })
   async remove(
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
     @CurrentUser() user: User,
@@ -203,6 +214,9 @@ export class EventsController {
   }
 
   @Get(':id/similar')
+  @ApiOperation({ summary: 'Get similar events (same category, excluding this one)' })
+  @ApiParam({ name: 'id', description: 'Event UUID', example: 'a1b2c3d4-e5f6-4789-8012-abcdef012345' })
+  @ApiQuery({ name: 'limit', required: false, description: 'Max results (default 4)', example: 4 })
   @ApiOkResponse({ type: [EventResponseDto] })
   async similar(
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
@@ -213,7 +227,10 @@ export class EventsController {
 
   @Post(':id/subscribe')
   @UseGuards(AuthGuard('jwt'))
-  @ApiBearerAuth()
+  @ApiBearerAuth('bearer')
+  @ApiParam({ name: 'id', description: 'Event UUID', example: 'a1b2c3d4-e5f6-4789-8012-abcdef012345' })
+  @ApiNoContentResponse({ description: 'Booking recorded' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid JWT' })
   @ApiOperation({
     summary:
       'Book a ticket tier (simulated Stripe payment + notifications). When the event has multiple tiers, pass ticketId.',
@@ -259,7 +276,11 @@ export class EventsController {
 
   @Delete(':id/subscribe')
   @UseGuards(AuthGuard('jwt'))
-  @ApiBearerAuth()
+  @ApiBearerAuth('bearer')
+  @ApiOperation({ summary: 'Cancel a booking for an event' })
+  @ApiParam({ name: 'id', description: 'Event UUID', example: 'a1b2c3d4-e5f6-4789-8012-abcdef012345' })
+  @ApiNoContentResponse({ description: 'Booking cancelled' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid JWT' })
   async unsubscribe(
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
     @CurrentUser() user: User,
@@ -271,7 +292,9 @@ export class EventsController {
   @UseGuards(OptionalJwtAuthGuard)
   @ApiOperation({
     summary: 'Attendee list (respects visitorListPrivacy and profile masking)',
+    description: 'If `visitorListPrivacy` is `attendees`, only authenticated bookers can see the list. Hidden bookings are always excluded.',
   })
+  @ApiParam({ name: 'id', description: 'Event UUID', example: 'a1b2c3d4-e5f6-4789-8012-abcdef012345' })
   @ApiOkResponse({ type: [EventAttendeeResponseDto] })
   async attendees(
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
@@ -282,6 +305,8 @@ export class EventsController {
 
   @Get(':id/comments')
   @UseGuards(OptionalJwtAuthGuard)
+  @ApiOperation({ summary: 'List comments on an event' })
+  @ApiParam({ name: 'id', description: 'Event UUID', example: 'a1b2c3d4-e5f6-4789-8012-abcdef012345' })
   @ApiOkResponse({ type: [EventCommentResponseDto] })
   async comments(
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
@@ -292,7 +317,10 @@ export class EventsController {
 
   @Post(':id/comments')
   @UseGuards(AuthGuard('jwt'))
-  @ApiBearerAuth()
+  @ApiBearerAuth('bearer')
+  @ApiOperation({ summary: 'Add a comment to an event' })
+  @ApiParam({ name: 'id', description: 'Event UUID', example: 'a1b2c3d4-e5f6-4789-8012-abcdef012345' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid JWT' })
   @ApiOkResponse({ type: EventCommentResponseDto })
   async addComment(
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
@@ -304,7 +332,12 @@ export class EventsController {
 
   @Delete(':id/comments/:commentId')
   @UseGuards(AuthGuard('jwt'))
-  @ApiBearerAuth()
+  @ApiBearerAuth('bearer')
+  @ApiOperation({ summary: 'Delete a comment (author or event owner)' })
+  @ApiParam({ name: 'id', description: 'Event UUID', example: 'a1b2c3d4-e5f6-4789-8012-abcdef012345' })
+  @ApiParam({ name: 'commentId', description: 'Comment UUID', example: 'uuid-here' })
+  @ApiNoContentResponse({ description: 'Comment deleted' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid JWT' })
   async deleteComment(
     @Param('id', new ParseUUIDPipe({ version: '4' })) eventId: string,
     @Param('commentId', new ParseUUIDPipe({ version: '4' })) commentId: string,
@@ -316,6 +349,7 @@ export class EventsController {
   @Get(':id/tickets')
   @UseGuards(OptionalJwtAuthGuard)
   @ApiOperation({ summary: 'List ticket tiers for an event with live availability' })
+  @ApiParam({ name: 'id', description: 'Event UUID', example: 'a1b2c3d4-e5f6-4789-8012-abcdef012345' })
   @ApiOkResponse({ type: [TicketTierResponseDto] })
   async getTickets(
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
@@ -325,9 +359,23 @@ export class EventsController {
 
   @Post(':id/tickets')
   @UseGuards(AuthGuard('jwt'))
-  @ApiBearerAuth()
+  @ApiBearerAuth('bearer')
   @ApiOperation({ summary: 'Add a new ticket tier (owner only)' })
+  @ApiParam({ name: 'id', description: 'Event UUID', example: 'a1b2c3d4-e5f6-4789-8012-abcdef012345' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      required: ['name', 'price'],
+      properties: {
+        name:     { type: 'string', example: 'General Admission' },
+        price:    { type: 'number', example: 29.99 },
+        currency: { type: 'string', example: 'EUR' },
+        capacity: { type: 'integer', nullable: true, example: 200 },
+      },
+    },
+  })
   @ApiOkResponse({ type: TicketTierResponseDto })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid JWT' })
   async createTier(
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
     @Body() body: { name: string; price: number; currency?: string; capacity?: number | null },
@@ -338,9 +386,21 @@ export class EventsController {
 
   @Patch(':id/tickets/:tierId')
   @UseGuards(AuthGuard('jwt'))
-  @ApiBearerAuth()
+  @ApiBearerAuth('bearer')
   @ApiOperation({ summary: 'Update ticket tier name and/or capacity (owner only)' })
+  @ApiParam({ name: 'id', description: 'Event UUID', example: 'a1b2c3d4-e5f6-4789-8012-abcdef012345' })
+  @ApiParam({ name: 'tierId', description: 'Ticket tier UUID', example: 'uuid-here' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        name:     { type: 'string', example: 'VIP' },
+        capacity: { type: 'integer', nullable: true, example: 50 },
+      },
+    },
+  })
   @ApiOkResponse({ type: TicketTierResponseDto })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid JWT' })
   async patchTier(
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
     @Param('tierId', new ParseUUIDPipe({ version: '4' })) tierId: string,
@@ -352,8 +412,11 @@ export class EventsController {
 
   @Post(':id/watch')
   @UseGuards(AuthGuard('jwt'))
-  @ApiBearerAuth()
+  @ApiBearerAuth('bearer')
   @ApiOperation({ summary: 'Subscribe to event notifications (comments, updates, cancellation)' })
+  @ApiParam({ name: 'id', description: 'Event UUID', example: 'a1b2c3d4-e5f6-4789-8012-abcdef012345' })
+  @ApiNoContentResponse({ description: 'Now watching' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid JWT' })
   async watchEvent(
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
     @CurrentUser() user: User,
@@ -363,8 +426,11 @@ export class EventsController {
 
   @Delete(':id/watch')
   @UseGuards(AuthGuard('jwt'))
-  @ApiBearerAuth()
+  @ApiBearerAuth('bearer')
   @ApiOperation({ summary: 'Unsubscribe from event notifications' })
+  @ApiParam({ name: 'id', description: 'Event UUID', example: 'a1b2c3d4-e5f6-4789-8012-abcdef012345' })
+  @ApiNoContentResponse({ description: 'Unwatched' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid JWT' })
   async unwatchEvent(
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
     @CurrentUser() user: User,
@@ -374,8 +440,11 @@ export class EventsController {
 
   @Get(':id/watch')
   @UseGuards(AuthGuard('jwt'))
-  @ApiBearerAuth()
+  @ApiBearerAuth('bearer')
   @ApiOperation({ summary: 'Check if current user is watching this event' })
+  @ApiParam({ name: 'id', description: 'Event UUID', example: 'a1b2c3d4-e5f6-4789-8012-abcdef012345' })
+  @ApiOkResponse({ schema: { type: 'object', properties: { watching: { type: 'boolean' } } } })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid JWT' })
   async isWatching(
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
     @CurrentUser() user: User,
@@ -386,8 +455,10 @@ export class EventsController {
 
   @Get(':id')
   @UseGuards(OptionalJwtAuthGuard)
-  @ApiOperation({ summary: 'Get one event (optional auth for isSubscribed)' })
+  @ApiOperation({ summary: 'Get one event by ID (optional auth for isSubscribed)' })
+  @ApiParam({ name: 'id', description: 'Event UUID', example: 'a1b2c3d4-e5f6-4789-8012-abcdef012345' })
   @ApiOkResponse({ type: EventResponseDto })
+  @ApiNotFoundResponse({ description: 'Event not found' })
   async getOne(
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
     @CurrentUser() user?: User,

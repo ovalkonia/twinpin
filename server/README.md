@@ -1,98 +1,161 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Twinpin — Server
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A NestJS REST API powering the Twinpin event platform. Handles authentication, event lifecycle, ticket booking, promo codes, image uploads, transactional email, and a fan-out notification system.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Features
 
-## Description
+- JWT authentication and Google OAuth2 (server-side redirect flow)
+- Company and event management with multi-file image uploads (Cloudinary)
+- Ticket tiers per event with quantity tracking
+- Ticket booking with Stripe payment simulation and promo code redemption
+- Event watch / company follow notification system (fan-out on comment, update, cancel, publish)
+- Attendee visibility control (hidden bookings)
+- Transactional email via Resend
+- Interactive API docs via Swagger at `/api/docs`
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Requirements
 
-## Project setup
+| Requirement | Version / Notes |
+|---|---|
+| Node.js | ≥ 20 |
+| npm | ≥ 10 |
+| PostgreSQL | ≥ 14 (local install or Docker) |
+| Cloudinary account | For image uploads |
+| Google Cloud project | OAuth2 credentials for Google login |
+| Resend account | For transactional emails |
 
-```bash
-$ npm install
-```
+## Dependencies
 
-## Compile and run the project
+| Package | Version | Purpose |
+|---|---|---|
+| @nestjs/core | ^11.0.1 | NestJS framework |
+| @nestjs/typeorm | ^11.0.0 | TypeORM integration |
+| typeorm | ^0.3.28 | ORM / query builder |
+| pg | ^8.20.0 | PostgreSQL driver |
+| @nestjs/jwt | ^11.0.2 | JWT signing / verification |
+| passport-jwt | ^4.0.1 | JWT Passport strategy |
+| passport-google-oauth20 | ^2.0.0 | Google OAuth2 Passport strategy |
+| bcryptjs | ^3.0.3 | Password hashing |
+| cloudinary | ^2.9.0 | Image upload and storage |
+| resend | ^6.10.0 | Transactional email |
+| @nestjs/swagger | ^11.2.6 | OpenAPI / Swagger docs |
+| class-validator | ^0.14.4 | DTO validation |
+| class-transformer | ^0.5.1 | DTO transformation |
+| qrcode | ^1.5.4 | QR code generation |
+| cookie-parser | ^1.4.7 | Cookie middleware |
 
-```bash
-# development
-$ npm run start
+**Dev tooling:** @nestjs/cli, jest, ts-jest, eslint, prettier, TypeScript ^5
 
-# watch mode
-$ npm run start:dev
+## Environment Variables
 
-# production mode
-$ npm run start:prod
-```
-
-## Run tests
-
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
-```
-
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+The server reads from a single `.env` file at the **repo root** (not inside `server/`). Copy the example and fill in your values:
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+# from the repo root
+cp .env.example .env
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+Server-specific variables:
 
-## Resources
+| Variable | Description |
+|---|---|
+| `URL_BACKEND` | This server's public URL (e.g. `http://localhost:3000`) |
+| `URL_FRONTEND` | Frontend URL(s) for CORS — comma-separated if multiple |
+| `POSTGRES_USER` | PostgreSQL username |
+| `POSTGRES_PASSWORD` | PostgreSQL password |
+| `POSTGRES_DB` | PostgreSQL database name |
+| `DB_HOST` | Database host (e.g. `localhost` or Docker service name) |
+| `DB_PORT` | Database port (default `5432`) |
+| `JWT_ACCESS_SECRET` | Secret used to sign JWTs |
+| `JWT_ACCESS_EXPIRY` | JWT expiry duration (e.g. `1d`) |
+| `GOOGLE_CLIENT_ID` | Google OAuth2 client ID |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth2 client secret |
+| `CLOUDINARY_CLOUD_NAME` | Cloudinary cloud name |
+| `CLOUDINARY_API_KEY` | Cloudinary API key |
+| `CLOUDINARY_API_SECRET` | Cloudinary API secret |
+| `CLOUDINARY_URL` | Full Cloudinary URL (`cloudinary://key:secret@cloud`) |
+| `RESEND_API_KEY` | Resend API key |
+| `RESEND_FROM` | Sender address (e.g. `Twinpin <noreply@yourdomain.com>`) |
 
-Check out a few resources that may come in handy when working with NestJS:
+## How to Run
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+### 1. Clone the repository
 
-## Support
+```bash
+git clone <repo-url>
+cd twinpin
+```
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+### 2. Configure environment
 
-## Stay in touch
+```bash
+cp .env.example .env
+```
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+Open `.env` and fill in all server-side variables listed above.
 
-## License
+### 3. Set up PostgreSQL
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Create the database (name must match `POSTGRES_DB` in `.env`):
+
+```bash
+psql -U postgres -c "CREATE DATABASE twinpin;"
+```
+
+Or run PostgreSQL in Docker:
+
+```bash
+docker run -d \
+  --name twinpin-db \
+  -e POSTGRES_USER=twinpin \
+  -e POSTGRES_PASSWORD=twinpin \
+  -e POSTGRES_DB=twinpin \
+  -p 5432:5432 \
+  postgres:16
+```
+
+> The server uses TypeORM with `synchronize: true` in development — tables are created automatically on first run. No manual migrations needed.
+
+### 4. Install dependencies
+
+```bash
+cd server
+npm install
+```
+
+### 5. Start the development server
+
+```bash
+npm run start:dev
+```
+
+The API will be available at **http://localhost:3000**.  
+Swagger docs: **http://localhost:3000/api/docs**
+
+## Available Scripts
+
+| Script | Description |
+|---|---|
+| `npm run start:dev` | Dev server with hot-reload (watch mode) |
+| `npm run build` | Compile TypeScript to `dist/` |
+| `npm run start:prod` | Run compiled production output |
+| `npm run lint` | ESLint with auto-fix |
+| `npm run test` | Jest unit tests |
+| `npm run test:watch` | Jest in watch mode |
+| `npm run test:cov` | Jest with coverage report |
+| `npm run test:e2e` | End-to-end tests |
+
+## API Overview
+
+Full interactive documentation is available at `/api/docs` (Swagger UI) when the server is running.
+
+| Area | Base path |
+|---|---|
+| Authentication | `/auth` |
+| Users | `/users` |
+| Companies | `/companies` |
+| Events | `/events` |
+| Tickets | `/events/:id/tickets` |
+| Bookings | `/events/:id/subscribe` |
+| Promo codes | `/events/:id/promo-codes` |
+| Notifications | `/notifications` |

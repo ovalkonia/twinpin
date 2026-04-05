@@ -20,7 +20,7 @@ export class Ticket {
   @Column({ type: 'decimal', precision: 12, scale: 2 })
   price: string;
 
-  @Column({ type: 'varchar', length: 10, default: 'USD' })
+  @Column({ type: 'varchar', length: 10, default: 'EUR' })
   currency: string;
 
   /**

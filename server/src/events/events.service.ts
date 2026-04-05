@@ -105,6 +105,7 @@ export class EventsService {
       organizerSlug: company.slug ?? undefined,
       organizerLogoUrl: company.logoUrl ?? undefined,
       status: event.status as EventResponseDto['status'],
+      notifyOnNewVisitor: event.notifyOnNewVisitor,
       redirectAfterPurchase: event.redirectAfterPurchase ?? null,
       ...(isSubscribed !== undefined ? { isSubscribed } : {}),
       ...(isTicketUsed !== undefined ? { isTicketUsed } : {}),
@@ -353,7 +354,7 @@ export class EventsService {
       );
     }
 
-    const defaultCurrency = dto.currency ?? 'USD';
+    const defaultCurrency = dto.currency ?? 'EUR';
     const ticketTiers =
       dto.tickets?.length
         ? dto.tickets
@@ -603,7 +604,7 @@ export class EventsService {
     const tier = await this.ticketsService.createTier(event, {
       name: dto.name,
       price: dto.price,
-      currency: dto.currency ?? 'USD',
+      currency: dto.currency ?? 'EUR',
       capacity: dto.capacity ?? null,
       sortOrder: maxOrder + 1,
       isDefault: false,
@@ -933,7 +934,7 @@ function bootstrapMetrics(): EventListMetrics {
   return {
     attendeeCount: 0,
     minPrice: 0,
-    currency: 'USD',
+    currency: 'EUR',
     capacity: undefined,
   };
 }

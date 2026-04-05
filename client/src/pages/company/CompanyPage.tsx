@@ -449,43 +449,6 @@ export const CompanyPage: React.FC = () => {
                         )}
                     </section>
 
-                    {isOwner && (
-                        <section className="cp-section">
-                            <div className="cp-members-header">
-                                <h2 className="cp-section-title" style={{ marginBottom: 0 }}>
-                                    Members
-                                </h2>
-                            </div>
-
-                            <div className="cp-member-invite">
-                                <input
-                                    className="cr-input"
-                                    value={inviteEmail}
-                                    placeholder="colleague@email.com"
-                                    onChange={(e) => setInviteEmail(e.target.value)}
-                                />
-                                <button className="cr-btn cr-btn--primary" onClick={handleAddMember} disabled={inviteLoading}>
-                                    Invite
-                                </button>
-                            </div>
-
-                            <div className="cp-member-list">
-                                {members.map((m) => (
-                                    <div key={m.id} className="cp-member-row">
-                                        <div className="cp-member-avatar">{m.name?.charAt(0)?.toUpperCase()}</div>
-                                        <div className="cp-member-info">
-                                            <div className="cp-member-name">{m.name}</div>
-                                            <div className="cp-member-email">{m.email}</div>
-                                        </div>
-                                        <button className="cp-member-remove" onClick={() => handleRemoveMember(m.id)}>
-                                            Remove
-                                        </button>
-                                    </div>
-                                ))}
-                                {members.length === 0 && <p>No members yet.</p>}
-                            </div>
-                        </section>
-                    )}
                 </main>
 
                 {(company.linkedin || company.instagram || company.tiktok || company.telegram || company.website) && (

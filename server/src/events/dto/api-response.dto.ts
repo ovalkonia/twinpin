@@ -102,6 +102,9 @@ export class EventResponseDto {
   @ApiPropertyOptional()
   isTicketUsed?: boolean;
 
+  @ApiProperty({ description: 'Whether the organizer receives a notification when a new visitor books' })
+  notifyOnNewVisitor: boolean;
+
   @ApiPropertyOptional({ nullable: true })
   redirectAfterPurchase?: string | null;
 }
