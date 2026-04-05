@@ -311,7 +311,7 @@ export default function EventPage() {
                         onClick={handleWatch}
                         disabled={watchLoading}
                     >
-                        {isWatching ? 'Unfollow' : 'Follow event'}
+                        {isWatching ? 'Following' : 'Follow event'}
                     </button>
 
                     <EventInfoCard
