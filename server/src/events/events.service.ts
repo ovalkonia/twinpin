@@ -179,7 +179,7 @@ export class EventsService {
       qb.andWhere('e.format = :format', { format: filter.format });
     }
     if (filter.category) {
-      qb.andWhere('e.category = :category', { category: filter.category });
+      qb.andWhere('LOWER(e.category) = :category', { category: filter.category });
     }
     if (filter['tags[]']?.length) {
       qb.andWhere('e.tags && :tags::text[]', {
