@@ -14,7 +14,7 @@ import { Notification } from './notifications/entities/notification.entity';
 import { PromoCode } from './promo-codes/entities/promo-code.entity';
 import cookieParser from 'cookie-parser';
 import * as bcrypt from 'bcryptjs';
-import { Router } from 'express';
+import { Router, urlencoded } from 'express';
 import session from 'express-session';
 
 async function bootstrap() {
@@ -234,16 +234,35 @@ async function buildAdminRouter(
   // -----------------------------------------------------------------------
   const predefinedRouter = Router();
 
-  // Custom login page — fully replaces AdminJS's React login SPA.
-  // The POST /login handler from buildAuthenticatedRouter still runs normally
-  // (formidable middleware is applied before it in the middleware chain).
+  const urlencodedParser = urlencoded({ extended: false });
+
+  // Custom GET /login — replaces AdminJS's React SPA login page.
   predefinedRouter.get('/login', (req: any, res: any) => {
-    const error = req.query.error;
     res.send(adminLoginHtml({
       loginPath: admin.options.loginPath,
       googlePath: `${admin.options.rootPath}/auth/google`,
-      error: error ? 'Invalid credentials' : null,
+      error: req.query.error ? decodeURIComponent(req.query.error as string) : null,
     }));
+  });
+
+  // Custom POST /login — runs before AdminJS's handler so we control the error
+  // redirect back to our page instead of AdminJS rendering its React page on failure.
+  predefinedRouter.post('/login', sessionMiddleware, urlencodedParser, async (req: any, res: any) => {
+    const loginPath = admin.options.loginPath;
+    const { email, password } = req.body ?? {};
+    try {
+      const user = await usersService.findByEmail(email);
+      if (user.role !== 'admin') throw new Error('forbidden');
+      const valid = await bcrypt.compare(password ?? '', user.password);
+      if (!valid) throw new Error('invalid');
+      req.session.adminUser = { email: user.email, id: String(user.id) };
+      req.session.save((err: any) => {
+        if (err) return res.redirect(`${loginPath}?error=${encodeURIComponent('Something went wrong')}`);
+        res.redirect(admin.options.rootPath);
+      });
+    } catch {
+      res.redirect(`${loginPath}?error=${encodeURIComponent('Invalid credentials')}`);
+    }
   });
 
   // Initiate Google OAuth — just a redirect, no session needed
@@ -339,124 +358,218 @@ function adminLoginHtml({ loginPath, googlePath, error }: {
     body {
       background: #0a0a0a;
       color: #e0e0e0;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
     }
-    .card {
+
+    /* === card (matches .auth-card) === */
+    .auth-card {
       background: #111;
-      border: 1px solid rgba(255,107,0,.15);
+      color: #e0e0e0;
+      padding: 40px;
       border-radius: 16px;
-      padding: 40px 36px;
+      border: 1px solid rgba(255,107,0,0.3);
+      box-shadow: 0 8px 30px rgba(255,107,0,0.12);
       width: 100%;
-      max-width: 380px;
+      max-width: 420px;
     }
-    .title {
-      font-size: 22px;
-      font-weight: 600;
+    .auth-card h2 {
+      color: #ff6b00;
+      font-size: 26px;
+      font-weight: 700;
       margin-bottom: 28px;
       text-align: center;
-      letter-spacing: -.3px;
     }
+
+    /* === form === */
+    .auth-card form {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .auth-card label {
+      display: block;
+      color: #ccc;
+      font-size: 13px;
+      font-weight: 500;
+      margin-top: 10px;
+      margin-bottom: 4px;
+    }
+    .auth-card input {
+      width: 100%;
+      padding: 11px 14px;
+      background: #1e1e1e;
+      border: 1px solid #333;
+      border-radius: 8px;
+      color: #e0e0e0;
+      font-size: 15px;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .auth-card input:focus {
+      outline: none;
+      border-color: #ff6b00;
+      background: #222;
+    }
+    .auth-card input::placeholder { color: #555; }
+
+    /* === submit button (centered pill) === */
+    .auth-card button[type="submit"] {
+      align-self: center;
+      min-width: 160px;
+      padding: 12px 32px;
+      margin: 30px auto 10px;
+      background: #ff6b00;
+      color: #fff;
+      border: none;
+      border-radius: 50px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .auth-card button[type="submit"]:hover { background: #ff8533; }
+
+    /* === divider === */
+    .auth-divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 20px 0 0;
+      color: #555;
+      font-size: 13px;
+    }
+    .auth-divider::before, .auth-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(255,107,0,0.2);
+    }
+
+    /* === google button (matches client .google-btn) === */
     .google-btn {
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 10px;
       width: 100%;
-      padding: 11px 0;
-      background: #fff;
-      color: #3c4043;
-      border: 1px solid #dadce0;
-      border-radius: 50px;
-      font-size: 14px;
-      font-weight: 500;
-      text-decoration: none;
-      cursor: pointer;
-      transition: background .15s;
-    }
-    .google-btn:hover { background: #f5f5f5; }
-    .divider {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin: 22px 0;
-      color: #555;
-      font-size: 13px;
-    }
-    .divider::before, .divider::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: rgba(255,255,255,.08);
-    }
-    input {
-      display: block;
-      width: 100%;
-      padding: 11px 14px;
-      background: #1a1a1a;
-      border: 1px solid rgba(255,255,255,.1);
+      padding: 11px 16px;
+      margin-top: 12px;
+      background: #1e1e1e;
+      border: 1px solid #333;
       border-radius: 8px;
       color: #e0e0e0;
       font-size: 14px;
-      margin-bottom: 12px;
-      outline: none;
-      transition: border-color .15s;
-    }
-    input:focus { border-color: rgba(255,107,0,.5); }
-    input::placeholder { color: #555; }
-    .submit-btn {
-      width: 100%;
-      padding: 11px 0;
-      background: #ff6b00;
-      color: #fff;
-      border: none;
-      border-radius: 50px;
-      font-size: 14px;
-      font-weight: 600;
+      font-weight: 500;
+      font-family: inherit;
       cursor: pointer;
-      margin-top: 4px;
-      transition: background .15s;
+      text-decoration: none;
+      transition: border-color 0.2s, background 0.2s;
     }
-    .submit-btn:hover { background: #ff8533; }
-    .error {
-      background: rgba(255,59,48,.12);
-      border: 1px solid rgba(255,59,48,.3);
-      color: #ff6b6b;
-      border-radius: 8px;
-      padding: 10px 14px;
-      font-size: 13px;
-      margin-bottom: 16px;
-      text-align: center;
+    .google-btn:hover {
+      border-color: rgba(255,107,0,0.5);
+      background: #222;
     }
+
+    /* === toast (matches react-hot-toast config in App.jsx) === */
+    #toast-container {
+      position: fixed;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      pointer-events: none;
+    }
+    .toast {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #1a1a1a;
+      color: #e0e0e0;
+      border: 1px solid rgba(255,107,0,0.3);
+      border-radius: 10px;
+      font-size: 14px;
+      padding: 12px 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      white-space: nowrap;
+      max-width: 90vw;
+      opacity: 0;
+      transform: translateY(-12px);
+      transition: opacity 0.25s, transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+      pointer-events: auto;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.hide { opacity: 0; transform: translateY(-12px); transition: opacity 0.2s, transform 0.2s; }
   </style>
 </head>
 <body>
-  <div class="card">
-    <div class="title">Admin Panel</div>
+  <div id="toast-container"></div>
 
-    ${error ? `<div class="error">${error}</div>` : ''}
-
-    <a href="${googlePath}" class="google-btn">
-      <svg width="18" height="18" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
-        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
-        <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
-        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
-      </svg>
-      Sign in with Google
-    </a>
-
-    <div class="divider">or</div>
+  <div class="auth-card">
+    <h2>Sign in</h2>
 
     <form method="POST" action="${loginPath}">
-      <input type="email" name="email" placeholder="Email" required autocomplete="email" />
-      <input type="password" name="password" placeholder="Password" required autocomplete="current-password" />
-      <button type="submit" class="submit-btn">Sign in</button>
+      <div class="input-group">
+        <label for="email">Email</label>
+        <input id="email" type="email" name="email" placeholder="example@mail.com" required autocomplete="email" />
+      </div>
+      <div class="input-group">
+        <label for="password">Password</label>
+        <input id="password" type="password" name="password" required autocomplete="current-password" />
+      </div>
+      <button type="submit">Sign in</button>
     </form>
+
+    <div class="auth-divider"><span>or</span></div>
+
+    <a href="${googlePath}" class="google-btn">
+      <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+        <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
+        <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/>
+        <path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
+        <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
+      </svg>
+      Continue with Google
+    </a>
   </div>
+
+  <script>
+    function showToast(message, type) {
+      var container = document.getElementById('toast-container');
+      var toast = document.createElement('div');
+      toast.className = 'toast';
+
+      var errorIcon = '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="10" r="9" stroke="#ff4444" stroke-width="1.5"/><path d="M10 6v4.5" stroke="#ff4444" stroke-width="1.5" stroke-linecap="round"/><circle cx="10" cy="14" r="0.75" fill="#ff4444"/></svg>';
+      var successIcon = '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="10" r="9" stroke="#ff6b00" stroke-width="1.5"/><path d="M6.5 10l2.5 2.5 4.5-5" stroke="#ff6b00" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+      toast.innerHTML = (type === 'error' ? errorIcon : successIcon) + '<span>' + message + '</span>';
+      container.appendChild(toast);
+
+      requestAnimationFrame(function() {
+        requestAnimationFrame(function() { toast.classList.add('show'); });
+      });
+
+      setTimeout(function() {
+        toast.classList.add('hide');
+        toast.classList.remove('show');
+        setTimeout(function() { toast.remove(); }, 220);
+      }, 4000);
+    }
+
+    // Show error toast if redirected back with ?error=
+    var params = new URLSearchParams(window.location.search);
+    var error = params.get('error');
+    if (error) {
+      showToast(error, 'error');
+      history.replaceState({}, '', window.location.pathname);
+    }
+  </script>
 </body>
 </html>`;
 }
