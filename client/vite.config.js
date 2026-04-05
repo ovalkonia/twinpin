@@ -8,5 +8,11 @@ export default defineConfig({
   envDir: path.resolve(__dirname, '..'),
   server: {
     host: true,
+    proxy: {
+      '/admin': {
+        target: 'http://twinpin-server:3000',
+        ws: true,
+      },
+    },
   },
 })

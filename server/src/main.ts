@@ -108,6 +108,7 @@ async function buildAdminRouter(
   AdminJS.registerAdapter({ Database, Resource });
 
   const secret = configService.getOrThrow<string>('JWT_ACCESS_SECRET');
+  const urlFrontend = configService.getOrThrow<string>('URL_FRONTEND');
 
   const admin = new AdminJS({
     rootPath: '/admin',
@@ -221,7 +222,7 @@ async function buildAdminRouter(
   // Inline session middleware reused on the OAuth callback route
   const sessionMiddleware = session({ ...sessionOptions, name: sessionCookieName });
 
-  const callbackUrl = `${configService.getOrThrow<string>('URL_BACKEND')}/admin/auth/google/callback`;
+  const callbackUrl = `${urlFrontend}/admin/auth/google/callback`;
 
   // -----------------------------------------------------------------------
   // Predefined router — routes added here are processed BEFORE
@@ -258,7 +259,7 @@ async function buildAdminRouter(
       req.session.adminUser = { email: user.email, id: String(user.id) };
       req.session.save((err: any) => {
         if (err) return res.redirect(`${loginPath}?error=${encodeURIComponent('Something went wrong')}`);
-        res.redirect(admin.options.rootPath);
+        res.redirect(`${urlFrontend}${admin.options.rootPath}`);
       });
     } catch {
       res.redirect(`${loginPath}?error=${encodeURIComponent('Invalid credentials')}`);
@@ -314,7 +315,7 @@ async function buildAdminRouter(
       req.session.adminUser = { email: user.email, id: String(user.id) };
       req.session.save((err: any) => {
         if (err) return res.redirect(loginPath);
-        res.redirect(admin.options.rootPath);
+        res.redirect(`${urlFrontend}${admin.options.rootPath}`);
       });
     } catch {
       res.redirect(loginPath);
