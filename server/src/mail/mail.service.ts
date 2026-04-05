@@ -7,12 +7,15 @@ import { Resend } from 'resend';
 function fmtDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-US', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+    timeZone: 'UTC',
   });
 }
 
 function fmtTime(iso: string): string {
   return new Date(iso).toLocaleTimeString('en-US', {
     hour: 'numeric', minute: '2-digit',
+    timeZone: 'UTC',
+    timeZoneName: 'short',  // appends "UTC" — e.g. "8:00 PM UTC"
   });
 }
 
@@ -271,6 +274,7 @@ export class MailService {
         label: 'Checked in',
         value: usedAt.toLocaleString('en-US', {
           month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit',
+          timeZone: 'UTC', timeZoneName: 'short',
         }),
         color: '#2ecc71',
       });
