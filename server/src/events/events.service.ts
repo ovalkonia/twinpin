@@ -841,6 +841,9 @@ export class EventsService {
           user.name ?? 'there',
           event.title,
           event.date.toISOString(),
+          event.location ?? null,
+          event.coverUrl ?? null,
+          event.id,
         );
       }
     }

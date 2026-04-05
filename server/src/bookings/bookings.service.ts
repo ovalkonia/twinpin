@@ -131,6 +131,19 @@ export class BookingsService {
         'event_new_visitor',
         `Someone new registered for "${event.title}".`,
       );
+      if (event.company.owner.email) {
+        void this.mail.sendNewVisitorEmail(
+          event.company.owner.email,
+          event.company.owner.name ?? 'there',
+          userName ?? 'Someone',
+          tier.name,
+          event.title,
+          event.date.toISOString(),
+          event.id,
+          event.location ?? null,
+          event.coverUrl ?? null,
+        );
+      }
     }
   }
 
@@ -168,6 +181,14 @@ export class BookingsService {
       throw new ForbiddenException('Only the event organizer can validate tickets');
     }
 
+    const now = new Date();
+    const checkInDeadline = event.endDate
+      ? event.endDate
+      : new Date(event.date.getTime() + 24 * 3_600_000);
+    if (now > checkInDeadline) {
+      throw new BadRequestException('Check-in is no longer available — this event has already ended');
+    }
+
     if (booking.usedAt) {
       return {
         status: 'already_used',
@@ -186,6 +207,10 @@ export class BookingsService {
         booking.user.name ?? 'there',
         event.title,
         booking.usedAt,
+        event.date.toISOString(),
+        event.id,
+        event.location ?? null,
+        event.coverUrl ?? null,
       );
     }
 

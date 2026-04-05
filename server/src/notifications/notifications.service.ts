@@ -16,7 +16,7 @@ export type ApiNotification = {
 };
 
 // Types that already have their own dedicated email — skip generic notification email for these.
-const SKIP_EMAIL_TYPES = new Set(['event_booking', 'ticket_cancellation', 'company_new_event']);
+const SKIP_EMAIL_TYPES = new Set(['event_booking', 'ticket_cancellation', 'company_new_event', 'event_new_visitor']);
 
 @Injectable()
 export class NotificationsService {
