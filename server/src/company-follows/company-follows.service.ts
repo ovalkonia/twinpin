@@ -42,4 +42,16 @@ export class CompanyFollowsService {
         });
         return rows.map((r) => r.user.id);
     }
+
+    async getFollowersWithContact(companyId: number): Promise<{ id: number; email: string | null; name: string | null }[]> {
+        const rows = await this.repo.find({
+            where: { company: { id: companyId } },
+            relations: ['user'],
+        });
+        return rows.map((r) => ({
+            id: r.user.id,
+            email: r.user.email ?? null,
+            name: r.user.name ?? null,
+        }));
+    }
 }

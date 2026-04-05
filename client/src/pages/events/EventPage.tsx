@@ -125,6 +125,7 @@ export default function EventPage() {
     const [rawEvent, setRawEvent]         = useState<Event | null>(null);
     const [loading, setLoading]           = useState(true);
     const [isBooked, setIsBooked]         = useState(false);
+    const [isTicketUsed, setIsTicketUsed] = useState(false);
     const [cancelLoading, setCancelLoading] = useState(false);
     const [lightboxMedia, setLightboxMedia] = useState<string | null>(null);
     const [isWatching, setIsWatching]     = useState(false);
@@ -149,6 +150,7 @@ export default function EventPage() {
                 setEvent({ ...mapEvent(evt, attendees), tickets });
                 setRawEvent(evt);
                 setIsBooked(evt.isSubscribed ?? false);
+                setIsTicketUsed(evt.isTicketUsed ?? false);
                 setIsWatching(watching);
                 if (user && evt.organizerCompanyId) {
                     getCompanyFollowStatus(evt.organizerCompanyId)
@@ -324,6 +326,8 @@ export default function EventPage() {
                     <EventTicketSelector
                         tickets={event.tickets}
                         isBooked={isBooked}
+                        isTicketUsed={isTicketUsed}
+                        isPast={event.status === 'past'}
                         isAuth={isAuth}
                         loading={cancelLoading}
                         onCheckout={handleCheckout}

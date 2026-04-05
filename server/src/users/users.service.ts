@@ -38,7 +38,8 @@ export type UserTicketRow = {
   currency: string;
   coverUrl: string | null;
   hidden: boolean;
-  ticketCode: string;
+  ticketCode: string | null;
+  usedAt: string | null;
 };
 
 @Injectable()
@@ -258,6 +259,8 @@ export class UsersService {
         minPrice: number;
         currency: string;
         hidden: boolean;
+        ticketCode: string | null;
+        usedAt: Date | null;
       }
     >();
 
@@ -280,11 +283,13 @@ export class UsersService {
           minPrice: price,
           currency,
           hidden: b.hidden,
+          ticketCode: b.ticketCode,
+          usedAt: b.usedAt,
         });
       }
     }
 
-    return [...byEvent.values()].map(({ event: e, count, minPrice, currency, hidden }) => ({
+    return [...byEvent.values()].map(({ event: e, count, minPrice, currency, hidden, ticketCode, usedAt }) => ({
       id: e.id,
       title: e.title,
       category: e.category,
@@ -295,7 +300,8 @@ export class UsersService {
       currency,
       coverUrl: e.coverUrl ?? null,
       hidden,
-      ticketCode: `TKT-${String(userId).slice(0, 6)}${e.id.slice(0, 6)}`.toUpperCase(),
+      ticketCode,
+      usedAt: usedAt ? usedAt.toISOString() : null,
     }));
   }
 }

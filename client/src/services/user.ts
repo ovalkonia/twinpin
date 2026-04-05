@@ -30,7 +30,8 @@ export interface UserTicket {
     currency?: string;
     coverUrl?: string;
     hidden: boolean;
-    ticketCode: string;
+    ticketCode: string | null;
+    usedAt: string | null;
 }
 
 export const getUserById = async (id: string): Promise<UserProfile> => {

@@ -42,11 +42,12 @@ export const TicketsPage = () => {
 
     const toTicketCard = (t: UserTicket): Ticket => {
         const d = new Date(t.date);
-        const status: Ticket['status'] = d >= now ? 'active' : 'used';
+        const status: Ticket['status'] = t.usedAt ? 'used' : d >= now ? 'active' : 'used';
         const unitPrice = t.price ? Number(t.price) : 0;
         const priceLabel = unitPrice === 0 ? 'Free' : `$${unitPrice.toFixed(unitPrice % 1 === 0 ? 0 : 2)}`;
         return {
             id: t.id,
+            eventId: t.id,
             category: t.category,
             title: t.title,
             date: formatDate(t.date),
@@ -55,6 +56,8 @@ export const TicketsPage = () => {
             address: t.location,
             tickets: t.ticketCount,
             ticketCode: t.ticketCode,
+            coverUrl: t.coverUrl ?? null,
+            usedAt: t.usedAt ?? null,
             status,
             price: priceLabel,
             showInAttendees: !t.hidden,

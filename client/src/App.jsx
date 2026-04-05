@@ -27,6 +27,7 @@ import { RegisterCompanyPage } from './pages/company/RegisterCompanyPage';
 import { CompanyPage } from './pages/company/CompanyPage';
 import { EditCompanyPage } from './pages/company/EditCompanyPage';
 import { CreateEventPage } from './pages/events/CreateEventPage';
+import ValidateTicketPage from './pages/validate/ValidateTicketPage';
 import AuthLayout from './layouts/authlayout';
 import GoogleCallback from './pages/auth/GoogleCallback';
 
@@ -95,6 +96,7 @@ function AppContent() {
                 <Route path="/events/:id" element={<EventPage />} />
                 <Route path="/event/:id" element={<EventPage />} />
                 <Route path="/events/:id/edit" element={<PrivateRoute><EditEventPage /></PrivateRoute>} />
+                <Route path="/validate" element={<PrivateRoute><ValidateTicketPage /></PrivateRoute>} />
 
                 {/* Compatibility routes referenced by header UI */}
                 <Route path="/dashboard/my-tickets" element={<PrivateRoute><TicketsPage /></PrivateRoute>} />

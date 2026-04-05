@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../users/entities/user.entity';
 import { Notification } from './entities/notification.entity';
+import { MailService } from '../mail/mail.service';
 
 export type ApiNotification = {
   id: string;
@@ -14,6 +15,9 @@ export type ApiNotification = {
   title: string;
 };
 
+// Types that already have their own dedicated email — skip generic notification email for these.
+const SKIP_EMAIL_TYPES = new Set(['event_booking', 'ticket_cancellation', 'company_new_event']);
+
 @Injectable()
 export class NotificationsService {
   private readonly logger = new Logger(NotificationsService.name);
@@ -21,6 +25,7 @@ export class NotificationsService {
   constructor(
     @InjectRepository(Notification)
     private readonly notificationRepo: Repository<Notification>,
+    private readonly mail: MailService,
   ) {}
 
   async notifyUser(
@@ -35,6 +40,18 @@ export class NotificationsService {
     });
     const saved = await this.notificationRepo.save(row);
     this.logger.log(`Notification [${type}] for user ${userId}: ${message}`);
+
+    if (!SKIP_EMAIL_TYPES.has(type)) {
+      const user = await this.notificationRepo.manager.findOne(User, { where: { id: userId } });
+      if (user?.email) {
+        const title = type
+          .split('_')
+          .map(s => s.charAt(0).toUpperCase() + s.slice(1))
+          .join(' ');
+        void this.mail.sendNotificationEmail(user.email, title, message, type);
+      }
+    }
+
     return saved;
   }
 
@@ -79,6 +96,13 @@ export class NotificationsService {
     row.read = true;
     const saved = await this.notificationRepo.save(row);
     return this.toApi(saved);
+  }
+
+  async markAllRead(userId: number): Promise<void> {
+    await this.notificationRepo.update(
+      { user: { id: userId } as any, read: false },
+      { read: true },
+    );
   }
 
   async deleteForUser(userId: number, notificationId: string): Promise<void> {

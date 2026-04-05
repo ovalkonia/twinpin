@@ -4,6 +4,8 @@ import type { TicketTier } from '../../services/events';
 interface Props {
     tickets: TicketTier[];
     isBooked: boolean;
+    isTicketUsed?: boolean;
+    isPast?: boolean;
     isAuth: boolean;
     loading: boolean;
     onCheckout: (ticketId: string, qty: number) => void;
@@ -14,6 +16,8 @@ interface Props {
 export default function EventTicketSelector({
     tickets,
     isBooked,
+    isTicketUsed = false,
+    isPast = false,
     isAuth,
     loading,
     onCheckout,
@@ -51,13 +55,39 @@ export default function EventTicketSelector({
                         <div className="ev-ticket-all-soldout-sub">No more spots available for others.</div>
                     </div>
                 )}
-                <button
-                    className="ev-ticket-cancel-btn"
-                    onClick={onCancel}
-                    disabled={loading}
-                >
-                    {loading ? 'Cancelling…' : 'Cancel booking'}
-                </button>
+                {isTicketUsed ? (
+                    <div className="ev-ticket-used-notice">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                        Ticket scanned — enjoy the event!
+                    </div>
+                ) : (
+                    <button
+                        className="ev-ticket-cancel-btn"
+                        onClick={onCancel}
+                        disabled={loading}
+                    >
+                        {loading ? 'Cancelling…' : 'Cancel booking'}
+                    </button>
+                )}
+            </div>
+        );
+    }
+
+    if (isPast && !isBooked) {
+        return (
+            <div className="ev-ticket-selector">
+                <div className="ev-ticket-past">
+                    <div className="ev-ticket-past-icon">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="10"/>
+                            <polyline points="12 6 12 12 16 14"/>
+                        </svg>
+                    </div>
+                    <p className="ev-ticket-past-title">Event has ended</p>
+                    <p className="ev-ticket-past-sub">Bookings are no longer available for this event.</p>
+                </div>
             </div>
         );
     }

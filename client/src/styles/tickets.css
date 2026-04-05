@@ -119,6 +119,7 @@
 /* ── Card shell ─────────────────────────────────────────────── */
 .tkt-card {
     display: flex;
+    flex-direction: column;
     background: #111;
     border: 1px solid rgba(255, 107, 0, 0.15);
     border-radius: 14px;
@@ -134,6 +135,55 @@
 
 .tkt-card--cancelled {
     opacity: 0.65;
+}
+
+/* ── Cover image strip ──────────────────────────────────────── */
+.tkt-cover {
+    height: 80px;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.tkt-cover::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(17,17,17,0) 20%, #111 100%);
+}
+
+/* ── Inner row (body + sep + stub) ──────────────────────────── */
+.tkt-inner {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+}
+
+/* ── Event link in title ────────────────────────────────────── */
+.tkt-title-link {
+    text-decoration: none;
+    display: block;
+}
+
+.tkt-title-link:hover .tkt-title {
+    color: #ff6b00;
+}
+
+/* ── View event footer link ─────────────────────────────────── */
+.tkt-event-link {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #666;
+    text-decoration: none;
+    transition: color 0.15s;
+}
+
+.tkt-event-link:hover {
+    color: #ff6b00;
 }
 
 /* ── Main body ──────────────────────────────────────────────── */
@@ -212,6 +262,20 @@
     gap: 5px;
     font-size: 13px;
     color: #999;
+}
+
+.tkt-checkin {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #2ecc71;
+    padding: 5px 10px;
+    border-radius: 20px;
+    background: rgba(46, 204, 113, 0.08);
+    border: 1px solid rgba(46, 204, 113, 0.2);
+    width: fit-content;
 }
 
 .tkt-footer {
@@ -526,7 +590,7 @@
         padding: 32px 16px 48px;
     }
 
-    .tkt-card {
+    .tkt-inner {
         flex-direction: column;
     }
 

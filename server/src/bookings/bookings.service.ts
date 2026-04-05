@@ -1,9 +1,12 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common';
+import { randomUUID } from 'crypto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { IsNull, Not, Repository } from 'typeorm';
 import { Event } from '../events/entities/event.entity';
 import { NotificationsService } from '../notifications/notifications.service';
 import { MailService } from '../mail/mail.service';
@@ -91,6 +94,7 @@ export class BookingsService {
       throw new BadRequestException('Payment failed');
     }
 
+    const ticketCode = randomUUID();
     const booking = this.bookingRepo.create({
       user: { id: userId } as User,
       ticket: tier,
@@ -98,6 +102,7 @@ export class BookingsService {
       stripePaymentIntentId: pay.paymentIntentId,
       paymentStatus: pay.status,
       hidden,
+      ticketCode,
     });
     await this.bookingRepo.save(booking);
 
@@ -108,13 +113,15 @@ export class BookingsService {
     );
 
     if (userEmail) {
-      const ticketCode = `TKT-${String(userId).slice(0, 6)}${event.id.slice(0, 6)}`.toUpperCase();
       void this.mail.sendBookingConfirmation(
         userEmail,
         userName ?? 'there',
         event.title,
         event.date.toISOString(),
         ticketCode,
+        event.location,
+        event.coverUrl,
+        event.id,
       );
     }
 
@@ -127,6 +134,16 @@ export class BookingsService {
     }
   }
 
+  async hasUsedBookingForEvent(userId: number, eventId: string): Promise<boolean> {
+    return this.bookingRepo.exist({
+      where: {
+        user: { id: userId },
+        ticket: { event: { id: eventId } },
+        usedAt: Not(IsNull()),
+      },
+    });
+  }
+
   async removeAllForUserAndEvent(userId: number, eventId: string): Promise<number> {
     const bookings = await this.bookingRepo.find({
       where: { user: { id: userId }, ticket: { event: { id: eventId } } },
@@ -134,6 +151,50 @@ export class BookingsService {
     if (!bookings.length) return 0;
     await this.bookingRepo.remove(bookings);
     return bookings.length;
+  }
+
+  async validateTicket(
+    code: string,
+    requestingUserId: number,
+  ): Promise<{ status: 'ok' | 'already_used'; eventTitle: string; holderName: string; usedAt: Date }> {
+    const booking = await this.bookingRepo.findOne({
+      where: { ticketCode: code },
+      relations: ['user', 'ticket', 'ticket.event', 'ticket.event.company', 'ticket.event.company.owner'],
+    });
+    if (!booking) throw new NotFoundException('Ticket not found');
+
+    const event = booking.ticket.event;
+    if (event.company.owner.id !== requestingUserId) {
+      throw new ForbiddenException('Only the event organizer can validate tickets');
+    }
+
+    if (booking.usedAt) {
+      return {
+        status: 'already_used',
+        eventTitle: event.title,
+        holderName: booking.user.name,
+        usedAt: booking.usedAt,
+      };
+    }
+
+    booking.usedAt = new Date();
+    await this.bookingRepo.save(booking);
+
+    if (booking.user.email) {
+      void this.mail.sendCheckInConfirmation(
+        booking.user.email,
+        booking.user.name ?? 'there',
+        event.title,
+        booking.usedAt,
+      );
+    }
+
+    return {
+      status: 'ok',
+      eventTitle: event.title,
+      holderName: booking.user.name,
+      usedAt: booking.usedAt,
+    };
   }
 
   findForAttendeeList(eventId: string): Promise<Booking[]> {

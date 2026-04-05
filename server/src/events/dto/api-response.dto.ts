@@ -99,6 +99,9 @@ export class EventResponseDto {
   @ApiPropertyOptional()
   isSubscribed?: boolean;
 
+  @ApiPropertyOptional()
+  isTicketUsed?: boolean;
+
   @ApiPropertyOptional({ nullable: true })
   redirectAfterPurchase?: string | null;
 }

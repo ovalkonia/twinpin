@@ -35,6 +35,12 @@ export class NotificationsController {
     return this.notifications.markRead(user.id, id);
   }
 
+  @Patch('mark-all-read')
+  @ApiOperation({ summary: 'Mark all notifications as read' })
+  markAllRead(@CurrentUser() user: User): Promise<void> {
+    return this.notifications.markAllRead(user.id);
+  }
+
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a notification' })
   remove(

@@ -14,6 +14,7 @@ import { UsersService } from '../users/users.service';
 import { EventSubscriptionsService } from '../event-subscriptions/event-subscriptions.service';
 import { CompanyFollowsService } from '../company-follows/company-follows.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { MailService } from '../mail/mail.service';
 import { PromoCodesService } from '../promo-codes/promo-codes.service';
 import { User } from '../users/entities/user.entity';
 import {
@@ -52,6 +53,7 @@ export class EventsService {
     private readonly notifications: NotificationsService,
     private readonly promoCodes: PromoCodesService,
     private readonly usersService: UsersService,
+    private readonly mail: MailService,
   ) {}
 
   private now(): Date {
@@ -74,6 +76,7 @@ export class EventsService {
     event: Event,
     metrics: EventListMetrics,
     isSubscribed?: boolean,
+    isTicketUsed?: boolean,
   ): EventResponseDto {
     const company = event.company;
     const owner = company.owner;
@@ -104,6 +107,7 @@ export class EventsService {
       status: event.status as EventResponseDto['status'],
       redirectAfterPurchase: event.redirectAfterPurchase ?? null,
       ...(isSubscribed !== undefined ? { isSubscribed } : {}),
+      ...(isTicketUsed !== undefined ? { isTicketUsed } : {}),
     };
   }
 
@@ -262,14 +266,15 @@ export class EventsService {
     const m = metrics.get(id) ?? bootstrapMetrics();
 
     let isSubscribed: boolean | undefined;
+    let isTicketUsed: boolean | undefined;
     if (viewerId != null) {
-      isSubscribed = await this.bookingsService.userHasBookingForEvent(
-        viewerId,
-        id,
-      );
+      isSubscribed = await this.bookingsService.userHasBookingForEvent(viewerId, id);
+      if (isSubscribed) {
+        isTicketUsed = await this.bookingsService.hasUsedBookingForEvent(viewerId, id);
+      }
     }
 
-    return this.toEventDto(event, m, isSubscribed);
+    return this.toEventDto(event, m, isSubscribed, isTicketUsed);
   }
 
   async create(
@@ -324,15 +329,27 @@ export class EventsService {
     const saved = await this.eventRepo.save(row);
 
     if (status === EventStatus.PUBLISHED) {
-      const followerIds = await this.companyFollows.getFollowerIds(company.id);
+      const followers = await this.companyFollows.getFollowersWithContact(company.id);
       await Promise.all(
-        followerIds.map((fid) =>
-          this.notifications.notifyUser(
-            fid,
+        followers.map(async (f) => {
+          await this.notifications.notifyUser(
+            f.id,
             'company_new_event',
             `${company.name} published a new event: "${dto.title}"`,
-          ),
-        ),
+          );
+          if (f.email) {
+            void this.mail.sendNewEventEmail(
+              f.email,
+              f.name ?? 'there',
+              company.name,
+              dto.title,
+              dto.date,
+              saved.id,
+              dto.location ?? null,
+              coverUrl,
+            );
+          }
+        }),
       );
     }
 
@@ -470,15 +487,27 @@ export class EventsService {
       prevStatus !== EventStatus.PUBLISHED &&
       event.status === EventStatus.PUBLISHED
     ) {
-      const followerIds = await this.companyFollows.getFollowerIds(event.company.id);
+      const followers = await this.companyFollows.getFollowersWithContact(event.company.id);
       await Promise.all(
-        followerIds.map((fid) =>
-          this.notifications.notifyUser(
-            fid,
+        followers.map(async (f) => {
+          await this.notifications.notifyUser(
+            f.id,
             'company_new_event',
             `${event.company.name} published a new event: "${event.title}"`,
-          ),
-        ),
+          );
+          if (f.email) {
+            void this.mail.sendNewEventEmail(
+              f.email,
+              f.name ?? 'there',
+              event.company.name,
+              event.title,
+              event.date.toISOString(),
+              eventId,
+              event.location ?? null,
+              event.coverUrl ?? null,
+            );
+          }
+        }),
       );
     }
 
@@ -659,6 +688,9 @@ export class EventsService {
     if (!this.isPubliclyVisible(event, this.now())) {
       throw new NotFoundException('Event not found');
     }
+    if (event.date < this.now()) {
+      throw new BadRequestException('This event has already ended');
+    }
 
     const already = await this.bookingsService.userHasBookingForEvent(
       userId,
@@ -779,12 +811,38 @@ export class EventsService {
   }
 
   async unsubscribe(userId: number, eventId: string): Promise<void> {
+    const isUsed = await this.bookingsService.hasUsedBookingForEvent(userId, eventId);
+    if (isUsed) {
+      throw new BadRequestException('This ticket has already been used and cannot be cancelled');
+    }
+
     const removed = await this.bookingsService.removeAllForUserAndEvent(
       userId,
       eventId,
     );
     if (!removed) {
       throw new NotFoundException('No booking found for this event');
+    }
+
+    const [event, user] = await Promise.all([
+      this.eventRepo.findOne({ where: { id: eventId } }),
+      this.usersService.findOne(userId).catch(() => null),
+    ]);
+
+    if (event) {
+      await this.notifications.notifyUser(
+        userId,
+        'ticket_cancellation',
+        `Your booking for "${event.title}" has been cancelled.`,
+      );
+      if (user?.email) {
+        void this.mail.sendCancellationConfirmation(
+          user.email,
+          user.name ?? 'there',
+          event.title,
+          event.date.toISOString(),
+        );
+      }
     }
   }
 

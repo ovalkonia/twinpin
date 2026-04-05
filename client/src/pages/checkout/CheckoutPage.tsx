@@ -216,7 +216,7 @@ function CheckoutForm({ event, tier, qty, onSuccess, promo, onPromoChange }: For
 // ─── Redirect countdown ───────────────────────────────────────────────────────
 
 function RedirectCountdown({ url }: { url: string }) {
-    const [secs, setSecs] = useState(3);
+    const [secs, setSecs] = useState(4);
 
     useEffect(() => {
         if (secs <= 0) {

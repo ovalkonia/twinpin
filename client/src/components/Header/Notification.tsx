@@ -53,6 +53,9 @@ const Notifications: React.FC = () => {
 
     useEffect(() => {
         fetchNotifications();
+        const onFocus = () => fetchNotifications();
+        window.addEventListener('focus', onFocus);
+        return () => window.removeEventListener('focus', onFocus);
     }, [fetchNotifications]);
 
     useEffect(() => {
@@ -73,12 +76,33 @@ const Notifications: React.FC = () => {
             toast.error("Failed to delete");
         }
     };
+    const unreadCount = notifications.filter(n => !n.read).length;
+
+    const CATEGORY_LABELS: Record<string, string> = {
+        event: 'Events',
+        ticket: 'Tickets',
+        system: 'System',
+    };
+
+    const grouped = (['event', 'ticket', 'system'] as const)
+        .map(cat => ({ cat, items: notifications.filter(n => n.category === cat) }))
+        .filter(g => g.items.length > 0);
+
     return (
         <div className="notification-bell-container" ref={dropdownRef}>
-            <button className="header-icon-btn notification-bell-btn" onClick={() => setIsOpen(!isOpen)} aria-label="Notifications">
+            <button className="header-icon-btn notification-bell-btn" onClick={() => {
+                const opening = !isOpen;
+                setIsOpen(opening);
+                if (opening) {
+                    fetchNotifications().then(() => {
+                        void api.patch('/notifications/mark-all-read').catch(() => {});
+                        setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+                    });
+                }
+            }} aria-label="Notifications">
                 <IconBell size={20} />
-                {notifications.length > 0 && (
-                    <span className="notification-badge">{notifications.length}</span>
+                {unreadCount > 0 && (
+                    <span className="notification-badge">{unreadCount}</span>
                 )}
             </button>
 
@@ -94,17 +118,23 @@ const Notifications: React.FC = () => {
                         ) : notifications.length === 0 ? (
                             <p className="notification-status">No notifications</p>
                         ) : (
-                            notifications.map(n => (
-                                <div key={n.id} className="notification-item">
-                                    <div
-                                        className="notification-item-body"
-                                        onClick={() => { navigate('/notifications'); setIsOpen(false); }}
-                                    >
-                                        <p className="notification-title">{n.title}</p>
-                                        <p className="notification-author">{n.category}</p>
-                                        <p className="notification-meta">{n.message} · {formatDate(n.date)}</p>
-                                    </div>
-                                    <button className="notification-delete-btn" onClick={() => handleDeleteNotification(n.id)}>&times;</button>
+                            grouped.map(({ cat, items }) => (
+                                <div key={cat}>
+                                    <p style={{ margin: '8px 12px 4px', fontSize: 11, fontWeight: 600, color: '#555', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                                        {CATEGORY_LABELS[cat]}
+                                    </p>
+                                    {items.map(n => (
+                                        <div key={n.id} className={`notification-item${n.read ? '' : ' notification-item--unread'}`}>
+                                            <div
+                                                className="notification-item-body"
+                                                onClick={() => { navigate('/notifications'); setIsOpen(false); }}
+                                            >
+                                                <p className="notification-title">{n.title}</p>
+                                                <p className="notification-meta">{n.message} · {formatDate(n.date)}</p>
+                                            </div>
+                                            <button className="notification-delete-btn" onClick={() => handleDeleteNotification(n.id)}>&times;</button>
+                                        </div>
+                                    ))}
                                 </div>
                             ))
                         )}

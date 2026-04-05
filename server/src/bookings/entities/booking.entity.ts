@@ -34,6 +34,12 @@ export class Booking {
   @Column({ default: false })
   hidden: boolean;
 
+  @Column({ type: 'varchar', length: 64, unique: true, nullable: true })
+  ticketCode: string | null;
+
+  @Column({ type: 'timestamptz', nullable: true, default: null })
+  usedAt: Date | null;
+
   @CreateDateColumn()
   createdAt: Date;
 }
