@@ -21,5 +21,5 @@ COPY --from=builder /app/dist ./dist
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 USER appuser
 
-EXPOSE 4173
-CMD ["serve", "-s", "dist", "-l", "4173"]
+EXPOSE 5173
+CMD ["serve", "-s", "dist", "-l", "5173"]
