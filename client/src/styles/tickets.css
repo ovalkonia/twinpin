@@ -1,0 +1,642 @@
+/* ── Page layout ────────────────────────────────────────────── */
+.tickets-page {
+    min-height: 100vh;
+    padding-top: 64px;
+    background: #0a0a0a;
+    color: #e0e0e0;
+    font-family: system-ui, -apple-system, sans-serif;
+}
+
+.tickets-content {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 48px 32px 64px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+}
+
+/* ── Page header ────────────────────────────────────────────── */
+.tickets-header {
+    animation: tkt-fadeInUp 0.35s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.tickets-heading {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: #e0e0e0;
+    margin: 0 0 6px;
+    letter-spacing: -0.3px;
+}
+
+.tickets-heading span {
+    color: #ff6b00;
+}
+
+.tickets-subheading {
+    font-size: 14px;
+    color: #666;
+    margin: 0;
+}
+
+/* ── Tabs ───────────────────────────────────────────────────── */
+.tickets-tabs {
+    display: flex;
+    gap: 4px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    animation: tkt-fadeInUp 0.35s 0.05s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.tickets-tab {
+    padding: 10px 22px;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: #666;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+    margin-bottom: -1px;
+}
+
+.tickets-tab:hover {
+    color: #999;
+}
+
+.tickets-tab.active {
+    color: #ff6b00;
+    border-bottom-color: #ff6b00;
+}
+
+.tickets-tab-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    background: rgba(255, 107, 0, 0.12);
+    border-radius: 50%;
+    font-size: 11px;
+    font-weight: 700;
+    margin-left: 7px;
+    color: #ff6b00;
+}
+
+/* ── Ticket list ────────────────────────────────────────────── */
+.tickets-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    animation: tkt-fadeInUp 0.35s 0.1s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+/* ── Empty state ────────────────────────────────────────────── */
+.tickets-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 56px 0;
+    color: #555;
+    animation: tkt-fadeInUp 0.35s 0.1s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.tickets-empty-icon {
+    opacity: 0.4;
+}
+
+.tickets-empty p {
+    margin: 0;
+    font-size: 14px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TICKET CARD  (tkt-*)
+═══════════════════════════════════════════════════════════════ */
+
+/* ── Card shell ─────────────────────────────────────────────── */
+.tkt-card {
+    display: flex;
+    flex-direction: column;
+    background: #111;
+    border: 1px solid rgba(255, 107, 0, 0.15);
+    border-radius: 14px;
+    overflow: hidden;
+    position: relative;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.tkt-card:hover {
+    border-color: rgba(255, 107, 0, 0.4);
+    box-shadow: 0 4px 24px rgba(255, 107, 0, 0.06);
+}
+
+.tkt-card--cancelled {
+    opacity: 0.65;
+}
+
+/* ── Cover image strip ──────────────────────────────────────── */
+.tkt-cover {
+    height: 80px;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.tkt-cover::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(17,17,17,0) 20%, #111 100%);
+}
+
+/* ── Inner row (body + sep + stub) ──────────────────────────── */
+.tkt-inner {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+}
+
+/* ── Event link in title ────────────────────────────────────── */
+.tkt-title-link {
+    text-decoration: none;
+    display: block;
+}
+
+.tkt-title-link:hover .tkt-title {
+    color: #ff6b00;
+}
+
+/* ── View event footer link ─────────────────────────────────── */
+.tkt-event-link {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #666;
+    text-decoration: none;
+    transition: color 0.15s;
+}
+
+.tkt-event-link:hover {
+    color: #ff6b00;
+}
+
+/* ── Main body ──────────────────────────────────────────────── */
+.tkt-body {
+    flex: 1;
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    min-width: 0;
+}
+
+.tkt-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.tkt-category {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    padding: 3px 9px;
+    border-radius: 20px;
+    background: rgba(255, 107, 0, 0.1);
+    color: #ff6b00;
+    border: 1px solid rgba(255, 107, 0, 0.25);
+}
+
+.tkt-status {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+}
+
+.tkt-status--active {
+    background: rgba(46, 204, 113, 0.1);
+    color: #2ecc71;
+    border: 1px solid rgba(46, 204, 113, 0.25);
+}
+
+.tkt-status--used {
+    background: rgba(255, 255, 255, 0.05);
+    color: #888;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tkt-status--cancelled {
+    background: rgba(231, 76, 60, 0.1);
+    color: #e74c3c;
+    border: 1px solid rgba(231, 76, 60, 0.25);
+}
+
+.tkt-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #e0e0e0;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tkt-meta {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+
+.tkt-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 13px;
+    color: #999;
+}
+
+.tkt-checkin {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #2ecc71;
+    padding: 5px 10px;
+    border-radius: 20px;
+    background: rgba(46, 204, 113, 0.08);
+    border: 1px solid rgba(46, 204, 113, 0.2);
+    width: fit-content;
+}
+
+.tkt-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 6px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.tkt-count {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    color: #666;
+}
+
+.tkt-price {
+    font-size: 14px;
+    font-weight: 700;
+    color: #ff6b00;
+}
+
+/* ── Perforated separator ───────────────────────────────────── */
+.tkt-sep {
+    width: 28px;
+    flex-shrink: 0;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* The notch "holes" — match page background so they look punched */
+.tkt-sep::before,
+.tkt-sep::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #0a0a0a;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2;
+}
+
+.tkt-sep::before { top: -10px; }
+.tkt-sep::after  { bottom: -10px; }
+
+.tkt-sep-line {
+    width: 0;
+    height: 100%;
+    border-left: 2px dashed rgba(255, 107, 0, 0.2);
+}
+
+/* ── Right stub ─────────────────────────────────────────────── */
+.tkt-stub {
+    width: 182px;
+    flex-shrink: 0;
+    padding: 18px 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.tkt-code {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: #555;
+    text-transform: uppercase;
+}
+
+.tkt-qr-wrap {
+    background: #1a1a1a;
+    border-radius: 8px;
+    padding: 8px;
+    line-height: 0;
+}
+
+.tkt-stub-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+}
+
+/* ── Attendee visibility toggle ─────────────────────────────── */
+.tkt-visibility-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.tkt-toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #666;
+}
+
+.tkt-toggle {
+    position: relative;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.tkt-toggle input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.tkt-toggle-track {
+    display: block;
+    width: 36px;
+    height: 20px;
+    border-radius: 10px;
+    background: #2a2a2a;
+    border: 1px solid #333;
+    position: relative;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.tkt-toggle-track--on {
+    background: #ff6b00;
+    border-color: #ff6b00;
+}
+
+.tkt-toggle-thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: white;
+    transition: left 0.2s;
+}
+
+.tkt-toggle-track--on .tkt-toggle-thumb {
+    left: 18px;
+}
+
+/* ── Action buttons ─────────────────────────────────────────── */
+.tkt-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 7px 12px;
+    border-radius: 50px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.2s, border-color 0.2s, color 0.2s;
+    white-space: nowrap;
+}
+
+.tkt-btn--primary {
+    background: #ff6b00;
+    color: white;
+    border: none;
+}
+
+.tkt-btn--primary:hover {
+    background: #ff8533;
+}
+
+.tkt-btn--ghost {
+    background: transparent;
+    border: 1px solid rgba(255, 107, 0, 0.3);
+    color: #ff6b00;
+}
+
+.tkt-btn--ghost:hover {
+    background: rgba(255, 107, 0, 0.08);
+    border-color: #ff6b00;
+}
+
+.tkt-btn--hidden {
+    color: #666;
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.tkt-btn--hidden:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: #999;
+}
+
+.tkt-btn--hidden-active {
+    color: #ff6b00;
+    border-color: rgba(255, 107, 0, 0.3);
+}
+
+.tkt-btn--hidden-active:hover {
+    background: rgba(255, 107, 0, 0.08);
+    border-color: #ff6b00;
+}
+
+/* ── QR Modal ───────────────────────────────────────────────── */
+.tkt-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.tkt-modal {
+    background: #111;
+    border: 1px solid rgba(255, 107, 0, 0.2);
+    border-radius: 20px;
+    padding: 32px 28px;
+    width: 320px;
+    max-width: 90vw;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    position: relative;
+    animation: tkt-fadeInUp 0.25s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.tkt-modal-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: rgba(255, 255, 255, 0.06);
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+
+.tkt-modal-close:hover {
+    background: rgba(255, 107, 0, 0.12);
+    color: #ff6b00;
+}
+
+.tkt-modal-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #e0e0e0;
+    text-align: center;
+    margin: 4px 0 0;
+}
+
+.tkt-modal-sub {
+    font-size: 13px;
+    color: #666;
+    text-align: center;
+    margin: 0;
+}
+
+.tkt-modal-graphic {
+    background: #1a1a1a;
+    border-radius: 12px;
+    padding: 16px;
+    line-height: 0;
+    margin: 8px 0;
+}
+
+.tkt-modal-code {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: #ff6b00;
+    text-transform: uppercase;
+    margin: 0;
+}
+
+.tkt-modal-hint {
+    font-size: 12px;
+    color: #555;
+    text-align: center;
+    margin: 0;
+}
+
+/* ── Animation ──────────────────────────────────────────────── */
+@keyframes tkt-fadeInUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Responsive ─────────────────────────────────────────────── */
+@media (max-width: 640px) {
+    .tickets-content {
+        padding: 32px 16px 48px;
+    }
+
+    .tkt-inner {
+        flex-direction: column;
+    }
+
+    .tkt-sep {
+        width: 100%;
+        height: 28px;
+        flex-direction: row;
+    }
+
+    .tkt-sep::before,
+    .tkt-sep::after {
+        top: 50%;
+        transform: translateY(-50%);
+        left: auto;
+    }
+
+    .tkt-sep::before { left: -10px; }
+    .tkt-sep::after  { right: -10px; left: auto; transform: translateY(-50%); }
+
+    .tkt-sep-line {
+        width: 100%;
+        height: 0;
+        border-left: none;
+        border-top: 2px dashed rgba(255, 107, 0, 0.2);
+    }
+
+    .tkt-stub {
+        width: 100%;
+        padding: 14px 16px;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .tkt-stub-actions {
+        flex-direction: row;
+        flex-wrap: wrap;
+        width: auto;
+        flex: 1;
+        min-width: 0;
+    }
+
+    .tkt-btn {
+        width: auto;
+        flex: 1;
+    }
+}

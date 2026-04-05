@@ -1,0 +1,166 @@
+/* ── Header bar ──────────────────────────────────────────────── */
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 64px;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    background: rgba(10, 10, 10, 0.9);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255, 107, 0, 0.1);
+    font-family: system-ui, -apple-system, sans-serif;
+}
+
+/* ── Brand ───────────────────────────────────────────────────── */
+.header-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    flex-shrink: 0;
+    text-decoration: none;
+}
+
+.header-brand img {
+    width: 28px;
+    height: 28px;
+    display: block;
+}
+
+.header-brand-name {
+    font-size: 17px;
+    font-weight: 700;
+    color: #e0e0e0;
+    transition: color 0.2s;
+}
+
+.header-brand:hover .header-brand-name {
+    color: #ff6b00;
+}
+
+/* ── Search ──────────────────────────────────────────────────── */
+.header-search {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: 420px;
+    width: 100%;
+    padding: 0 24px;
+    box-sizing: border-box;
+}
+
+.header-search-input {
+    width: 100%;
+    padding: 9px 18px;
+    background: #141414;
+    border: 1px solid #252525;
+    border-radius: 50px;
+    color: #e0e0e0;
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+    box-sizing: border-box;
+}
+
+.header-search-input::placeholder {
+    color: #444;
+}
+
+.header-search-input:focus {
+    border-color: #ff6b00;
+    background: #181818;
+}
+
+/* ── Actions ─────────────────────────────────────────────────── */
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+/* ── Burger / icon button ────────────────────────────────────── */
+.header-icon-btn {
+    background: none;
+    border: none;
+    outline: none;
+    color: #888;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    flex-shrink: 0;
+    padding: 0;
+}
+
+.header-icon-btn:hover {
+    background: rgba(255, 107, 0, 0.1);
+    color: #ff6b00;
+}
+
+.header-icon-btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(255, 107, 0, 0.4);
+}
+
+/* ── Auth buttons ────────────────────────────────────────────── */
+.header-auth-btn {
+    padding: 8px 18px;
+    background: #ff6b00;
+    border: none;
+    border-radius: 50px;
+    color: white;
+    font-size: 13px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.2s;
+    white-space: nowrap;
+}
+
+.header-auth-btn:hover {
+    background: #ff8533;
+}
+
+.header-auth-btn--ghost {
+    background: transparent;
+    color: #ccc;
+    border: 1px solid #2a2a2a;
+}
+
+.header-auth-btn--ghost:hover {
+    background: transparent;
+    border-color: rgba(255, 107, 0, 0.4);
+    color: #ff6b00;
+}
+
+/* ── Responsive ──────────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .header {
+        padding: 0 16px;
+    }
+
+    .header-brand-name {
+        display: none;
+    }
+
+    .header-search {
+        padding: 0 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .header-search {
+        display: none;
+    }
+}
