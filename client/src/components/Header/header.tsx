@@ -5,7 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { BurgerMenu } from './BurgerMenu';
 import Notifications from './Notification';
 import { IconMenu } from '../../assets/icons';
-import logoSvg from '../../assets/white.svg';
+import logoSvg from '../../assets/logo.png';
 import './header.css';
 
 const Header: React.FC = () => {

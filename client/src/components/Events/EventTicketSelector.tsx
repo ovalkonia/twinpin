@@ -35,6 +35,8 @@ export default function EventTicketSelector({
     const currency = selected?.currency ?? 'EUR';
     const fmt = (n: number) => `${currency} ${n.toFixed(2)}`;
 
+    const allSoldOut = tickets.length > 0 && tickets.every(t => t.availableSpots === 0);
+
     if (isBooked) {
         return (
             <div className="ev-ticket-selector">
@@ -42,6 +44,13 @@ export default function EventTicketSelector({
                     <span className="ev-ticket-booked-check">✓</span>
                     <span>You're going!</span>
                 </div>
+                {allSoldOut && (
+                    <div className="ev-ticket-all-soldout" style={{ marginTop: 12 }}>
+                        <div className="ev-ticket-all-soldout-icon">🎟</div>
+                        <div className="ev-ticket-all-soldout-title">Sold Out</div>
+                        <div className="ev-ticket-all-soldout-sub">No more spots available for others.</div>
+                    </div>
+                )}
                 <button
                     className="ev-ticket-cancel-btn"
                     onClick={onCancel}
@@ -52,8 +61,6 @@ export default function EventTicketSelector({
             </div>
         );
     }
-
-    const allSoldOut = tickets.length > 0 && tickets.every(t => t.availableSpots === 0);
 
     if (tickets.length === 0) {
         return (

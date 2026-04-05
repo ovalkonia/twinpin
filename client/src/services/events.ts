@@ -27,6 +27,7 @@ export interface Event {
     organizerLogoUrl?: string;
     status: 'draft' | 'published' | 'cancelled';
     isSubscribed?: boolean;
+    redirectAfterPurchase?: string | null;
 }
 
 export interface TicketTier {

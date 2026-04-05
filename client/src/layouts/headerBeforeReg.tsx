@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 
-import logoSvg from '../assets/white.svg';
+import logoSvg from '../assets/logo.png';
 import '../styles/header.css';
 
 const HeaderBeforeReg = () => {

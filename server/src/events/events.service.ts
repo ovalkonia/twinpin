@@ -102,6 +102,7 @@ export class EventsService {
       organizerSlug: company.slug ?? undefined,
       organizerLogoUrl: company.logoUrl ?? undefined,
       status: event.status as EventResponseDto['status'],
+      redirectAfterPurchase: event.redirectAfterPurchase ?? null,
       ...(isSubscribed !== undefined ? { isSubscribed } : {}),
     };
   }

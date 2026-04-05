@@ -98,6 +98,9 @@ export class EventResponseDto {
 
   @ApiPropertyOptional()
   isSubscribed?: boolean;
+
+  @ApiPropertyOptional({ nullable: true })
+  redirectAfterPurchase?: string | null;
 }
 
 export class PaginatedEventsResponseDto {

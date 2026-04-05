@@ -213,6 +213,27 @@ function CheckoutForm({ event, tier, qty, onSuccess, promo, onPromoChange }: For
     );
 }
 
+// ─── Redirect countdown ───────────────────────────────────────────────────────
+
+function RedirectCountdown({ url }: { url: string }) {
+    const [secs, setSecs] = useState(3);
+
+    useEffect(() => {
+        if (secs <= 0) {
+            window.location.href = url;
+            return;
+        }
+        const t = setTimeout(() => setSecs(s => s - 1), 1000);
+        return () => clearTimeout(t);
+    }, [secs, url]);
+
+    return (
+        <p style={{ color: '#888', fontSize: 13, marginTop: 16 }}>
+            Redirecting you in {secs} second{secs !== 1 ? 's' : ''}…
+        </p>
+    );
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export const CheckoutPage: React.FC = () => {
@@ -228,6 +249,7 @@ export const CheckoutPage: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [succeeded, setSucceeded] = useState(false);
     const [paidTotal, setPaidTotal] = useState(0);
+    const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
     const [promo, setPromo] = useState<PromoCodeResult | null>(null);
 
     useEffect(() => {
@@ -294,14 +316,18 @@ export const CheckoutPage: React.FC = () => {
                                 </div>
                             )}
                         </div>
-                        <div className="co-success-actions">
-                            <button className="co-success-btn-primary" onClick={() => navigate('/tickets')}>
-                                My Tickets
-                            </button>
-                            <button className="co-success-btn-ghost" onClick={() => navigate(`/events/${event.id}`)}>
-                                Back to Event
-                            </button>
-                        </div>
+                        {redirectUrl ? (
+                            <RedirectCountdown url={redirectUrl} />
+                        ) : (
+                            <div className="co-success-actions">
+                                <button className="co-success-btn-primary" onClick={() => navigate('/tickets')}>
+                                    My Tickets
+                                </button>
+                                <button className="co-success-btn-ghost" onClick={() => navigate(`/events/${event.id}`)}>
+                                    Back to Event
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
@@ -341,7 +367,11 @@ export const CheckoutPage: React.FC = () => {
                                 event={event}
                                 tier={tier}
                                 qty={qty}
-                                onSuccess={(t) => { setPaidTotal(t); setSucceeded(true); }}
+                                onSuccess={(t) => {
+                                    setPaidTotal(t);
+                                    if (event.redirectAfterPurchase) setRedirectUrl(event.redirectAfterPurchase);
+                                    setSucceeded(true);
+                                }}
                                 promo={promo}
                                 onPromoChange={setPromo}
                             />
@@ -352,7 +382,11 @@ export const CheckoutPage: React.FC = () => {
                             event={event}
                             tier={tier}
                             qty={qty}
-                            onSuccess={(t) => { setPaidTotal(t); setSucceeded(true); }}
+                            onSuccess={(t) => {
+                                setPaidTotal(t);
+                                if (event.redirectAfterPurchase) setRedirectUrl(event.redirectAfterPurchase);
+                                setSucceeded(true);
+                            }}
                             promo={promo}
                             onPromoChange={setPromo}
                         />

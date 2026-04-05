@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import '../styles/footer.css';
-import logoSvg from '../assets/white.svg';
+import logoSvg from '../assets/logo.png';
 
 const Footer = () => {
   return (

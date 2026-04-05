@@ -166,6 +166,8 @@ export default function EventPage() {
         try {
             await unsubscribeFromEvent(event.id);
             setIsBooked(false);
+            const freshTickets = await getEventTickets(event.id);
+            setEvent(prev => prev ? { ...prev, tickets: freshTickets } : prev);
             toast.success('Booking cancelled');
         } catch {
             toast.error('Failed to cancel booking');
