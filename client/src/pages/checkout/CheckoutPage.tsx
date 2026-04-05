@@ -14,6 +14,7 @@ const stripeKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY as string | undefined;
 const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
 
 const CARD_STYLE = {
+    hidePostalCode: true,
     style: {
         base: {
             color: '#e0e0e0',

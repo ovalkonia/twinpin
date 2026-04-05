@@ -1,7 +1,13 @@
 services:
   frontend:
     container_name: twinpin-client
-    build: .
+    build:
+      context: .
+      args:
+        - VITE_API_URL=${VITE_API_URL}
+        - VITE_STRIPE_PUBLIC_KEY=${VITE_STRIPE_PUBLIC_KEY}
+        - VITE_GOOGLE_CLIENT_ID=${VITE_GOOGLE_CLIENT_ID}
+        - VITE_GOOGLE_MAPS_API_KEY=${VITE_GOOGLE_MAPS_API_KEY}
     ports:
       - "5173:5173"
     networks:

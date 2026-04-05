@@ -36,9 +36,23 @@ async function bootstrap() {
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle('Twinpin API')
-    .setDescription('HTTP API for Twinpin')
+    .setDescription(
+      `REST API for the **Twinpin** event platform.\n\n` +
+      `## Authentication\n` +
+      `Most write endpoints require a JWT bearer token. Obtain one via \`POST /auth/login\` ` +
+      `or the Google OAuth2 redirect flow (\`GET /auth/google\`).\n\n` +
+      `## Key conventions\n` +
+      `- \`/events/:id/subscribe\` — **ticket booking** (purchase)\n` +
+      `- \`/events/:id/watch\` — **notification subscription** (watch for updates)\n` +
+      `- Company and event IDs are UUIDs; user IDs are integers.\n\n` +
+      `## Swagger UI\n` +
+      `Click **Authorize** (top-right) and paste your JWT to test protected endpoints.`,
+    )
     .setVersion('1.0')
-    .addBearerAuth()
+    .addBearerAuth(
+      { type: 'http', scheme: 'bearer', bearerFormat: 'JWT', description: 'Paste the JWT returned by /auth/login' },
+      'bearer',
+    )
     .build();
   const document = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('api/docs', app, document);

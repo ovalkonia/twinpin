@@ -33,7 +33,7 @@ export class TicketTierDto {
   @Min(0)
   price: number;
 
-  @ApiPropertyOptional({ default: 'USD' })
+  @ApiPropertyOptional({ default: 'EUR' })
   @IsOptional()
   @IsString()
   @MaxLength(10)
@@ -109,7 +109,7 @@ export class CreateEventFieldsDto {
   @Min(0)
   price?: number;
 
-  @ApiPropertyOptional({ default: 'USD' })
+  @ApiPropertyOptional({ default: 'EUR' })
   @IsOptional()
   @IsString()
   @MaxLength(10)
@@ -141,9 +141,12 @@ export class CreateEventFieldsDto {
 
   @ApiPropertyOptional()
   @IsOptional()
-  @Transform(({ value }) => {
-    if (value === true || value === 'true') return true;
-    if (value === false || value === 'false') return false;
+  @Transform(({ value, obj, key }) => {
+    // Read the original source value to bypass enableImplicitConversion,
+    // which converts 'false' → Boolean('false') = true before @Transform runs.
+    const raw = (obj as Record<string, unknown>)[key as string] ?? value;
+    if (raw === true || raw === 'true') return true;
+    if (raw === false || raw === 'false') return false;
     return undefined;
   })
   @IsBoolean()

@@ -1,16 +1,104 @@
-# React + Vite
+# Twinpin — Client
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A React 19 + TypeScript single-page application for discovering, following, and booking events. Built with Vite and a fully custom dark-theme design system — no UI library.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Browse and search events by category, date, and location
+- Google OAuth2 and email/password authentication
+- Book tickets with promo code support (percentage and fixed discounts)
+- QR code ticket view on your tickets page
+- Follow companies and watch events to receive in-app notifications
+- Toggle attendee list visibility at checkout or from your tickets page
+- Organizer dashboard: create/manage events and companies, manage team members
 
-## React Compiler
+## Requirements
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+| Requirement | Version |
+|---|---|
+| Node.js | ≥ 20 |
+| npm | ≥ 10 |
+| Twinpin server | running on port 3000 — see [server/README.md](../server/README.md) |
 
-## Expanding the ESLint configuration
+## Dependencies
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+| Package | Version | Purpose |
+|---|---|---|
+| react | ^19.2.0 | UI framework |
+| react-dom | ^19.2.0 | DOM rendering |
+| react-router-dom | ^7.13.1 | Client-side routing |
+| axios | ^1.13.6 | HTTP client |
+| @stripe/react-stripe-js | ^5.6.1 | Stripe payment UI components |
+| @stripe/stripe-js | ^8.11.0 | Stripe.js loader |
+| @react-oauth/google | ^0.13.4 | Google OAuth2 sign-in button |
+| react-hot-toast | ^2.6.0 | Toast notifications |
+| react-qr-code | ^2.0.18 | QR code rendering for tickets |
+
+**Dev / build tooling:** Vite ^7.3.1, TypeScript ^5.9.3, ESLint ^9.39.1
+
+## Environment Variables
+
+The client reads from a single `.env` file at the **repo root** (not inside `client/`). Copy the example and fill in your values:
+
+```bash
+# from the repo root
+cp .env.example .env
+```
+
+Client-specific variables:
+
+| Variable | Description |
+|---|---|
+| `VITE_API_URL` | Backend API base URL (e.g. `http://localhost:3000`) |
+| `VITE_GOOGLE_CLIENT_ID` | Google OAuth2 client ID from Google Cloud Console |
+| `VITE_STRIPE_PUBLIC_KEY` | Stripe publishable key |
+| `VITE_GOOGLE_MAPS_API_KEY` | Google Maps API key (event location display) |
+
+## How to Run
+
+### 1. Clone the repository
+
+```bash
+git clone <repo-url>
+cd twinpin
+```
+
+### 2. Configure environment
+
+```bash
+cp .env.example .env
+```
+
+Open `.env` and set at minimum:
+
+```env
+VITE_API_URL=http://localhost:3000
+VITE_GOOGLE_CLIENT_ID=your_google_client_id
+VITE_STRIPE_PUBLIC_KEY=your_stripe_public_key
+```
+
+### 3. Install dependencies
+
+```bash
+cd client
+npm install
+```
+
+### 4. Start the development server
+
+```bash
+npm run dev
+```
+
+The app will be available at **http://localhost:5173**.
+
+> The backend must be running before you start the client. See [server/README.md](../server/README.md).
+
+## Available Scripts
+
+| Script | Description |
+|---|---|
+| `npm run dev` | Start Vite dev server with hot-reload |
+| `npm run build` | Production build to `dist/` |
+| `npm run preview` | Preview the production build locally |
+| `npm run lint` | Run ESLint |

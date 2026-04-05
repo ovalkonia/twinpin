@@ -20,9 +20,18 @@ export function normalizeEventMultipartBody(
     }
   }
 
+  const BOOL_FIELDS = ['notifyOnNewVisitor'] as const;
+  const boolOverrides: Record<string, boolean> = {};
+  for (const field of BOOL_FIELDS) {
+    const raw = rest[field];
+    if (raw === 'true' || raw === true) boolOverrides[field] = true;
+    else if (raw === 'false' || raw === false) boolOverrides[field] = false;
+  }
+
   return {
     ...rest,
     ...(tags !== undefined ? { tags } : {}),
     ...(tickets !== undefined ? { tickets } : {}),
+    ...boolOverrides,
   };
 }

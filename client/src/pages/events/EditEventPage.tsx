@@ -166,7 +166,7 @@ export const EditEventPage: React.FC = () => {
                 redirectUrl: (evt as any).redirectAfterPurchase ?? '',
                 attendeeVisibility:
                     (evt as any).visitorListPrivacy === 'attendees' ? 'attendees' : 'everyone',
-                organizerNotifications: (evt as any).notifyOnNewVisitor ?? true,
+                organizerNotifications: (evt as any).notifyOnNewVisitor ?? false,
                 status: evt.status,
             });
 
