@@ -57,6 +57,7 @@ const Login: React.FC = () => {
                         id="password"
                         type="password"
                         name="password"
+                        placeholder="••••••••"
                         value={formData.password}
                         onChange={handleChange}
                         required

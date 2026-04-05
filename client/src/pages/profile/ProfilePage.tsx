@@ -157,6 +157,9 @@ export const ProfilePage = () => {
                     {isOwnProfile && (
                         <div className="profile-card-actions">
                             <Link to="/profile/edit" className="profile-edit-btn">Edit Profile</Link>
+                            {currentUser?.role === 'admin' && (
+                                <a href="/admin" className="profile-edit-btn">Admin Panel</a>
+                            )}
                         </div>
                     )}
 

@@ -362,8 +362,86 @@ function adminLoginHtml({ loginPath, googlePath, error }: {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       min-height: 100vh;
       display: flex;
+      flex-direction: column;
+    }
+
+    /* === header === */
+    .site-header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      background: rgba(10,10,10,0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255,107,0,0.2);
+      z-index: 1000;
+    }
+    .site-header-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      font-size: 18px;
+      font-weight: 700;
+      color: #e0e0e0;
+      letter-spacing: 0.5px;
+      transition: color 0.2s;
+    }
+    .site-header-brand:hover { color: #ff6b00; }
+
+    /* === main (centers the card) === */
+    .site-main {
+      flex: 1;
+      display: flex;
       align-items: center;
       justify-content: center;
+      padding: 88px 16px 32px;
+    }
+
+    /* === footer === */
+    .site-footer {
+      width: 100%;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      background: #0a0a0a;
+      padding: 0 24px;
+    }
+    .site-footer-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      gap: 32px;
+    }
+    .site-footer-brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 700;
+      color: #555;
+      flex-shrink: 0;
+    }
+    .site-footer-links {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .site-footer-link {
+      font-size: 12px;
+      font-weight: 500;
+      color: #444;
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+    .site-footer-link:hover { color: #888; }
+    .site-footer-copy {
+      margin-left: auto;
+      font-size: 12px;
+      color: #333;
     }
 
     /* === card (matches .auth-card) === */
@@ -512,6 +590,11 @@ function adminLoginHtml({ loginPath, googlePath, error }: {
 <body>
   <div id="toast-container"></div>
 
+  <header class="site-header">
+    <a href="/dashboard" class="site-header-brand">Twinpin</a>
+  </header>
+
+  <main class="site-main">
   <div class="auth-card">
     <h2>Sign in</h2>
 
@@ -522,7 +605,7 @@ function adminLoginHtml({ loginPath, googlePath, error }: {
       </div>
       <div class="input-group">
         <label for="password">Password</label>
-        <input id="password" type="password" name="password" required autocomplete="current-password" />
+        <input id="password" type="password" name="password" placeholder="••••••••" required autocomplete="current-password" />
       </div>
       <button type="submit">Sign in</button>
     </form>
@@ -539,6 +622,19 @@ function adminLoginHtml({ loginPath, googlePath, error }: {
       Continue with Google
     </a>
   </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <a href="/dashboard" class="site-footer-brand">Twinpin</a>
+      <nav class="site-footer-links">
+        <a href="/info/rules" class="site-footer-link">Rules</a>
+        <a href="/info/privacy" class="site-footer-link">Privacy</a>
+        <a href="/info/faq" class="site-footer-link">Help</a>
+      </nav>
+      <p class="site-footer-copy">© 2026 Twinpin</p>
+    </div>
+  </footer>
 
   <script>
     function showToast(message, type) {
